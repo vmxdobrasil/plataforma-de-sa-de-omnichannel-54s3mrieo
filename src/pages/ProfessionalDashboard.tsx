@@ -81,7 +81,9 @@ export default function ProfessionalDashboard() {
     try {
       const plans = await getTreatmentPlans(patientId)
       setTreatmentPlans(plans)
-    } catch (e) {}
+    } catch (e) {
+      console.error(e)
+    }
   }
 
   useEffect(() => {
