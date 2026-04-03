@@ -41,12 +41,16 @@ export default function Index() {
       try {
         const appts = await getPatientAppointments(user.id)
         setAppointments(appts)
-      } catch (e) {}
+      } catch (e) {
+        console.error(e)
+      }
     }
     try {
       const pros = await getProfessionals()
       setProfessionals(pros)
-    } catch (e) {}
+    } catch (e) {
+      console.error(e)
+    }
   }
 
   useEffect(() => {

@@ -29,7 +29,9 @@ export default function ProfessionalDashboard() {
       try {
         const appts = await getProfessionalAppointments(user.id)
         setAppointments(appts)
-      } catch (e) {}
+      } catch (e) {
+        console.error(e)
+      }
     }
   }
 
