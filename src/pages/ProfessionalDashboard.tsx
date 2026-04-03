@@ -1,9 +1,21 @@
-import { Users, DollarSign, Calendar as CalIcon, TrendingUp, Video } from 'lucide-react'
+import {
+  Users,
+  DollarSign,
+  Calendar as CalIcon,
+  TrendingUp,
+  Video,
+  FileText,
+  Upload,
+  Plus,
+} from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
 import { Area, AreaChart, ResponsiveContainer, XAxis, YAxis } from 'recharts'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Textarea } from '@/components/ui/textarea'
+import { Badge } from '@/components/ui/badge'
 
 const chartData = [
   { name: 'Seg', revenue: 1200 },
@@ -136,43 +148,61 @@ export default function ProfessionalDashboard() {
           </CardContent>
         </Card>
 
-        {/* Chart */}
+        {/* EHR / Prontuário */}
         <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle className="text-lg">Desempenho Financeiro</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <div>
+              <CardTitle className="text-lg">Prontuário Eletrônico (V MED EHR)</CardTitle>
+              <p className="text-sm text-muted-foreground">Paciente atual: Mariana Costa</p>
+            </div>
+            <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200">
+              Em Consulta
+            </Badge>
           </CardHeader>
           <CardContent>
-            <ChartContainer
-              config={{ revenue: { label: 'Faturamento (R$)', color: 'hsl(var(--primary))' } }}
-              className="h-[300px] w-full"
-            >
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
-                      <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12 }} />
-                  <YAxis
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fontSize: 12 }}
-                    tickFormatter={(val) => `R${val}`}
-                  />
-                  <ChartTooltip content={<ChartTooltipContent />} />
-                  <Area
-                    type="monotone"
-                    dataKey="revenue"
-                    stroke="hsl(var(--primary))"
-                    fillOpacity={1}
-                    fill="url(#colorRev)"
-                    strokeWidth={2}
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            </ChartContainer>
+            <Tabs defaultValue="notes" className="w-full mt-2">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="notes">Evolução Clínica</TabsTrigger>
+                <TabsTrigger value="prescriptions">Receitas</TabsTrigger>
+                <TabsTrigger value="attachments">Anexos</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="notes" className="space-y-4 mt-4">
+                <Textarea
+                  placeholder="Digite a evolução clínica, sintomas e observações..."
+                  className="min-h-[150px] resize-none border-primary/20 focus-visible:ring-primary/30"
+                />
+                <div className="flex justify-end gap-2">
+                  <Button variant="outline">Salvar Rascunho</Button>
+                  <Button>Assinar e Fechar</Button>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="prescriptions" className="space-y-4 mt-4">
+                <div className="bg-muted/30 p-4 rounded-lg border border-dashed flex flex-col items-center justify-center h-[150px] text-muted-foreground hover:bg-muted/50 transition-colors cursor-pointer">
+                  <Plus className="h-8 w-8 mb-2" />
+                  <p>Nova Prescrição Digital</p>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="attachments" className="space-y-4 mt-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="border rounded-lg p-3 flex items-center gap-3">
+                    <div className="bg-blue-100 p-2 rounded text-blue-600">
+                      <FileText className="h-4 w-4" />
+                    </div>
+                    <div className="flex-1 overflow-hidden">
+                      <p className="text-sm font-medium truncate">Raio-X_Face.pdf</p>
+                      <p className="text-xs text-muted-foreground">2.4 MB</p>
+                    </div>
+                  </div>
+                  <div className="border border-dashed rounded-lg p-3 flex items-center justify-center gap-2 text-muted-foreground hover:bg-muted/50 cursor-pointer">
+                    <Upload className="h-4 w-4" />
+                    <span className="text-sm font-medium">Anexar Exame</span>
+                  </div>
+                </div>
+              </TabsContent>
+            </Tabs>
           </CardContent>
         </Card>
       </div>

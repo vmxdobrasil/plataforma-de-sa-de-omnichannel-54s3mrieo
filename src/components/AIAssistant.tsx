@@ -8,7 +8,7 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 export function AIAssistant() {
   const [isOpen, setIsOpen] = useState(false)
   const [messages, setMessages] = useState<{ role: 'user' | 'ai'; text: string }[]>([
-    { role: 'ai', text: 'Olá! Sou a Vitalis AI. Como posso ajudar com sua saúde hoje?' },
+    { role: 'ai', text: 'Olá! Sou a V MED AI. Como posso ajudar com sua saúde hoje?' },
   ])
   const [input, setInput] = useState('')
 
@@ -18,13 +18,25 @@ export function AIAssistant() {
     setInput('')
 
     setTimeout(() => {
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: 'ai',
-          text: 'Com base no que você me disse, recomendo agendar uma avaliação. Posso filtrar os melhores especialistas para você.',
-        },
-      ])
+      const isCardio =
+        input.toLowerCase().includes('dor no peito') || input.toLowerCase().includes('coração')
+      const isDerma = input.toLowerCase().includes('pele') || input.toLowerCase().includes('mancha')
+      const isDental =
+        input.toLowerCase().includes('dente') || input.toLowerCase().includes('sorriso')
+
+      let recommendation =
+        'Com base no que você me disse, recomendo agendar uma avaliação clínica geral.'
+      if (isCardio)
+        recommendation =
+          'Sintomas como dor no peito exigem atenção. Recomendo buscar um Cardiologista imediatamente ou usar nosso botão SOS.'
+      else if (isDerma)
+        recommendation =
+          'Parece ser uma questão dermatológica. Posso filtrar especialistas em Dermatologia Estética e Clínica para você.'
+      else if (isDental)
+        recommendation =
+          'Para questões odontológicas, temos excelentes dentistas na rede V MED. Deseja ver os horários para Odontologia?'
+
+      setMessages((prev) => [...prev, { role: 'ai', text: recommendation }])
     }, 1000)
   }
 
@@ -35,7 +47,7 @@ export function AIAssistant() {
           <div className="p-3 border-b bg-primary text-primary-foreground flex justify-between items-center rounded-t-xl">
             <div className="flex items-center gap-2">
               <Bot className="h-5 w-5" />
-              <span className="font-semibold">Vitalis AI</span>
+              <span className="font-semibold">V MED AI</span>
             </div>
             <Button
               variant="ghost"

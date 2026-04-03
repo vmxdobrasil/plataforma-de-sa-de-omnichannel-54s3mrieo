@@ -101,39 +101,67 @@ export default function Index() {
         {/* Upcoming Journey */}
         <section className="md:col-span-2 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
           <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-            <ActivitySquare className="h-5 w-5 text-primary" /> Sua Jornada
+            <ActivitySquare className="h-5 w-5 text-primary" /> Sua Jornada: Cirurgia Estética
           </h2>
           <Card>
             <CardContent className="p-6">
               <div className="flex items-start gap-4">
                 <div className="flex flex-col items-center">
-                  <div className="h-3 w-3 bg-primary rounded-full" />
+                  <div className="h-3 w-3 bg-emerald-500 rounded-full" />
+                  <div className="w-0.5 h-full bg-emerald-500 min-h-[40px] my-1" />
+                </div>
+                <div className="pb-6">
+                  <Badge className="mb-2 bg-emerald-100 text-emerald-800 hover:bg-emerald-100">
+                    Concluído
+                  </Badge>
+                  <h3 className="font-semibold text-lg text-muted-foreground line-through">
+                    Avaliação Inicial
+                  </h3>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-4">
+                <div className="flex flex-col items-center">
+                  <div className="h-3 w-3 bg-emerald-500 rounded-full" />
+                  <div className="w-0.5 h-full bg-emerald-500 min-h-[40px] my-1" />
+                </div>
+                <div className="pb-6">
+                  <Badge className="mb-2 bg-emerald-100 text-emerald-800 hover:bg-emerald-100">
+                    Concluído
+                  </Badge>
+                  <h3 className="font-semibold text-lg text-muted-foreground line-through">
+                    Exames Pré-operatórios
+                  </h3>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-4">
+                <div className="flex flex-col items-center">
+                  <div className="h-3 w-3 bg-primary rounded-full animate-pulse" />
                   <div className="w-0.5 h-full bg-border min-h-[40px] my-1" />
                 </div>
                 <div className="pb-6">
-                  <Badge
-                    variant="secondary"
-                    className="mb-2 bg-secondary/20 text-secondary-foreground"
-                  >
-                    Amanhã, 14:00
+                  <Badge variant="secondary" className="mb-2 bg-primary/20 text-primary-foreground">
+                    Amanhã, 08:00
                   </Badge>
-                  <h3 className="font-semibold text-lg">Retorno: Pós-operatório Dental</h3>
+                  <h3 className="font-semibold text-lg">Cirurgia Estética (Rinoplastia)</h3>
                   <p className="text-muted-foreground text-sm mt-1">
-                    Lembre-se de não ingerir alimentos quentes antes da consulta.
+                    Jejum absoluto de 8 horas. Chegar com 1h de antecedência na Clínica V MED.
                   </p>
                 </div>
               </div>
+
               <div className="flex items-start gap-4">
                 <div className="flex flex-col items-center">
                   <div className="h-3 w-3 bg-muted rounded-full border-2 border-primary" />
                 </div>
                 <div>
                   <Badge variant="outline" className="mb-2">
-                    Semana que vem
+                    Daqui a 7 dias
                   </Badge>
-                  <h3 className="font-medium text-muted-foreground">Exame de Sangue de Rotina</h3>
+                  <h3 className="font-medium text-muted-foreground">Retorno Pós-operatório</h3>
                   <Button variant="link" className="p-0 h-auto text-primary mt-1">
-                    Ver preparo necessário <ArrowRight className="ml-1 h-3 w-3" />
+                    Agendar Horário <ArrowRight className="ml-1 h-3 w-3" />
                   </Button>
                 </div>
               </div>

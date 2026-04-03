@@ -2,7 +2,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
-import { FileText, Pill, Activity, ShieldCheck, Download } from 'lucide-react'
+import { FileText, Pill, Activity, ShieldCheck, Download, Smile, Sparkles } from 'lucide-react'
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
 import { Line, LineChart, ResponsiveContainer, XAxis, YAxis, CartesianGrid } from 'recharts'
 import { Button } from '@/components/ui/button'
@@ -46,12 +46,24 @@ export default function HealthProfile() {
         className="animate-fade-in-up"
         style={{ animationDelay: '0.1s' }}
       >
-        <TabsList className="grid w-full grid-cols-3 h-auto p-1 bg-muted/50 rounded-lg">
+        <TabsList className="grid w-full grid-cols-2 md:grid-cols-5 h-auto p-1 bg-muted/50 rounded-lg flex-wrap">
           <TabsTrigger
             value="timeline"
             className="py-2.5 rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm"
           >
-            Histórico Clínico
+            Clínico
+          </TabsTrigger>
+          <TabsTrigger
+            value="dental"
+            className="py-2.5 rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm"
+          >
+            Odonto
+          </TabsTrigger>
+          <TabsTrigger
+            value="aesthetic"
+            className="py-2.5 rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm"
+          >
+            Estética
           </TabsTrigger>
           <TabsTrigger
             value="biometrics"
@@ -63,7 +75,7 @@ export default function HealthProfile() {
             value="pharmacy"
             className="py-2.5 rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm"
           >
-            Farmácia Digital
+            Farmácia
           </TabsTrigger>
         </TabsList>
 
@@ -96,6 +108,53 @@ export default function HealthProfile() {
                   <Button variant="outline" size="sm" className="mt-1">
                     <Download className="mr-2 h-4 w-4" /> Baixar PDF
                   </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="dental" className="mt-6 space-y-4">
+          <Card>
+            <CardContent className="p-6">
+              <div className="relative border-l-2 border-muted ml-3 space-y-8">
+                <div className="relative pl-6">
+                  <div className="absolute -left-[21px] bg-background border-2 border-teal-500 w-10 h-10 rounded-full flex items-center justify-center shadow-sm">
+                    <Smile className="h-5 w-5 text-teal-500" />
+                  </div>
+                  <h3 className="font-semibold text-lg">Limpeza e Profilaxia</h3>
+                  <p className="text-sm text-muted-foreground mb-2">
+                    10 de Março, 2026 • Dr. Carlos Mendes
+                  </p>
+                  <p className="text-sm bg-muted/50 p-3 rounded-md border">
+                    Procedimento realizado com sucesso. Ausência de cáries. Próxima limpeza em 6
+                    meses.
+                  </p>
+                  <Button variant="outline" size="sm" className="mt-3">
+                    <Download className="mr-2 h-4 w-4" /> Radiografia Panorâmica
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="aesthetic" className="mt-6 space-y-4">
+          <Card>
+            <CardContent className="p-6">
+              <div className="relative border-l-2 border-muted ml-3 space-y-8">
+                <div className="relative pl-6">
+                  <div className="absolute -left-[21px] bg-background border-2 border-purple-500 w-10 h-10 rounded-full flex items-center justify-center shadow-sm">
+                    <Sparkles className="h-5 w-5 text-purple-500" />
+                  </div>
+                  <h3 className="font-semibold text-lg">Aplicação de Toxina Botulínica</h3>
+                  <p className="text-sm text-muted-foreground mb-2">
+                    05 de Janeiro, 2026 • Dra. Carolina Mendes
+                  </p>
+                  <p className="text-sm bg-muted/50 p-3 rounded-md border">
+                    Tratamento preventivo em terço superior da face. Retorno em 15 dias sem
+                    necessidade de retoque.
+                  </p>
                 </div>
               </div>
             </CardContent>

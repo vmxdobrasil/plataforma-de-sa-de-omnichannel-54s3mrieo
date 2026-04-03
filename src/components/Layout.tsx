@@ -35,9 +35,7 @@ export default function Layout() {
               <div className="bg-primary/10 p-2 rounded-xl text-primary">
                 <Activity className="h-6 w-6" />
               </div>
-              <h1 className="font-heading font-bold text-xl tracking-tight text-primary">
-                Vitalis
-              </h1>
+              <h1 className="font-heading font-bold text-2xl tracking-tight text-primary">V MED</h1>
             </div>
             <SidebarGroup>
               <SidebarGroupContent>
@@ -73,13 +71,22 @@ export default function Layout() {
               <div className="relative max-w-md w-full hidden md:block">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Pergunte à IA: Como posso ajudar?"
+                  placeholder="V MED AI: Como posso ajudar?"
                   className="pl-10 bg-muted/50 border-none rounded-full"
                 />
               </div>
             </div>
 
             <div className="flex items-center gap-4">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => document.documentElement.classList.toggle('text-lg')}
+                title="Aumentar Fonte (Acessibilidade)"
+                className="text-muted-foreground hover:text-primary"
+              >
+                <span className="font-bold text-lg">A+</span>
+              </Button>
               <Button
                 variant="outline"
                 size="sm"

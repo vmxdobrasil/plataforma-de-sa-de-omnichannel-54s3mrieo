@@ -63,8 +63,10 @@ export default function Search() {
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row gap-4 justify-between items-start md:items-center">
         <div>
-          <h1 className="text-3xl font-bold">Encontre Especialistas</h1>
-          <p className="text-muted-foreground mt-1">Agendamento rápido em até 3 cliques</p>
+          <h1 className="text-3xl font-bold">Rede V MED</h1>
+          <p className="text-muted-foreground mt-1">
+            Encontre especialistas e agende em até 3 cliques
+          </p>
         </div>
       </div>
 
