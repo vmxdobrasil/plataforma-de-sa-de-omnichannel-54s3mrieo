@@ -1,5 +1,16 @@
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowRight, Calendar, FileText, Pill, Sparkles, ActivitySquare } from 'lucide-react'
+import {
+  ArrowRight,
+  Calendar,
+  FileText,
+  Pill,
+  Sparkles,
+  ActivitySquare,
+  MapPin,
+  Video,
+  Home as HomeIcon,
+} from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -12,45 +23,77 @@ import {
   CarouselPrevious,
 } from '@/components/ui/carousel'
 import { Badge } from '@/components/ui/badge'
+import { useAuth } from '@/hooks/use-auth'
+import { getPatientAppointments } from '@/services/appointments'
+import { getProfessionals } from '@/services/users'
+import { useRealtime } from '@/hooks/use-realtime'
+import { format } from 'date-fns'
+import { ptBR } from 'date-fns/locale'
 
 export default function Index() {
   const navigate = useNavigate()
+  const { user } = useAuth()
+  const [appointments, setAppointments] = useState<any[]>([])
+  const [professionals, setProfessionals] = useState<any[]>([])
+
+  const loadData = async () => {
+    if (user?.id) {
+      try {
+        const appts = await getPatientAppointments(user.id)
+        setAppointments(appts)
+      } catch (e) {}
+    }
+    try {
+      const pros = await getProfessionals()
+      setProfessionals(pros)
+    } catch (e) {}
+  }
+
+  useEffect(() => {
+    loadData()
+  }, [user?.id])
+
+  useRealtime('appointments', () => {
+    loadData()
+  })
 
   const quickActions = [
-    { icon: Calendar, label: 'Agendar Consulta', color: 'bg-emerald-100 text-emerald-600' },
-    { icon: FileText, label: 'Meus Exames', color: 'bg-blue-100 text-blue-600' },
-    { icon: Pill, label: 'Minhas Receitas', color: 'bg-purple-100 text-purple-600' },
-    { icon: ActivitySquare, label: 'Atendimento Domiciliar', color: 'bg-amber-100 text-amber-600' },
+    {
+      icon: Calendar,
+      label: 'Agendar Consulta',
+      color: 'bg-emerald-100 text-emerald-600',
+      path: '/search',
+    },
+    {
+      icon: FileText,
+      label: 'Meus Exames',
+      color: 'bg-blue-100 text-blue-600',
+      path: '/health-profile',
+    },
+    {
+      icon: Pill,
+      label: 'Minhas Receitas',
+      color: 'bg-purple-100 text-purple-600',
+      path: '/health-profile',
+    },
+    {
+      icon: ActivitySquare,
+      label: 'Atendimento Domiciliar',
+      color: 'bg-amber-100 text-amber-600',
+      path: '/search',
+    },
   ]
 
-  const recommendations = [
-    {
-      name: 'Dra. Ana Silva',
-      spec: 'Cardiologia',
-      image: 'https://img.usecurling.com/ppl/thumbnail?gender=female&seed=2',
-    },
-    {
-      name: 'Dr. Carlos Mendes',
-      spec: 'Odontologia Estética',
-      image: 'https://img.usecurling.com/ppl/thumbnail?gender=male&seed=3',
-    },
-    {
-      name: 'Dra. Julia Costa',
-      spec: 'Nutrição Clínica',
-      image: 'https://img.usecurling.com/ppl/thumbnail?gender=female&seed=4',
-    },
-    {
-      name: 'Dr. Marcos Paulo',
-      spec: 'Dermatologia',
-      image: 'https://img.usecurling.com/ppl/thumbnail?gender=male&seed=5',
-    },
-  ]
+  const upcomingAppt = appointments.find(
+    (a) => new Date(a.dateTime) > new Date() && a.status === 'scheduled',
+  )
 
   return (
     <div className="space-y-8 pb-10">
-      {/* Hero Section */}
       <section className="animate-fade-in-up">
-        <h1 className="text-3xl md:text-4xl font-bold mb-2">Bom dia, Sofia! 👋</h1>
+        <h1 className="text-3xl md:text-4xl font-bold mb-2">
+          Bom dia, {user?.name?.split(' ')[0]}! 👋
+        </h1>
         <p className="text-muted-foreground mb-6 text-lg">
           Sua saúde está em dia. Como você está se sentindo hoje?
         </p>
@@ -75,7 +118,6 @@ export default function Index() {
         </Card>
       </section>
 
-      {/* Quick Actions */}
       <section
         className="grid grid-cols-2 md:grid-cols-4 gap-4 animate-fade-in-up"
         style={{ animationDelay: '0.1s' }}
@@ -83,6 +125,7 @@ export default function Index() {
         {quickActions.map((action, i) => (
           <Card
             key={i}
+            onClick={() => navigate(action.path)}
             className="hover:shadow-md transition-all cursor-pointer border-border/50 hover:border-primary/30 group"
           >
             <CardContent className="p-4 flex flex-col items-center justify-center text-center gap-3">
@@ -98,78 +141,57 @@ export default function Index() {
       </section>
 
       <div className="grid md:grid-cols-3 gap-6">
-        {/* Upcoming Journey */}
         <section className="md:col-span-2 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
           <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-            <ActivitySquare className="h-5 w-5 text-primary" /> Sua Jornada: Cirurgia Estética
+            <ActivitySquare className="h-5 w-5 text-primary" /> Próximos Compromissos
           </h2>
           <Card>
             <CardContent className="p-6">
-              <div className="flex items-start gap-4">
-                <div className="flex flex-col items-center">
-                  <div className="h-3 w-3 bg-emerald-500 rounded-full" />
-                  <div className="w-0.5 h-full bg-emerald-500 min-h-[40px] my-1" />
+              {upcomingAppt ? (
+                <div className="flex items-start gap-4">
+                  <div className="flex flex-col items-center">
+                    <div className="h-3 w-3 bg-primary rounded-full animate-pulse" />
+                    <div className="w-0.5 h-full bg-border min-h-[40px] my-1" />
+                  </div>
+                  <div className="pb-6">
+                    <Badge
+                      variant="secondary"
+                      className="mb-2 bg-primary/20 text-primary-foreground"
+                    >
+                      {format(new Date(upcomingAppt.dateTime), "dd 'de' MMMM, HH:mm", {
+                        locale: ptBR,
+                      })}
+                    </Badge>
+                    <h3 className="font-semibold text-lg flex items-center gap-2">
+                      Consulta com {upcomingAppt.expand?.professional_id?.name}
+                      {upcomingAppt.type === 'Online' && (
+                        <Video className="h-4 w-4 text-blue-500" />
+                      )}
+                      {upcomingAppt.type === 'Presencial' && (
+                        <MapPin className="h-4 w-4 text-emerald-500" />
+                      )}
+                      {upcomingAppt.type === 'Domiciliar' && (
+                        <HomeIcon className="h-4 w-4 text-amber-500" />
+                      )}
+                    </h3>
+                    <p className="text-muted-foreground text-sm mt-1">
+                      {upcomingAppt.notes || 'Sessão de acompanhamento agendada.'}
+                    </p>
+                  </div>
                 </div>
-                <div className="pb-6">
-                  <Badge className="mb-2 bg-emerald-100 text-emerald-800 hover:bg-emerald-100">
-                    Concluído
-                  </Badge>
-                  <h3 className="font-semibold text-lg text-muted-foreground line-through">
-                    Avaliação Inicial
-                  </h3>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-4">
-                <div className="flex flex-col items-center">
-                  <div className="h-3 w-3 bg-emerald-500 rounded-full" />
-                  <div className="w-0.5 h-full bg-emerald-500 min-h-[40px] my-1" />
-                </div>
-                <div className="pb-6">
-                  <Badge className="mb-2 bg-emerald-100 text-emerald-800 hover:bg-emerald-100">
-                    Concluído
-                  </Badge>
-                  <h3 className="font-semibold text-lg text-muted-foreground line-through">
-                    Exames Pré-operatórios
-                  </h3>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-4">
-                <div className="flex flex-col items-center">
-                  <div className="h-3 w-3 bg-primary rounded-full animate-pulse" />
-                  <div className="w-0.5 h-full bg-border min-h-[40px] my-1" />
-                </div>
-                <div className="pb-6">
-                  <Badge variant="secondary" className="mb-2 bg-primary/20 text-primary-foreground">
-                    Amanhã, 08:00
-                  </Badge>
-                  <h3 className="font-semibold text-lg">Cirurgia Estética (Rinoplastia)</h3>
-                  <p className="text-muted-foreground text-sm mt-1">
-                    Jejum absoluto de 8 horas. Chegar com 1h de antecedência na Clínica V MED.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-4">
-                <div className="flex flex-col items-center">
-                  <div className="h-3 w-3 bg-muted rounded-full border-2 border-primary" />
-                </div>
-                <div>
-                  <Badge variant="outline" className="mb-2">
-                    Daqui a 7 dias
-                  </Badge>
-                  <h3 className="font-medium text-muted-foreground">Retorno Pós-operatório</h3>
-                  <Button variant="link" className="p-0 h-auto text-primary mt-1">
-                    Agendar Horário <ArrowRight className="ml-1 h-3 w-3" />
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Calendar className="h-12 w-12 mx-auto mb-3 opacity-20" />
+                  <p>Nenhum agendamento futuro.</p>
+                  <Button variant="link" onClick={() => navigate('/search')} className="mt-2">
+                    Agendar agora
                   </Button>
                 </div>
-              </div>
+              )}
             </CardContent>
           </Card>
         </section>
 
-        {/* Health Snapshot */}
         <section className="animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
           <h2 className="text-xl font-semibold mb-4">Resumo Diário</h2>
           <div className="space-y-4">
@@ -210,7 +232,6 @@ export default function Index() {
         </section>
       </div>
 
-      {/* Recommendations */}
       <section className="animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-semibold">Especialistas Recomendados</h2>
@@ -219,40 +240,53 @@ export default function Index() {
           </Button>
         </div>
 
-        <Carousel opts={{ align: 'start' }} className="w-full">
-          <CarouselContent>
-            {recommendations.map((doc, index) => (
-              <CarouselItem key={index} className="md:basis-1/3 lg:basis-1/4">
-                <Card className="hover:shadow-lg transition-shadow cursor-pointer">
-                  <CardHeader className="p-4 pb-2 flex flex-row items-center gap-4 space-y-0">
-                    <Avatar className="h-12 w-12 border">
-                      <AvatarImage src={doc.image} />
-                      <AvatarFallback>{doc.name[0]}</AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <CardTitle className="text-base">{doc.name}</CardTitle>
-                      <p className="text-xs text-muted-foreground">{doc.spec}</p>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="p-4 pt-2">
-                    <div className="flex gap-2 mt-3">
-                      <Badge variant="secondary" className="text-[10px]">
-                        Presencial
-                      </Badge>
-                      <Badge variant="secondary" className="text-[10px]">
-                        Telemedicina
-                      </Badge>
-                    </div>
-                  </CardContent>
-                </Card>
-              </CarouselItem>
-            ))}
-          </CarouselContent>
-          <div className="hidden md:block">
-            <CarouselPrevious className="-left-4" />
-            <CarouselNext className="-right-4" />
-          </div>
-        </Carousel>
+        {professionals.length > 0 ? (
+          <Carousel opts={{ align: 'start' }} className="w-full">
+            <CarouselContent>
+              {professionals.map((doc) => (
+                <CarouselItem key={doc.id} className="md:basis-1/3 lg:basis-1/4">
+                  <Card
+                    className="hover:shadow-lg transition-shadow cursor-pointer h-full"
+                    onClick={() => navigate('/search')}
+                  >
+                    <CardHeader className="p-4 pb-2 flex flex-row items-center gap-4 space-y-0">
+                      <Avatar className="h-12 w-12 border">
+                        <AvatarImage
+                          src={`https://api.dicebear.com/7.x/notionists/svg?seed=${doc.name}`}
+                        />
+                        <AvatarFallback>{doc.name[0]}</AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <CardTitle className="text-base truncate" title={doc.name}>
+                          {doc.name}
+                        </CardTitle>
+                        <p className="text-xs text-muted-foreground truncate">
+                          {doc.specialty || 'Clínico Geral'}
+                        </p>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="p-4 pt-2">
+                      <div className="flex gap-2 mt-3 flex-wrap">
+                        <Badge variant="secondary" className="text-[10px]">
+                          Presencial
+                        </Badge>
+                        <Badge variant="secondary" className="text-[10px]">
+                          Online
+                        </Badge>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+            <div className="hidden md:block">
+              <CarouselPrevious className="-left-4" />
+              <CarouselNext className="-right-4" />
+            </div>
+          </Carousel>
+        ) : (
+          <p className="text-muted-foreground text-sm">Carregando especialistas...</p>
+        )}
       </section>
     </div>
   )

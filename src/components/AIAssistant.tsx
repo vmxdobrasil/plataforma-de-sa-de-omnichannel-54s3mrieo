@@ -31,10 +31,10 @@ export function AIAssistant() {
           'Sintomas como dor no peito exigem atenção. Recomendo buscar um Cardiologista imediatamente ou usar nosso botão SOS.'
       else if (isDerma)
         recommendation =
-          'Parece ser uma questão dermatológica. Posso filtrar especialistas em Dermatologia Estética e Clínica para você.'
+          'Parece ser uma questão dermatológica. Você pode encontrar um especialista na aba de buscas. Sugiro buscar por "Dermatologia".'
       else if (isDental)
         recommendation =
-          'Para questões odontológicas, temos excelentes dentistas na rede V MED. Deseja ver os horários para Odontologia?'
+          'Para questões odontológicas, temos excelentes dentistas na rede V MED. Vá até a busca e digite "Odontologia" ou "Dentista".'
 
       setMessages((prev) => [...prev, { role: 'ai', text: recommendation }])
     }, 1000)

@@ -8,21 +8,25 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Calendar } from '@/components/ui/calendar'
-import { toast } from '@/hooks/use-toast'
+import { toast } from 'sonner'
 import { CheckCircle2, Clock, CreditCard, Video, Home as HomeIcon, MapPin } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
+import { useAuth } from '@/hooks/use-auth'
+import { createAppointment } from '@/services/appointments'
 
 interface BookingFlowProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  professionalName: string
+  professional: any
 }
 
-export function BookingFlow({ open, onOpenChange, professionalName }: BookingFlowProps) {
+export function BookingFlow({ open, onOpenChange, professional }: BookingFlowProps) {
   const [step, setStep] = useState(1)
   const [date, setDate] = useState<Date | undefined>(new Date())
   const [time, setTime] = useState<string | null>(null)
   const [mode, setMode] = useState<'Presencial' | 'Online' | 'Domiciliar'>('Presencial')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const { user } = useAuth()
 
   const timeSlots = ['09:00', '10:30', '14:00', '15:30', '16:00']
 
@@ -31,29 +35,47 @@ export function BookingFlow({ open, onOpenChange, professionalName }: BookingFlo
     setStep(2)
   }
 
-  const handleSelectPayment = () => {
-    setStep(3)
-    toast({
-      title: 'Agendamento Confirmado!',
-      description: `Sua consulta ${mode} com ${professionalName} está marcada para as ${time}.`,
-    })
-    setTimeout(() => {
-      onOpenChange(false)
+  const handleSelectPayment = async () => {
+    if (!date || !time || !user) return
+    setIsSubmitting(true)
+
+    try {
+      const [hours, minutes] = time.split(':')
+      const dateTime = new Date(date)
+      dateTime.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0)
+
+      await createAppointment({
+        patient_id: user.id,
+        professional_id: professional.id,
+        dateTime: dateTime.toISOString(),
+        type: mode,
+        status: 'scheduled',
+      })
+
+      setStep(3)
+      toast.success(`Agendamento Confirmado com ${professional.name}!`)
       setTimeout(() => {
-        setStep(1)
-        setTime(null)
-      }, 500)
-    }, 2000)
+        onOpenChange(false)
+        setTimeout(() => {
+          setStep(1)
+          setTime(null)
+        }, 500)
+      }, 2000)
+    } catch (error) {
+      toast.error('Erro ao confirmar agendamento. Tente novamente.')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Agendar com {professionalName}</DialogTitle>
+          <DialogTitle>Agendar com {professional?.name}</DialogTitle>
           <DialogDescription>
-            {step === 1 && 'Passo 1 de 2: Escolha o horário (Clique para avançar)'}
-            {step === 2 && 'Passo 2 de 2: Forma de pagamento (Clique para confirmar)'}
+            {step === 1 && 'Passo 1 de 2: Escolha o horário'}
+            {step === 2 && 'Passo 2 de 2: Confirme a forma de pagamento'}
             {step === 3 && 'Agendamento Concluído!'}
           </DialogDescription>
         </DialogHeader>
@@ -94,6 +116,7 @@ export function BookingFlow({ open, onOpenChange, professionalName }: BookingFlo
                   selected={date}
                   onSelect={setDate}
                   className="rounded-md border p-2"
+                  disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
                 />
               </div>
 
@@ -103,6 +126,7 @@ export function BookingFlow({ open, onOpenChange, professionalName }: BookingFlo
                     key={t}
                     variant="outline"
                     onClick={() => handleSelectTime(t)}
+                    disabled={!date}
                     className="w-full hover:bg-primary hover:text-primary-foreground transition-colors"
                   >
                     <Clock className="mr-2 h-4 w-4" /> {t}
@@ -128,6 +152,7 @@ export function BookingFlow({ open, onOpenChange, professionalName }: BookingFlo
                 variant="outline"
                 className="w-full justify-start h-16 hover:border-primary"
                 onClick={handleSelectPayment}
+                disabled={isSubmitting}
               >
                 <CreditCard className="mr-4 h-6 w-6 text-primary" />
                 <div className="text-left">
@@ -139,6 +164,7 @@ export function BookingFlow({ open, onOpenChange, professionalName }: BookingFlo
                 variant="outline"
                 className="w-full justify-start h-16 hover:border-primary"
                 onClick={handleSelectPayment}
+                disabled={isSubmitting}
               >
                 <div className="mr-4 h-6 w-6 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-sm">
                   P
@@ -152,6 +178,7 @@ export function BookingFlow({ open, onOpenChange, professionalName }: BookingFlo
                 variant="outline"
                 className="w-full justify-start h-16 hover:border-emerald-500"
                 onClick={handleSelectPayment}
+                disabled={isSubmitting}
               >
                 <div className="mr-4 h-6 w-6 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 font-bold text-sm">
                   $
@@ -182,6 +209,7 @@ export function BookingFlow({ open, onOpenChange, professionalName }: BookingFlo
             <Button
               variant="ghost"
               onClick={() => (step > 1 ? setStep((s) => s - 1) : onOpenChange(false))}
+              disabled={isSubmitting}
             >
               Cancelar
             </Button>

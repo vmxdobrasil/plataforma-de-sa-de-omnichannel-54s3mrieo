@@ -1,5 +1,5 @@
-import { Link, Outlet, useLocation } from 'react-router-dom'
-import { Bell, HeartPulse, Home, Search, Stethoscope, Activity, User, Menu } from 'lucide-react'
+import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { Bell, HeartPulse, Home, Search, Stethoscope, Activity, User, LogOut } from 'lucide-react'
 import {
   Sidebar,
   SidebarContent,
@@ -15,16 +15,39 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { AIAssistant } from './AIAssistant'
+import { useAuth } from '@/hooks/use-auth'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 
 const navItems = [
-  { title: 'Início', icon: Home, url: '/' },
-  { title: 'Buscar Especialistas', icon: Search, url: '/search' },
-  { title: 'Meu Perfil de Saúde', icon: HeartPulse, url: '/health-profile' },
-  { title: 'Painel do Profissional', icon: Stethoscope, url: '/professional' },
+  { title: 'Início', icon: Home, url: '/', roles: ['patient', 'professional'] },
+  { title: 'Buscar Especialistas', icon: Search, url: '/search', roles: ['patient'] },
+  { title: 'Meu Perfil de Saúde', icon: HeartPulse, url: '/health-profile', roles: ['patient'] },
+  {
+    title: 'Painel do Profissional',
+    icon: Stethoscope,
+    url: '/professional',
+    roles: ['professional'],
+  },
 ]
 
 export default function Layout() {
   const location = useLocation()
+  const navigate = useNavigate()
+  const { user, signOut } = useAuth()
+
+  const handleLogout = () => {
+    signOut()
+    navigate('/login')
+  }
+
+  const visibleNavItems = navItems.filter((item) => item.roles.includes(user?.role || 'patient'))
 
   return (
     <SidebarProvider>
@@ -40,7 +63,7 @@ export default function Layout() {
             <SidebarGroup>
               <SidebarGroupContent>
                 <SidebarMenu className="mt-4 gap-2 px-2">
-                  {navItems.map((item) => {
+                  {visibleNavItems.map((item) => {
                     const isActive = location.pathname === item.url
                     return (
                       <SidebarMenuItem key={item.title}>
@@ -102,12 +125,32 @@ export default function Layout() {
                 <Bell className="h-5 w-5" />
                 <span className="absolute top-2 right-2 h-2 w-2 bg-amber-400 rounded-full animate-pulse"></span>
               </Button>
-              <Avatar className="h-9 w-9 border-2 border-primary/20 cursor-pointer">
-                <AvatarImage src="https://img.usecurling.com/ppl/thumbnail?gender=female&seed=1" />
-                <AvatarFallback>
-                  <User className="h-4 w-4" />
-                </AvatarFallback>
-              </Avatar>
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Avatar className="h-9 w-9 border-2 border-primary/20 cursor-pointer">
+                    <AvatarImage
+                      src={`https://api.dicebear.com/7.x/notionists/svg?seed=${user?.name}`}
+                    />
+                    <AvatarFallback>
+                      <User className="h-4 w-4" />
+                    </AvatarFallback>
+                  </Avatar>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuLabel>
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-medium leading-none">{user?.name}</p>
+                      <p className="text-xs leading-none text-muted-foreground">{user?.email}</p>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleLogout} className="text-red-600 cursor-pointer">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Sair
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </header>
 
@@ -116,7 +159,7 @@ export default function Layout() {
           </main>
         </div>
 
-        <AIAssistant />
+        {user?.role === 'patient' && <AIAssistant />}
       </div>
     </SidebarProvider>
   )
