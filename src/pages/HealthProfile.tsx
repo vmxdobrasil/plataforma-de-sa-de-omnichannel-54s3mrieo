@@ -18,8 +18,27 @@ import {
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
 import { Line, LineChart, ResponsiveContainer, XAxis, YAxis, CartesianGrid } from 'recharts'
 import { Button } from '@/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+} from '@/components/ui/dialog'
+import { Label } from '@/components/ui/label'
+import { Input } from '@/components/ui/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { useAuth } from '@/hooks/use-auth'
-import { getUser, getDependents, updateUser } from '@/services/users'
+import { getUser, getDependents, updateUser, createDependent } from '@/services/users'
+import { extractFieldErrors } from '@/lib/pocketbase/errors'
+import { toast } from 'sonner'
 import { getPatientPrescriptions } from '@/services/prescriptions'
 import { getPatientAppointments, updateAppointmentStatus } from '@/services/appointments'
 import { useRealtime } from '@/hooks/use-realtime'
@@ -41,6 +60,39 @@ export default function HealthProfile() {
   const [prescriptions, setPrescriptions] = useState<any[]>([])
   const [appointments, setAppointments] = useState<any[]>([])
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const [isAddDependentOpen, setIsAddDependentOpen] = useState(false)
+  const [depFormData, setDepFormData] = useState({
+    name: '',
+    blood_type: '',
+    allergies: '',
+    emergency_contact_name: '',
+    emergency_contact_phone: '',
+    document_id: '',
+  })
+  const [depErrors, setDepErrors] = useState<Record<string, string>>({})
+
+  const handleAddDependent = async () => {
+    if (!user?.id) return
+    try {
+      setDepErrors({})
+      await createDependent(user.id, depFormData)
+      setIsAddDependentOpen(false)
+      setDepFormData({
+        name: '',
+        blood_type: '',
+        allergies: '',
+        emergency_contact_name: '',
+        emergency_contact_phone: '',
+        document_id: '',
+      })
+      loadData()
+      toast.success('Dependente adicionado com sucesso.')
+    } catch (err) {
+      setDepErrors(extractFieldErrors(err))
+      toast.error('Verifique os campos obrigatórios.')
+    }
+  }
 
   const loadData = async () => {
     if (!user?.id) return
@@ -77,8 +129,14 @@ export default function HealthProfile() {
     try {
       await updateUser(activeProfile.id, formData)
       loadData()
+      toast.success('Foto de perfil atualizada com sucesso.')
     } catch (err) {
-      console.error(err)
+      const fieldErrors = extractFieldErrors(err)
+      if (fieldErrors.avatar) {
+        toast.error(fieldErrors.avatar)
+      } else {
+        toast.error('Erro ao atualizar foto de perfil.')
+      }
     }
   }
 
@@ -144,12 +202,116 @@ export default function HealthProfile() {
               </span>
             </div>
           ))}
-          <div className="flex flex-col items-center gap-1 justify-center">
-            <Button variant="outline" size="icon" className="h-12 w-12 rounded-full border-dashed">
-              <Plus className="h-5 w-5" />
-            </Button>
-            <span className="text-[10px] font-medium text-muted-foreground">Adicionar</span>
-          </div>
+          <Dialog open={isAddDependentOpen} onOpenChange={setIsAddDependentOpen}>
+            <DialogTrigger asChild>
+              <div className="flex flex-col items-center gap-1 justify-center cursor-pointer group">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-12 w-12 rounded-full border-dashed group-hover:border-primary group-hover:text-primary transition-colors"
+                >
+                  <Plus className="h-5 w-5" />
+                </Button>
+                <span className="text-[10px] font-medium text-muted-foreground group-hover:text-primary transition-colors">
+                  Adicionar
+                </span>
+              </div>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Adicionar Dependente</DialogTitle>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="space-y-2">
+                  <Label htmlFor="name">Nome Completo</Label>
+                  <Input
+                    id="name"
+                    value={depFormData.name}
+                    onChange={(e) => setDepFormData({ ...depFormData, name: e.target.value })}
+                  />
+                  {depErrors.name && <p className="text-xs text-destructive">{depErrors.name}</p>}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="document_id">Documento (CPF/RG)</Label>
+                  <Input
+                    id="document_id"
+                    value={depFormData.document_id}
+                    onChange={(e) =>
+                      setDepFormData({ ...depFormData, document_id: e.target.value })
+                    }
+                  />
+                  {depErrors.document_id && (
+                    <p className="text-xs text-destructive">{depErrors.document_id}</p>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="blood_type">Tipo Sanguíneo</Label>
+                  <Select
+                    value={depFormData.blood_type}
+                    onValueChange={(value) => setDepFormData({ ...depFormData, blood_type: value })}
+                  >
+                    <SelectTrigger id="blood_type">
+                      <SelectValue placeholder="Selecione..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map((type) => (
+                        <SelectItem key={type} value={type}>
+                          {type}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {depErrors.blood_type && (
+                    <p className="text-xs text-destructive">{depErrors.blood_type}</p>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="allergies">Alergias (Opcional)</Label>
+                  <Input
+                    id="allergies"
+                    value={depFormData.allergies}
+                    onChange={(e) => setDepFormData({ ...depFormData, allergies: e.target.value })}
+                  />
+                  {depErrors.allergies && (
+                    <p className="text-xs text-destructive">{depErrors.allergies}</p>
+                  )}
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="emergency_contact_name">Contato Emergência</Label>
+                    <Input
+                      id="emergency_contact_name"
+                      value={depFormData.emergency_contact_name}
+                      onChange={(e) =>
+                        setDepFormData({ ...depFormData, emergency_contact_name: e.target.value })
+                      }
+                    />
+                    {depErrors.emergency_contact_name && (
+                      <p className="text-xs text-destructive">{depErrors.emergency_contact_name}</p>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="emergency_contact_phone">Telefone Emergência</Label>
+                    <Input
+                      id="emergency_contact_phone"
+                      value={depFormData.emergency_contact_phone}
+                      onChange={(e) =>
+                        setDepFormData({ ...depFormData, emergency_contact_phone: e.target.value })
+                      }
+                    />
+                    {depErrors.emergency_contact_phone && (
+                      <p className="text-xs text-destructive">
+                        {depErrors.emergency_contact_phone}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button onClick={handleAddDependent}>Salvar Perfil</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
 

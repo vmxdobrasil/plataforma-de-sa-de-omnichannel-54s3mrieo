@@ -25,6 +25,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog'
+import { SOSCard } from '@/components/SOSCard'
 import { useAuth } from '@/hooks/use-auth'
 import { getProfessionalAppointments, updateAppointmentStatus } from '@/services/appointments'
 import { createPrescription } from '@/services/prescriptions'
@@ -267,12 +269,44 @@ export default function ProfessionalDashboard() {
 
         <Card className="lg:col-span-2 flex flex-col h-[600px]">
           <CardHeader className="flex flex-row items-center justify-between pb-2 border-b">
-            <div>
-              <CardTitle className="text-lg">Prontuário (V MED EHR)</CardTitle>
-              <p className="text-sm text-muted-foreground">
-                Paciente:{' '}
-                {activeAppt ? activeAppt.expand?.patient_id?.name : 'Selecione um paciente'}
-              </p>
+            <div className="flex items-center gap-4">
+              {activeAppt && (
+                <Avatar className="h-12 w-12 border">
+                  <AvatarImage
+                    src={
+                      activeAppt.expand?.patient_id?.avatar
+                        ? pb.files.getURL(
+                            { id: activeAppt.expand.patient_id.id, collectionId: 'users' },
+                            activeAppt.expand.patient_id.avatar,
+                          )
+                        : `https://api.dicebear.com/7.x/notionists/svg?seed=${activeAppt.expand?.patient_id?.name}`
+                    }
+                  />
+                  <AvatarFallback>{activeAppt.expand?.patient_id?.name?.[0]}</AvatarFallback>
+                </Avatar>
+              )}
+              <div>
+                <CardTitle className="text-lg">Prontuário (V MED EHR)</CardTitle>
+                <div className="text-sm text-muted-foreground flex items-center gap-2 mt-1">
+                  Paciente:{' '}
+                  {activeAppt ? activeAppt.expand?.patient_id?.name : 'Selecione um paciente'}
+                  {activeAppt && (
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Badge
+                          variant="outline"
+                          className="cursor-pointer hover:bg-red-50 hover:text-red-600 hover:border-red-200 ml-2"
+                        >
+                          Ver SOS Card
+                        </Badge>
+                      </DialogTrigger>
+                      <DialogContent className="sm:max-w-md p-0 border-none bg-transparent shadow-none">
+                        <SOSCard user={activeAppt.expand?.patient_id} />
+                      </DialogContent>
+                    </Dialog>
+                  )}
+                </div>
+              </div>
             </div>
           </CardHeader>
           <CardContent className="flex-1 overflow-auto p-4">

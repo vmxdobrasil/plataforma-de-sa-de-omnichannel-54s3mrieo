@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { AlertCircle, Phone, Droplet, User as UserIcon } from 'lucide-react'
+import { AlertCircle, Phone, Droplet, User as UserIcon, FileText } from 'lucide-react'
 
 export function SOSCard({ user }: { user: any }) {
   if (!user) return null
@@ -27,6 +27,17 @@ export function SOSCard({ user }: { user: any }) {
             <span className="font-semibold text-sm block text-muted-foreground">Alergias</span>
             <span className="text-lg font-bold text-foreground">
               {user.allergies || 'Nenhuma informada'}
+            </span>
+          </div>
+        </div>
+        <div className="flex items-center gap-4 border-b border-red-100 pb-3">
+          <FileText className="h-5 w-5 text-purple-500 shrink-0" />
+          <div>
+            <span className="font-semibold text-sm block text-muted-foreground">
+              Documento (ID)
+            </span>
+            <span className="text-lg font-bold text-foreground">
+              {user.document_id || 'Não informado'}
             </span>
           </div>
         </div>

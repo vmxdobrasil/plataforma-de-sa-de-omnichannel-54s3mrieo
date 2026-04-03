@@ -10,8 +10,10 @@ import {
   MapPin,
   Video,
   Home as HomeIcon,
+  MessageSquare,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Progress } from '@/components/ui/progress'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -92,8 +94,63 @@ export default function Index() {
     (a) => new Date(a.dateTime) > new Date() && a.status === 'scheduled',
   )
 
+  const checkedInAppt = appointments.find((a) => a.status === 'checked_in')
+
   return (
     <div className="space-y-8 pb-10">
+      {checkedInAppt && (
+        <section className="animate-fade-in-down">
+          <Card className="border-blue-300 bg-blue-50 shadow-md relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/5 rounded-full blur-3xl -z-0"></div>
+            <CardContent className="p-6 relative z-10">
+              <div className="flex flex-col md:flex-row items-center gap-6 text-center md:text-left">
+                <div className="relative">
+                  <div className="absolute inset-0 bg-blue-400 rounded-full animate-ping opacity-20"></div>
+                  <Avatar className="h-20 w-20 border-4 border-white shadow-sm relative z-10">
+                    <AvatarImage
+                      src={
+                        checkedInAppt.expand?.professional_id?.avatar
+                          ? pb.files.getURL(
+                              {
+                                id: checkedInAppt.expand.professional_id.id,
+                                collectionId: 'users',
+                              },
+                              checkedInAppt.expand.professional_id.avatar,
+                            )
+                          : `https://api.dicebear.com/7.x/notionists/svg?seed=${checkedInAppt.expand?.professional_id?.name}`
+                      }
+                    />
+                    <AvatarFallback>
+                      {checkedInAppt.expand?.professional_id?.name?.[0]}
+                    </AvatarFallback>
+                  </Avatar>
+                </div>
+                <div className="flex-1">
+                  <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-200 border-blue-200 mb-2">
+                    Sala de Espera Virtual
+                  </Badge>
+                  <h2 className="text-2xl font-bold text-blue-900 mb-1">
+                    Aguardando {checkedInAppt.expand?.professional_id?.name}
+                  </h2>
+                  <p className="text-blue-700 mb-4">
+                    Sua conexão está verificada. O profissional iniciará o atendimento em breve.
+                  </p>
+
+                  <div className="bg-white/60 p-4 rounded-lg border border-blue-100 flex items-start gap-3 text-sm text-blue-900">
+                    <Sparkles className="h-5 w-5 text-blue-500 shrink-0 mt-0.5" />
+                    <div>
+                      <span className="font-semibold block mb-1">Dica de Saúde V MED:</span>
+                      Respire fundo. A ansiedade antes de consultas é normal. Tente focar na sua
+                      respiração enquanto aguarda.
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </section>
+      )}
+
       <section className="animate-fade-in-up">
         <h1 className="text-3xl md:text-4xl font-bold mb-2">
           Bom dia, {user?.name?.split(' ')[0]}! 👋
@@ -199,6 +256,28 @@ export default function Index() {
         <section className="animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
           <h2 className="text-xl font-semibold mb-4">Resumo Diário</h2>
           <div className="space-y-4">
+            <Card className="bg-gradient-to-br from-yellow-50 to-amber-100 border-yellow-200">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2 mb-2 text-yellow-800">
+                  <Sparkles className="h-4 w-4" />{' '}
+                  <span className="font-medium text-sm">Pontos de Fidelidade</span>
+                </div>
+                <div className="flex items-end gap-2 mb-2">
+                  <span className="text-2xl font-bold text-yellow-900">
+                    {user?.loyalty_points || 0}
+                  </span>
+                  <span className="text-sm text-yellow-700 mb-1">pts</span>
+                </div>
+                <Progress
+                  value={Math.min(((user?.loyalty_points || 0) / 100) * 100, 100)}
+                  className="h-2 bg-yellow-200 [&>div]:bg-yellow-500"
+                />
+                <p className="text-xs text-yellow-700 mt-2">
+                  Ganhe mais pontos completando seus planos de tratamento!
+                </p>
+              </CardContent>
+            </Card>
+
             <Card className="bg-amber-50 border-amber-200">
               <CardContent className="p-4 flex items-center justify-between">
                 <div className="flex items-center gap-3">

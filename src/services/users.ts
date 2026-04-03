@@ -21,3 +21,18 @@ export const getDependents = async (parentId: string) => {
     sort: 'name',
   })
 }
+
+export const createDependent = async (parentId: string, data: any) => {
+  const randomId = Math.random().toString(36).substring(2, 10)
+  const email = `dependent_${randomId}@vmed.local`
+  const password = `Dep_${Math.random().toString(36)}!`
+
+  return pb.collection('users').create({
+    ...data,
+    email,
+    password,
+    passwordConfirm: password,
+    parent_id: parentId,
+    role: 'patient',
+  })
+}
