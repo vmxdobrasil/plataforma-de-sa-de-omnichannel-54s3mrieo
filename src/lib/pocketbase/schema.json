@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-04-03T23:40:06.300Z",
+  "generatedAt": "2026-04-03T23:51:27.404Z",
   "collections": [
     {
       "name": "users",
@@ -8,7 +8,7 @@
         "list": "@request.auth.id != ''",
         "view": "@request.auth.id != ''",
         "create": "",
-        "update": "id = @request.auth.id || parent_id = @request.auth.id",
+        "update": "id = @request.auth.id || parent_id = @request.auth.id || company_id = @request.auth.id",
         "delete": "id = @request.auth.id"
       },
       "fields": [
@@ -43,7 +43,7 @@
           "type": "select",
           "required": true,
           "system": false,
-          "selectValues": ["patient", "professional"]
+          "selectValues": ["patient", "professional", "company"]
         },
         {
           "name": "specialty",
@@ -106,6 +106,32 @@
           "type": "number",
           "required": false,
           "system": false
+        },
+        {
+          "name": "company_id",
+          "type": "relation",
+          "required": false,
+          "system": false,
+          "collectionRef": "users"
+        },
+        {
+          "name": "tax_id",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "health_allowance",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "allowance_type",
+          "type": "select",
+          "required": false,
+          "system": false,
+          "selectValues": ["benefit", "payroll_deduction"]
         }
       ],
       "indexes": [
@@ -386,6 +412,68 @@
           "type": "text",
           "required": false,
           "system": false
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate"]
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate", "onUpdate"]
+        }
+      ],
+      "indexes": []
+    },
+    {
+      "name": "benefit_transactions",
+      "type": "base",
+      "apiRules": {
+        "list": "@request.auth.id != '' && (employee_id = @request.auth.id || company_id = @request.auth.id)",
+        "view": "@request.auth.id != '' && (employee_id = @request.auth.id || company_id = @request.auth.id)",
+        "create": "@request.auth.id != ''",
+        "update": null,
+        "delete": null
+      },
+      "fields": [
+        {
+          "name": "employee_id",
+          "type": "relation",
+          "required": true,
+          "system": false,
+          "collectionRef": "users"
+        },
+        {
+          "name": "company_id",
+          "type": "relation",
+          "required": true,
+          "system": false,
+          "collectionRef": "users"
+        },
+        {
+          "name": "appointment_id",
+          "type": "relation",
+          "required": false,
+          "system": false,
+          "collectionRef": "appointments"
+        },
+        {
+          "name": "amount",
+          "type": "number",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "type",
+          "type": "select",
+          "required": true,
+          "system": false,
+          "selectValues": ["credit", "debit"]
         },
         {
           "name": "created",

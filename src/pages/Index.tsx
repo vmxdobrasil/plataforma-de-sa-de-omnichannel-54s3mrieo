@@ -27,6 +27,9 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { useAuth } from '@/hooks/use-auth'
 import { getPatientAppointments } from '@/services/appointments'
+import pb from '@/lib/pocketbase/client'
+import { Briefcase } from 'lucide-react'
+import { Navigate } from 'react-router-dom'
 import { getProfessionals } from '@/services/users'
 import { useRealtime } from '@/hooks/use-realtime'
 import { format } from 'date-fns'
@@ -37,6 +40,16 @@ export default function Index() {
   const { user } = useAuth()
   const [appointments, setAppointments] = useState<any[]>([])
   const [professionals, setProfessionals] = useState<any[]>([])
+  const [companyName, setCompanyName] = useState<string>('')
+
+  useEffect(() => {
+    if (user?.company_id) {
+      pb.collection('users')
+        .getOne(user.company_id)
+        .then((c) => setCompanyName(c.name))
+        .catch(() => {})
+    }
+  }, [user?.company_id])
 
   const loadData = async () => {
     if (user?.id) {
@@ -95,6 +108,10 @@ export default function Index() {
   )
 
   const checkedInAppt = appointments.find((a) => a.status === 'checked_in')
+
+  if (user?.role === 'company') {
+    return <Navigate to="/company/dashboard" replace />
+  }
 
   return (
     <div className="space-y-8 pb-10">
@@ -277,6 +294,34 @@ export default function Index() {
                 </p>
               </CardContent>
             </Card>
+
+            {user?.company_id && (
+              <Card className="bg-purple-50 border-purple-200">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2 text-purple-800">
+                      <Briefcase className="h-4 w-4" />
+                      <span className="font-medium text-sm">Benefício Corporativo</span>
+                    </div>
+                    <Badge
+                      variant="outline"
+                      className="border-purple-300 text-purple-700 bg-purple-100"
+                    >
+                      {companyName || 'Sua Empresa'}
+                    </Badge>
+                  </div>
+                  <div className="flex items-end gap-2 mb-1">
+                    <span className="text-2xl font-bold text-purple-900">
+                      R$ {user?.health_allowance?.toFixed(2) || '0.00'}
+                    </span>
+                  </div>
+                  <p className="text-xs text-purple-700">
+                    Disponível para{' '}
+                    {user?.allowance_type === 'benefit' ? 'uso imediato' : 'desconto em folha'}.
+                  </p>
+                </CardContent>
+              </Card>
+            )}
 
             <Card className="bg-amber-50 border-amber-200">
               <CardContent className="p-4 flex items-center justify-between">

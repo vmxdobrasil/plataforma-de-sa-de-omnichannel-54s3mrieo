@@ -13,6 +13,7 @@ import { CheckCircle2, Clock, CreditCard, Video, Home as HomeIcon, MapPin } from
 import { Badge } from '@/components/ui/badge'
 import { useAuth } from '@/hooks/use-auth'
 import { createAppointment } from '@/services/appointments'
+import pb from '@/lib/pocketbase/client'
 
 interface BookingFlowProps {
   open: boolean
@@ -35,8 +36,17 @@ export function BookingFlow({ open, onOpenChange, professional }: BookingFlowPro
     setStep(2)
   }
 
-  const handleSelectPayment = async () => {
+  const handleSelectPayment = async (method: string) => {
     if (!date || !time || !user) return
+
+    const appointmentCost = 150 // Mock cost
+
+    if (method === 'corporate') {
+      if ((user.health_allowance || 0) < appointmentCost) {
+        toast.error(`Saldo insuficiente. O valor da consulta é R$ ${appointmentCost}.`)
+        return
+      }
+    }
     setIsSubmitting(true)
 
     try {
@@ -44,13 +54,27 @@ export function BookingFlow({ open, onOpenChange, professional }: BookingFlowPro
       const dateTime = new Date(date)
       dateTime.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0)
 
-      await createAppointment({
+      const appointment = await createAppointment({
         patient_id: user.id,
         professional_id: professional.id,
         dateTime: dateTime.toISOString(),
         type: mode,
         status: 'scheduled',
       })
+
+      if (method === 'corporate') {
+        await pb.collection('benefit_transactions').create({
+          employee_id: user.id,
+          company_id: user.company_id,
+          appointment_id: appointment.id,
+          amount: appointmentCost,
+          type: 'debit',
+        })
+
+        await pb.collection('users').update(user.id, {
+          health_allowance: (user.health_allowance || 0) - appointmentCost,
+        })
+      }
 
       setStep(3)
       toast.success(`Agendamento Confirmado com ${professional.name}!`)
@@ -148,10 +172,29 @@ export function BookingFlow({ open, onOpenChange, professional }: BookingFlowPro
                 </div>
               </div>
 
+              {user?.company_id && (
+                <Button
+                  variant="outline"
+                  className="w-full justify-start h-16 hover:border-primary"
+                  onClick={() => handleSelectPayment('corporate')}
+                  disabled={isSubmitting}
+                >
+                  <div className="mr-4 h-6 w-6 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 font-bold text-sm">
+                    C
+                  </div>
+                  <div className="text-left">
+                    <p className="font-semibold">Crédito Corporativo</p>
+                    <p className="text-xs text-muted-foreground">
+                      Saldo: R$ {user.health_allowance?.toFixed(2) || '0.00'}
+                    </p>
+                  </div>
+                </Button>
+              )}
+
               <Button
                 variant="outline"
                 className="w-full justify-start h-16 hover:border-primary"
-                onClick={handleSelectPayment}
+                onClick={() => handleSelectPayment('credit')}
                 disabled={isSubmitting}
               >
                 <CreditCard className="mr-4 h-6 w-6 text-primary" />
@@ -163,7 +206,7 @@ export function BookingFlow({ open, onOpenChange, professional }: BookingFlowPro
               <Button
                 variant="outline"
                 className="w-full justify-start h-16 hover:border-primary"
-                onClick={handleSelectPayment}
+                onClick={() => handleSelectPayment('insurance')}
                 disabled={isSubmitting}
               >
                 <div className="mr-4 h-6 w-6 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-sm">
@@ -177,7 +220,7 @@ export function BookingFlow({ open, onOpenChange, professional }: BookingFlowPro
               <Button
                 variant="outline"
                 className="w-full justify-start h-16 hover:border-emerald-500"
-                onClick={handleSelectPayment}
+                onClick={() => handleSelectPayment('pix')}
                 disabled={isSubmitting}
               >
                 <div className="mr-4 h-6 w-6 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 font-bold text-sm">
