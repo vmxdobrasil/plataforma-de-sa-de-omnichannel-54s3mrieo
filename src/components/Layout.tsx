@@ -1,5 +1,15 @@
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { Bell, HeartPulse, Home, Search, Stethoscope, Activity, User, LogOut } from 'lucide-react'
+import {
+  Bell,
+  HeartPulse,
+  Home,
+  Search,
+  Stethoscope,
+  Activity,
+  User,
+  LogOut,
+  MessageSquare,
+} from 'lucide-react'
 import {
   Sidebar,
   SidebarContent,
@@ -24,6 +34,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog'
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
+import { SOSCard } from './SOSCard'
+import { ChatApp } from './ChatApp'
+import pb from '@/lib/pocketbase/client'
 
 const navItems = [
   { title: 'Início', icon: Home, url: '/', roles: ['patient', 'professional'] },
@@ -48,6 +63,10 @@ export default function Layout() {
   }
 
   const visibleNavItems = navItems.filter((item) => item.roles.includes(user?.role || 'patient'))
+
+  const avatarUrl = user?.avatar
+    ? pb.files.getURL({ id: user.id, collectionId: 'users' }, user.avatar)
+    : `https://api.dicebear.com/7.x/notionists/svg?seed=${user?.name}`
 
   return (
     <SidebarProvider>
@@ -105,33 +124,52 @@ export default function Layout() {
                 variant="ghost"
                 size="icon"
                 onClick={() => document.documentElement.classList.toggle('text-lg')}
-                title="Aumentar Fonte (Acessibilidade)"
+                title="Aumentar Fonte"
                 className="text-muted-foreground hover:text-primary"
               >
                 <span className="font-bold text-lg">A+</span>
               </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="hidden md:flex text-destructive border-destructive/30 hover:bg-destructive/10 hover:text-destructive rounded-full"
-              >
-                SOS Emergência
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="relative text-muted-foreground hover:text-primary"
-              >
-                <Bell className="h-5 w-5" />
-                <span className="absolute top-2 right-2 h-2 w-2 bg-amber-400 rounded-full animate-pulse"></span>
-              </Button>
+
+              {user?.role === 'patient' && (
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="hidden md:flex text-destructive border-destructive/30 hover:bg-destructive/10 hover:text-destructive rounded-full"
+                    >
+                      SOS Emergência
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-md p-0 border-none bg-transparent shadow-none">
+                    <SOSCard user={user} />
+                  </DialogContent>
+                </Dialog>
+              )}
+
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="relative text-muted-foreground hover:text-primary"
+                  >
+                    <MessageSquare className="h-5 w-5" />
+                    <span className="absolute top-2 right-2 h-2 w-2 bg-blue-500 rounded-full border border-background"></span>
+                  </Button>
+                </SheetTrigger>
+                <SheetContent className="w-[400px] sm:w-[540px]">
+                  <SheetHeader>
+                    <SheetTitle>Mensagens Clínicas</SheetTitle>
+                  </SheetHeader>
+                  <ChatApp />
+                </SheetContent>
+              </Sheet>
 
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Avatar className="h-9 w-9 border-2 border-primary/20 cursor-pointer">
-                    <AvatarImage
-                      src={`https://api.dicebear.com/7.x/notionists/svg?seed=${user?.name}`}
-                    />
+                    <AvatarImage src={avatarUrl} />
                     <AvatarFallback>
                       <User className="h-4 w-4" />
                     </AvatarFallback>
@@ -146,8 +184,7 @@ export default function Layout() {
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleLogout} className="text-red-600 cursor-pointer">
-                    <LogOut className="mr-2 h-4 w-4" />
-                    Sair
+                    <LogOut className="mr-2 h-4 w-4" /> Sair
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
