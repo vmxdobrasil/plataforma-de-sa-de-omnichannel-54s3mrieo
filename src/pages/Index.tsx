@@ -53,16 +53,22 @@ export default function Index() {
             pb.collection('users')
               .getOne(parent.company_id)
               .then((c) => setCompanyName(c.name))
-              .catch(() => {})
+              .catch((e) => {
+                console.error(e)
+              })
           }
         })
-        .catch(() => {})
+        .catch((e) => {
+          console.error(e)
+        })
     } else if (user?.company_id) {
       setEmployeeData(user)
       pb.collection('users')
         .getOne(user.company_id)
         .then((c) => setCompanyName(c.name))
-        .catch(() => {})
+        .catch((e) => {
+          console.error(e)
+        })
     }
   }, [user?.company_id, user?.parent_id, user])
 

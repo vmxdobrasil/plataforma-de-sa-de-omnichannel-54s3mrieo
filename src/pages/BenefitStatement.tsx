@@ -40,12 +40,16 @@ export default function BenefitStatement() {
       try {
         const parent = await pb.collection('users').getOne(user.parent_id)
         setEmployeeData(parent)
-      } catch (e) {}
+      } catch (e) {
+        console.error(e)
+      }
     } else if (user?.id) {
       try {
         const u = await pb.collection('users').getOne(user.id)
         setEmployeeData(u)
-      } catch (e) {}
+      } catch (e) {
+        console.error(e)
+      }
     }
   }
 
