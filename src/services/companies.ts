@@ -7,25 +7,18 @@ export const getEmployees = async (companyId: string) => {
   })
 }
 
-export const updateEmployeeBenefit = async (
-  employeeId: string,
-  health_allowance: number,
-  allowance_type: string,
-) => {
-  return pb.collection('users').update(employeeId, {
-    health_allowance,
-    allowance_type,
-  })
-}
-
 export const linkEmployee = async (
   email: string,
-  health_allowance: number,
-  allowance_type: string,
+  healthAllowance: number,
+  allowanceType: string,
+  medicationAllowance: number = 0,
 ) => {
-  return pb.send('/backend/v1/company/link-employee', {
-    method: 'POST',
-    body: JSON.stringify({ email, health_allowance, allowance_type }),
+  const user = await pb.collection('users').getFirstListItem(`email = "${email}"`)
+  return pb.collection('users').update(user.id, {
+    health_allowance: healthAllowance,
+    allowance_type: allowanceType,
+    medication_allowance: medicationAllowance,
+    company_id: pb.authStore.record?.id,
   })
 }
 
@@ -33,10 +26,11 @@ export const registerEmployee = async (
   companyId: string,
   name: string,
   email: string,
-  health_allowance: number,
-  allowance_type: string,
+  healthAllowance: number,
+  allowanceType: string,
+  medicationAllowance: number = 0,
 ) => {
-  const password = `Skip@${Math.random().toString(36).slice(-6)}`
+  const password = Math.random().toString(36).slice(-8) + 'A1!'
   return pb.collection('users').create({
     name,
     email,
@@ -44,7 +38,21 @@ export const registerEmployee = async (
     passwordConfirm: password,
     role: 'patient',
     company_id: companyId,
-    health_allowance,
-    allowance_type,
+    health_allowance: healthAllowance,
+    allowance_type: allowanceType,
+    medication_allowance: medicationAllowance,
+  })
+}
+
+export const updateEmployeeBenefit = async (
+  id: string,
+  healthAllowance: number,
+  allowanceType: string,
+  medicationAllowance: number = 0,
+) => {
+  return pb.collection('users').update(id, {
+    health_allowance: healthAllowance,
+    allowance_type: allowanceType,
+    medication_allowance: medicationAllowance,
   })
 }

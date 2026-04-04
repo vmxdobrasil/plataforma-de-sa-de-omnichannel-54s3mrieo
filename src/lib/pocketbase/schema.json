@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-04-04T00:01:33.315Z",
+  "generatedAt": "2026-04-04T00:11:28.876Z",
   "collections": [
     {
       "name": "users",
@@ -132,6 +132,12 @@
           "required": false,
           "system": false,
           "selectValues": ["benefit", "payroll_deduction"]
+        },
+        {
+          "name": "medication_allowance",
+          "type": "number",
+          "required": false,
+          "system": false
         }
       ],
       "indexes": [
@@ -488,6 +494,13 @@
           "required": false,
           "system": false,
           "autodateTriggers": ["onCreate", "onUpdate"]
+        },
+        {
+          "name": "category",
+          "type": "select",
+          "required": false,
+          "system": false,
+          "selectValues": ["health_service", "medication"]
         }
       ],
       "indexes": []

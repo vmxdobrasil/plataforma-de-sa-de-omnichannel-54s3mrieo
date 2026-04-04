@@ -41,15 +41,30 @@ export default function Index() {
   const [appointments, setAppointments] = useState<any[]>([])
   const [professionals, setProfessionals] = useState<any[]>([])
   const [companyName, setCompanyName] = useState<string>('')
+  const [employeeData, setEmployeeData] = useState<any>(null)
 
   useEffect(() => {
-    if (user?.company_id) {
+    if (user?.parent_id) {
+      pb.collection('users')
+        .getOne(user.parent_id)
+        .then((parent) => {
+          setEmployeeData(parent)
+          if (parent.company_id) {
+            pb.collection('users')
+              .getOne(parent.company_id)
+              .then((c) => setCompanyName(c.name))
+              .catch(() => {})
+          }
+        })
+        .catch(() => {})
+    } else if (user?.company_id) {
+      setEmployeeData(user)
       pb.collection('users')
         .getOne(user.company_id)
         .then((c) => setCompanyName(c.name))
         .catch(() => {})
     }
-  }, [user?.company_id])
+  }, [user?.company_id, user?.parent_id, user])
 
   const loadData = async () => {
     if (user?.id) {
@@ -295,32 +310,62 @@ export default function Index() {
               </CardContent>
             </Card>
 
-            {user?.company_id && (
-              <Card className="bg-purple-50 border-purple-200">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2 text-purple-800">
-                      <Briefcase className="h-4 w-4" />
-                      <span className="font-medium text-sm">Benefício Corporativo</span>
+            {employeeData?.company_id && (
+              <>
+                <Card className="bg-purple-50 border-purple-200">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2 text-purple-800">
+                        <Briefcase className="h-4 w-4" />
+                        <span className="font-medium text-sm">Benefício Saúde</span>
+                      </div>
+                      <Badge
+                        variant="outline"
+                        className="border-purple-300 text-purple-700 bg-purple-100"
+                      >
+                        {companyName || 'Sua Empresa'}
+                      </Badge>
                     </div>
-                    <Badge
-                      variant="outline"
-                      className="border-purple-300 text-purple-700 bg-purple-100"
-                    >
-                      {companyName || 'Sua Empresa'}
-                    </Badge>
-                  </div>
-                  <div className="flex items-end gap-2 mb-1">
-                    <span className="text-2xl font-bold text-purple-900">
-                      R$ {user?.health_allowance?.toFixed(2) || '0.00'}
-                    </span>
-                  </div>
-                  <p className="text-xs text-purple-700">
-                    Disponível para{' '}
-                    {user?.allowance_type === 'benefit' ? 'uso imediato' : 'desconto em folha'}.
-                  </p>
-                </CardContent>
-              </Card>
+                    <div className="flex items-end gap-2 mb-1">
+                      <span className="text-2xl font-bold text-purple-900">
+                        R$ {employeeData?.health_allowance?.toFixed(2) || '0.00'}
+                      </span>
+                    </div>
+                    <p className="text-xs text-purple-700">
+                      Disponível para{' '}
+                      {employeeData?.allowance_type === 'benefit'
+                        ? 'uso imediato'
+                        : 'desconto em folha'}
+                      .{user?.parent_id && ' (Saldo do Titular)'}
+                    </p>
+                  </CardContent>
+                </Card>
+                <Card className="bg-teal-50 border-teal-200 mt-4">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2 text-teal-800">
+                        <Pill className="h-4 w-4" />
+                        <span className="font-medium text-sm">Saldo Farmácia</span>
+                      </div>
+                      <Badge
+                        variant="outline"
+                        className="border-teal-300 text-teal-700 bg-teal-100"
+                      >
+                        {companyName || 'Sua Empresa'}
+                      </Badge>
+                    </div>
+                    <div className="flex items-end gap-2 mb-1">
+                      <span className="text-2xl font-bold text-teal-900">
+                        R$ {employeeData?.medication_allowance?.toFixed(2) || '0.00'}
+                      </span>
+                    </div>
+                    <p className="text-xs text-teal-700">
+                      Crédito corporativo para compra de medicamentos.
+                      {user?.parent_id && ' (Saldo do Titular)'}
+                    </p>
+                  </CardContent>
+                </Card>
+              </>
             )}
 
             <Card className="bg-amber-50 border-amber-200">

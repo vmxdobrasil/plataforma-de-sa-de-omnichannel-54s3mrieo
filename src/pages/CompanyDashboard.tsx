@@ -43,6 +43,7 @@ export default function CompanyDashboard() {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [allowance, setAllowance] = useState('0')
+  const [medicationAllowance, setMedicationAllowance] = useState('0')
   const [type, setType] = useState('benefit')
 
   const loadData = async () => {
@@ -69,6 +70,10 @@ export default function CompanyDashboard() {
   })
 
   const totalBudget = employees.reduce((acc, emp) => acc + (emp.health_allowance || 0), 0)
+  const totalMedicationBudget = employees.reduce(
+    (acc, emp) => acc + (emp.medication_allowance || 0),
+    0,
+  )
 
   const filteredEmployees = employees.filter(
     (e) =>
@@ -78,7 +83,7 @@ export default function CompanyDashboard() {
 
   const handleLink = async () => {
     try {
-      await linkEmployee(email, parseFloat(allowance), type)
+      await linkEmployee(email, parseFloat(allowance), type, parseFloat(medicationAllowance))
       toast.success('Funcionário vinculado com sucesso!')
       setIsAddOpen(false)
       resetForm()
@@ -90,7 +95,14 @@ export default function CompanyDashboard() {
 
   const handleRegister = async () => {
     try {
-      await registerEmployee(user.id, name, email, parseFloat(allowance), type)
+      await registerEmployee(
+        user.id,
+        name,
+        email,
+        parseFloat(allowance),
+        type,
+        parseFloat(medicationAllowance),
+      )
       toast.success('Funcionário cadastrado com sucesso!')
       setIsAddOpen(false)
       resetForm()
@@ -103,7 +115,12 @@ export default function CompanyDashboard() {
   const handleUpdate = async () => {
     if (!selectedEmployee) return
     try {
-      await updateEmployeeBenefit(selectedEmployee.id, parseFloat(allowance), type)
+      await updateEmployeeBenefit(
+        selectedEmployee.id,
+        parseFloat(allowance),
+        type,
+        parseFloat(medicationAllowance),
+      )
       toast.success('Benefício atualizado com sucesso!')
       setIsEditOpen(false)
       setSelectedEmployee(null)
@@ -116,6 +133,7 @@ export default function CompanyDashboard() {
   const openEdit = (emp: any) => {
     setSelectedEmployee(emp)
     setAllowance((emp.health_allowance || 0).toString())
+    setMedicationAllowance((emp.medication_allowance || 0).toString())
     setType(emp.allowance_type || 'benefit')
     setIsEditOpen(true)
   }
@@ -124,6 +142,7 @@ export default function CompanyDashboard() {
     setName('')
     setEmail('')
     setAllowance('0')
+    setMedicationAllowance('0')
     setType('benefit')
   }
 
@@ -148,7 +167,7 @@ export default function CompanyDashboard() {
         </Button>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-6">
+      <div className="grid md:grid-cols-3 gap-6">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -167,7 +186,7 @@ export default function CompanyDashboard() {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Orçamento Total Distribuído
+              Orçamento Saúde
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -176,6 +195,23 @@ export default function CompanyDashboard() {
                 <DollarSign className="h-6 w-6 text-emerald-600" />
               </div>
               <div className="text-3xl font-bold text-emerald-700">R$ {totalBudget.toFixed(2)}</div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Orçamento Farmácia
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-4">
+              <div className="bg-teal-100 p-3 rounded-full">
+                <DollarSign className="h-6 w-6 text-teal-600" />
+              </div>
+              <div className="text-3xl font-bold text-teal-700">
+                R$ {totalMedicationBudget.toFixed(2)}
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -203,7 +239,8 @@ export default function CompanyDashboard() {
                 <TableRow>
                   <TableHead>Nome</TableHead>
                   <TableHead>Email</TableHead>
-                  <TableHead>Saldo Atual</TableHead>
+                  <TableHead>Crédito Saúde</TableHead>
+                  <TableHead>Crédito Farmácia</TableHead>
                   <TableHead>Tipo de Repasse</TableHead>
                   <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
@@ -221,6 +258,7 @@ export default function CompanyDashboard() {
                     <TableCell className="font-medium">{emp.name}</TableCell>
                     <TableCell>{emp.email}</TableCell>
                     <TableCell>R$ {(emp.health_allowance || 0).toFixed(2)}</TableCell>
+                    <TableCell>R$ {(emp.medication_allowance || 0).toFixed(2)}</TableCell>
                     <TableCell>
                       <Badge
                         variant="secondary"
@@ -270,7 +308,7 @@ export default function CompanyDashboard() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Valor do Benefício (R$)</Label>
+                  <Label>Crédito Saúde (R$)</Label>
                   <Input
                     type="number"
                     value={allowance}
@@ -278,6 +316,14 @@ export default function CompanyDashboard() {
                   />
                 </div>
                 <div className="space-y-2">
+                  <Label>Crédito Farmácia (R$)</Label>
+                  <Input
+                    type="number"
+                    value={medicationAllowance}
+                    onChange={(e) => setMedicationAllowance(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2 col-span-2">
                   <Label>Tipo</Label>
                   <Select value={type} onValueChange={setType}>
                     <SelectTrigger>
@@ -314,7 +360,7 @@ export default function CompanyDashboard() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Valor Inicial (R$)</Label>
+                  <Label>Crédito Saúde (R$)</Label>
                   <Input
                     type="number"
                     value={allowance}
@@ -322,6 +368,14 @@ export default function CompanyDashboard() {
                   />
                 </div>
                 <div className="space-y-2">
+                  <Label>Crédito Farmácia (R$)</Label>
+                  <Input
+                    type="number"
+                    value={medicationAllowance}
+                    onChange={(e) => setMedicationAllowance(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2 col-span-2">
                   <Label>Tipo</Label>
                   <Select value={type} onValueChange={setType}>
                     <SelectTrigger>
@@ -349,11 +403,19 @@ export default function CompanyDashboard() {
           </DialogHeader>
           <div className="space-y-4 mt-4">
             <div className="space-y-2">
-              <Label>Saldo Disponível (R$)</Label>
+              <Label>Crédito Saúde (R$)</Label>
               <Input
                 type="number"
                 value={allowance}
                 onChange={(e) => setAllowance(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Crédito Farmácia Mensal (R$)</Label>
+              <Input
+                type="number"
+                value={medicationAllowance}
+                onChange={(e) => setMedicationAllowance(e.target.value)}
               />
             </div>
             <div className="space-y-2">
