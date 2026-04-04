@@ -312,8 +312,14 @@ export default function Index() {
 
             {employeeData?.company_id && (
               <>
-                <Card className="bg-purple-50 border-purple-200">
+                <Card
+                  className="bg-purple-50 border-purple-200 cursor-pointer hover:shadow-md transition-shadow group relative"
+                  onClick={() => navigate('/benefits/statement')}
+                >
                   <CardContent className="p-4">
+                    <div className="absolute right-4 top-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <ArrowRight className="h-4 w-4 text-purple-500" />
+                    </div>
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2 text-purple-800">
                         <Briefcase className="h-4 w-4" />
@@ -321,7 +327,7 @@ export default function Index() {
                       </div>
                       <Badge
                         variant="outline"
-                        className="border-purple-300 text-purple-700 bg-purple-100"
+                        className="border-purple-300 text-purple-700 bg-purple-100 mr-6 group-hover:mr-0 transition-all"
                       >
                         {companyName || 'Sua Empresa'}
                       </Badge>
@@ -340,8 +346,14 @@ export default function Index() {
                     </p>
                   </CardContent>
                 </Card>
-                <Card className="bg-teal-50 border-teal-200 mt-4">
+                <Card
+                  className="bg-teal-50 border-teal-200 mt-4 cursor-pointer hover:shadow-md transition-shadow group relative"
+                  onClick={() => navigate('/benefits/statement')}
+                >
                   <CardContent className="p-4">
+                    <div className="absolute right-4 top-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <ArrowRight className="h-4 w-4 text-teal-500" />
+                    </div>
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2 text-teal-800">
                         <Pill className="h-4 w-4" />
@@ -349,7 +361,7 @@ export default function Index() {
                       </div>
                       <Badge
                         variant="outline"
-                        className="border-teal-300 text-teal-700 bg-teal-100"
+                        className="border-teal-300 text-teal-700 bg-teal-100 mr-6 group-hover:mr-0 transition-all"
                       >
                         {companyName || 'Sua Empresa'}
                       </Badge>

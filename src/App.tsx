@@ -12,6 +12,7 @@ import HealthProfile from './pages/HealthProfile'
 import NotFound from './pages/NotFound'
 import Login from './pages/Login'
 import CompanyDashboard from './pages/CompanyDashboard'
+import BenefitStatement from './pages/BenefitStatement'
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth()
@@ -36,6 +37,7 @@ const AppRoutes = () => {
         <Route path="/professional" element={<ProfessionalDashboard />} />
         <Route path="/health-profile" element={<HealthProfile />} />
         <Route path="/company/dashboard" element={<CompanyDashboard />} />
+        <Route path="/benefits/statement" element={<BenefitStatement />} />
       </Route>
       <Route path="*" element={<NotFound />} />
     </Routes>
