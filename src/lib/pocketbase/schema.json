@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-04-04T00:54:03.166Z",
+  "generatedAt": "2026-04-04T01:12:56.921Z",
   "collections": [
     {
       "name": "users",
@@ -142,6 +142,12 @@
         {
           "name": "auto_renew_benefits",
           "type": "bool",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "low_balance_threshold",
+          "type": "number",
           "required": false,
           "system": false
         }

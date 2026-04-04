@@ -24,9 +24,15 @@ onRecordAfterCreateSuccess((e) => {
       const healthAllowance = Number(employee.get('health_allowance')) || 0
       const medicationAllowance = Number(employee.get('medication_allowance')) || 0
 
+      let thresholdRaw = employee.get('low_balance_threshold')
+      let threshold = 50.0
+      if (thresholdRaw !== null && thresholdRaw !== '' && thresholdRaw !== undefined) {
+        threshold = Number(thresholdRaw)
+      }
+
       let balance = category === 'medication' ? medicationAllowance : healthAllowance
 
-      if (balance < 50.0) {
+      if (balance < threshold) {
         const msg = new Record($app.findCollectionByNameOrId('messages'))
         msg.set('sender_id', companyId)
         msg.set('receiver_id', employeeId)

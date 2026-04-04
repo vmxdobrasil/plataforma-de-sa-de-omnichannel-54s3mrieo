@@ -26,6 +26,7 @@ import {
 } from '@/components/ui/carousel'
 import { Badge } from '@/components/ui/badge'
 import { useAuth } from '@/hooks/use-auth'
+import { NotificationSettings } from '@/components/NotificationSettings'
 import { getPatientAppointments } from '@/services/appointments'
 import pb from '@/lib/pocketbase/client'
 import { Briefcase } from 'lucide-react'
@@ -424,6 +425,8 @@ export default function Index() {
                 </p>
               </CardContent>
             </Card>
+
+            {user?.role === 'patient' && <NotificationSettings />}
           </div>
         </section>
       </div>
