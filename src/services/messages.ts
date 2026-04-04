@@ -15,3 +15,15 @@ export const sendMessage = async (data: {
 }) => {
   return pb.collection('messages').create(data)
 }
+
+export const getUnreadNotifications = async (userId: string) => {
+  return pb.collection('messages').getFullList({
+    filter: `receiver_id = "${userId}" && is_read = false`,
+    sort: '-created',
+    expand: 'sender_id',
+  })
+}
+
+export const markAsRead = async (messageId: string) => {
+  return pb.collection('messages').update(messageId, { is_read: true })
+}

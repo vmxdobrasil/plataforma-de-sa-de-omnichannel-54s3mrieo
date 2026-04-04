@@ -38,6 +38,7 @@ import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { SOSCard } from './SOSCard'
 import { ChatApp } from './ChatApp'
+import { NotificationsPopover } from './NotificationsPopover'
 import pb from '@/lib/pocketbase/client'
 
 const navItems = [
@@ -129,6 +130,8 @@ export default function Layout() {
               >
                 <span className="font-bold text-lg">A+</span>
               </Button>
+
+              <NotificationsPopover />
 
               {user?.role === 'patient' && (
                 <Dialog>
