@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-04-04T00:11:28.876Z",
+  "generatedAt": "2026-04-04T00:18:12.518Z",
   "collections": [
     {
       "name": "users",
@@ -136,6 +136,12 @@
         {
           "name": "medication_allowance",
           "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "auto_renew_benefits",
+          "type": "bool",
           "required": false,
           "system": false
         }
@@ -501,6 +507,12 @@
           "required": false,
           "system": false,
           "selectValues": ["health_service", "medication"]
+        },
+        {
+          "name": "description",
+          "type": "text",
+          "required": false,
+          "system": false
         }
       ],
       "indexes": []

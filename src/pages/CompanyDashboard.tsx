@@ -29,8 +29,10 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Switch } from '@/components/ui/switch'
 import { Building2, Users, DollarSign, Search, Plus, Edit } from 'lucide-react'
 import { toast } from 'sonner'
+import { updateUser } from '@/services/users'
 
 export default function CompanyDashboard() {
   const { user } = useAuth()
@@ -146,6 +148,20 @@ export default function CompanyDashboard() {
     setType('benefit')
   }
 
+  const handleToggleAutoRenew = async (empId: string, currentValue: boolean) => {
+    try {
+      await updateUser(empId, { auto_renew_benefits: !currentValue })
+      if (!currentValue) {
+        toast.success('Renovação automática ativada!')
+      } else {
+        toast.success('Renovação automática cancelada com sucesso.')
+      }
+      loadData()
+    } catch (e) {
+      toast.error('Erro ao atualizar renovação automática.')
+    }
+  }
+
   return (
     <div className="space-y-8 pb-10 animate-fade-in-up">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
@@ -242,6 +258,7 @@ export default function CompanyDashboard() {
                   <TableHead>Crédito Saúde</TableHead>
                   <TableHead>Crédito Farmácia</TableHead>
                   <TableHead>Tipo de Repasse</TableHead>
+                  <TableHead>Renovação</TableHead>
                   <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
@@ -272,6 +289,19 @@ export default function CompanyDashboard() {
                           ? 'Benefício Direto'
                           : 'Desconto em Folha'}
                       </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Switch
+                          checked={!!emp.auto_renew_benefits}
+                          onCheckedChange={() =>
+                            handleToggleAutoRenew(emp.id, !!emp.auto_renew_benefits)
+                          }
+                        />
+                        <span className="text-sm text-muted-foreground whitespace-nowrap">
+                          {emp.auto_renew_benefits ? 'Auto' : 'Manual'}
+                        </span>
+                      </div>
                     </TableCell>
                     <TableCell className="text-right">
                       <Button variant="ghost" size="sm" onClick={() => openEdit(emp)}>
