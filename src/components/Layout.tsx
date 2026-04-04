@@ -9,6 +9,7 @@ import {
   User,
   LogOut,
   MessageSquare,
+  Folder,
 } from 'lucide-react'
 import {
   Sidebar,
@@ -45,6 +46,7 @@ const navItems = [
   { title: 'Início', icon: Home, url: '/', roles: ['patient', 'professional'] },
   { title: 'Buscar Especialistas', icon: Search, url: '/search', roles: ['patient'] },
   { title: 'Meu Perfil de Saúde', icon: HeartPulse, url: '/health-profile', roles: ['patient'] },
+  { title: 'Documentos', icon: Folder, url: '/documents', roles: ['patient', 'professional'] },
   {
     title: 'Painel do Profissional',
     icon: Stethoscope,

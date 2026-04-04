@@ -5,9 +5,10 @@ import { Badge } from '@/components/ui/badge'
 import { useAuth } from '@/hooks/use-auth'
 import { useRealtime } from '@/hooks/use-realtime'
 import { getPatientPrescriptions } from '@/services/prescriptions'
-import { Pill, FileText, ShoppingBag } from 'lucide-react'
+import { Pill, FileText, ShoppingBag, Folder } from 'lucide-react'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
+import { Link } from 'react-router-dom'
 import {
   Dialog,
   DialogContent,
@@ -163,10 +164,15 @@ export default function HealthProfile() {
         </Card>
 
         <Card>
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="flex items-center gap-2">
               <FileText className="h-5 w-5 text-primary" /> Prontuário Clínico
             </CardTitle>
+            <Button variant="ghost" size="sm" asChild>
+              <Link to="/documents" className="text-primary flex items-center gap-1">
+                <Folder className="h-4 w-4" /> Ver Documentos
+              </Link>
+            </Button>
           </CardHeader>
           <CardContent className="space-y-4">
             {records.length === 0 ? (

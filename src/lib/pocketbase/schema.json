@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-04-04T01:41:59.296Z",
+  "generatedAt": "2026-04-04T01:54:05.771Z",
   "collections": [
     {
       "name": "users",
@@ -519,6 +519,80 @@
           "type": "text",
           "required": false,
           "system": false
+        }
+      ],
+      "indexes": []
+    },
+    {
+      "name": "documents",
+      "type": "base",
+      "apiRules": {
+        "list": "@request.auth.id != '' && (patient_id = @request.auth.id || patient_id.parent_id = @request.auth.id || professional_id = @request.auth.id || @request.auth.role = 'company')",
+        "view": "@request.auth.id != '' && (patient_id = @request.auth.id || patient_id.parent_id = @request.auth.id || professional_id = @request.auth.id || @request.auth.role = 'company')",
+        "create": "@request.auth.id != ''",
+        "update": "@request.auth.id != '' && (patient_id = @request.auth.id || professional_id = @request.auth.id)",
+        "delete": "@request.auth.id != '' && (patient_id = @request.auth.id || professional_id = @request.auth.id)"
+      },
+      "fields": [
+        {
+          "name": "patient_id",
+          "type": "relation",
+          "required": true,
+          "system": false,
+          "collectionRef": "users"
+        },
+        {
+          "name": "professional_id",
+          "type": "relation",
+          "required": false,
+          "system": false,
+          "collectionRef": "users"
+        },
+        {
+          "name": "appointment_id",
+          "type": "relation",
+          "required": false,
+          "system": false,
+          "collectionRef": "appointments"
+        },
+        {
+          "name": "title",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "type",
+          "type": "select",
+          "required": true,
+          "system": false,
+          "selectValues": ["exam", "prescription", "certificate", "other"]
+        },
+        {
+          "name": "file",
+          "type": "file",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "notes",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate"]
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate", "onUpdate"]
         }
       ],
       "indexes": []
