@@ -40,11 +40,23 @@ export function BookingFlow({ open, onOpenChange, professional }: BookingFlowPro
   const { user } = useAuth()
   const [dependents, setDependents] = useState<any[]>([])
   const [selectedPatientId, setSelectedPatientId] = useState<string>('')
+  const [employeeData, setEmployeeData] = useState<any>(null)
+  const [paymentDetails, setPaymentDetails] = useState<{
+    amount: number
+    remaining: number
+    method: string
+  } | null>(null)
 
   useEffect(() => {
     if (user?.id) {
       setSelectedPatientId(user.id)
       getDependents(user.id).then(setDependents).catch(console.error)
+
+      if (user.parent_id) {
+        pb.collection('users').getOne(user.parent_id).then(setEmployeeData).catch(console.error)
+      } else if (user.company_id) {
+        pb.collection('users').getOne(user.id).then(setEmployeeData).catch(console.error)
+      }
     }
   }, [user])
 
@@ -61,8 +73,15 @@ export function BookingFlow({ open, onOpenChange, professional }: BookingFlowPro
     const appointmentCost = 150 // Mock cost
 
     if (method === 'corporate') {
-      if ((user.health_allowance || 0) < appointmentCost) {
-        toast.error(`Saldo insuficiente. O valor da consulta é R$ ${appointmentCost}.`)
+      if (!employeeData?.company_id) {
+        toast.error('Benefício corporativo não encontrado.')
+        return
+      }
+      if (
+        employeeData.allowance_type === 'benefit' &&
+        (employeeData.health_allowance || 0) < appointmentCost
+      ) {
+        toast.error('Saldo de benefício insuficiente para realizar este agendamento.')
         return
       }
     }
@@ -82,28 +101,41 @@ export function BookingFlow({ open, onOpenChange, professional }: BookingFlowPro
       })
 
       if (method === 'corporate') {
+        const newAllowance = (employeeData.health_allowance || 0) - appointmentCost
+
         await pb.collection('benefit_transactions').create({
-          employee_id: user.id,
-          company_id: user.company_id,
+          employee_id: employeeData.id,
+          company_id: employeeData.company_id,
           appointment_id: appointment.id,
           amount: appointmentCost,
           type: 'debit',
+          category: 'health_service',
+          description: `Pagamento de consulta: ${mode}`,
         })
 
-        await pb.collection('users').update(user.id, {
-          health_allowance: (user.health_allowance || 0) - appointmentCost,
+        await pb.collection('users').update(employeeData.id, {
+          health_allowance: newAllowance,
         })
+
+        setPaymentDetails({ amount: appointmentCost, remaining: newAllowance, method })
+      } else {
+        setPaymentDetails({ amount: appointmentCost, remaining: 0, method })
       }
 
       setStep(3)
       toast.success(`Agendamento Confirmado com ${professional.name}!`)
-      setTimeout(() => {
-        onOpenChange(false)
-        setTimeout(() => {
-          setStep(1)
-          setTime(null)
-        }, 500)
-      }, 2000)
+
+      setTimeout(
+        () => {
+          onOpenChange(false)
+          setTimeout(() => {
+            setStep(1)
+            setTime(null)
+            setPaymentDetails(null)
+          }, 500)
+        },
+        method === 'corporate' ? 4000 : 2000,
+      )
     } catch (error) {
       toast.error('Erro ao confirmar agendamento. Tente novamente.')
     } finally {
@@ -210,7 +242,7 @@ export function BookingFlow({ open, onOpenChange, professional }: BookingFlowPro
                 </div>
               </div>
 
-              {user?.company_id && (
+              {employeeData?.company_id && (
                 <Button
                   variant="outline"
                   className="w-full justify-start h-16 hover:border-primary"
@@ -223,7 +255,7 @@ export function BookingFlow({ open, onOpenChange, professional }: BookingFlowPro
                   <div className="text-left">
                     <p className="font-semibold">Crédito Corporativo</p>
                     <p className="text-xs text-muted-foreground">
-                      Saldo: R$ {user.health_allowance?.toFixed(2) || '0.00'}
+                      Saldo: R$ {employeeData.health_allowance?.toFixed(2) || '0.00'}
                     </p>
                   </div>
                 </Button>
@@ -281,6 +313,23 @@ export function BookingFlow({ open, onOpenChange, professional }: BookingFlowPro
               <p className="text-sm text-muted-foreground">
                 Consulta {mode} agendada para {date?.toLocaleDateString()} às {time}.
               </p>
+              {paymentDetails?.method === 'corporate' && (
+                <div className="mt-4 p-4 bg-muted/50 rounded-lg text-left border">
+                  <p className="font-semibold text-sm mb-2 border-b pb-2">
+                    Comprovante de Uso de Benefício
+                  </p>
+                  <div className="flex justify-between text-sm mb-1">
+                    <span className="text-muted-foreground">Valor deduzido:</span>
+                    <span className="font-medium text-destructive">
+                      - R$ {paymentDetails.amount.toFixed(2)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Saldo restante:</span>
+                    <span className="font-medium">R$ {paymentDetails.remaining.toFixed(2)}</span>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>

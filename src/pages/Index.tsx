@@ -43,34 +43,39 @@ export default function Index() {
   const [companyName, setCompanyName] = useState<string>('')
   const [employeeData, setEmployeeData] = useState<any>(null)
 
-  useEffect(() => {
+  const loadEmployeeData = async () => {
     if (user?.parent_id) {
-      pb.collection('users')
-        .getOne(user.parent_id)
-        .then((parent) => {
-          setEmployeeData(parent)
-          if (parent.company_id) {
-            pb.collection('users')
-              .getOne(parent.company_id)
-              .then((c) => setCompanyName(c.name))
-              .catch((e) => {
-                console.error(e)
-              })
-          }
-        })
-        .catch((e) => {
-          console.error(e)
-        })
+      try {
+        const parent = await pb.collection('users').getOne(user.parent_id)
+        setEmployeeData(parent)
+        if (parent.company_id) {
+          const c = await pb.collection('users').getOne(parent.company_id)
+          setCompanyName(c.name)
+        }
+      } catch (e) {
+        console.error(e)
+      }
     } else if (user?.company_id) {
-      setEmployeeData(user)
-      pb.collection('users')
-        .getOne(user.company_id)
-        .then((c) => setCompanyName(c.name))
-        .catch((e) => {
-          console.error(e)
-        })
+      try {
+        const currentUser = await pb.collection('users').getOne(user.id)
+        setEmployeeData(currentUser)
+        if (currentUser.company_id) {
+          const c = await pb.collection('users').getOne(currentUser.company_id)
+          setCompanyName(c.name)
+        }
+      } catch (e) {
+        console.error(e)
+      }
     }
-  }, [user?.company_id, user?.parent_id, user])
+  }
+
+  useEffect(() => {
+    loadEmployeeData()
+  }, [user?.company_id, user?.parent_id, user?.id])
+
+  useRealtime('users', () => {
+    loadEmployeeData()
+  })
 
   const loadData = async () => {
     if (user?.id) {

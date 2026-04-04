@@ -52,6 +52,7 @@ export default function HealthProfile() {
 
   useRealtime('prescriptions', loadData)
   useRealtime('health_records', loadData)
+  useRealtime('users', loadData)
 
   const handleRequestDeduction = async () => {
     if (!selectedPrescription || !user) return
@@ -62,18 +63,15 @@ export default function HealthProfile() {
       return
     }
 
-    let employeeId = user.id
-    let companyId = user.company_id
-    let currentAllowance = user.medication_allowance || 0
-
     try {
-      let employeeRecord = user
-      if (user.parent_id) {
-        employeeRecord = await pb.collection('users').getOne(user.parent_id)
-        employeeId = employeeRecord.id
-        companyId = employeeRecord.company_id
-        currentAllowance = employeeRecord.medication_allowance || 0
+      let employeeRecord = await pb.collection('users').getOne(user.id)
+      if (employeeRecord.parent_id) {
+        employeeRecord = await pb.collection('users').getOne(employeeRecord.parent_id)
       }
+
+      const employeeId = employeeRecord.id
+      const companyId = employeeRecord.company_id
+      const currentAllowance = employeeRecord.medication_allowance || 0
 
       if (!companyId) {
         toast.error('Usuário não vinculado a uma empresa.')
