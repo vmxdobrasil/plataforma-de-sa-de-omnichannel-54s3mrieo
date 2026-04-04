@@ -28,8 +28,10 @@ import { Badge } from '@/components/ui/badge'
 import { useAuth } from '@/hooks/use-auth'
 import { NotificationSettings } from '@/components/NotificationSettings'
 import { getPatientAppointments } from '@/services/appointments'
+import { getRecentDocuments } from '@/services/documents'
 import pb from '@/lib/pocketbase/client'
-import { Briefcase } from 'lucide-react'
+import { Briefcase, Folder } from 'lucide-react'
+import { getExpiryStatus } from '@/lib/document-utils'
 import { Navigate } from 'react-router-dom'
 import { getProfessionals } from '@/services/users'
 import { useRealtime } from '@/hooks/use-realtime'
@@ -41,6 +43,7 @@ export default function Index() {
   const { user } = useAuth()
   const [appointments, setAppointments] = useState<any[]>([])
   const [professionals, setProfessionals] = useState<any[]>([])
+  const [recentDocuments, setRecentDocuments] = useState<any[]>([])
   const [companyName, setCompanyName] = useState<string>('')
   const [employeeData, setEmployeeData] = useState<any>(null)
 
@@ -83,6 +86,8 @@ export default function Index() {
       try {
         const appts = await getPatientAppointments(user.id)
         setAppointments(appts)
+        const docs = await getRecentDocuments(user.id)
+        setRecentDocuments(docs)
       } catch (e) {
         console.error(e)
       }
@@ -100,6 +105,10 @@ export default function Index() {
   }, [user?.id])
 
   useRealtime('appointments', () => {
+    loadData()
+  })
+
+  useRealtime('documents', () => {
     loadData()
   })
 
@@ -432,6 +441,83 @@ export default function Index() {
       </div>
 
       <section className="animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-semibold flex items-center gap-2">
+            <FileText className="h-5 w-5 text-primary" /> Documentos Recentes
+          </h2>
+          <Button variant="ghost" size="sm" onClick={() => navigate('/documents')}>
+            Ver todos <ArrowRight className="ml-2 h-4 w-4" />
+          </Button>
+        </div>
+
+        {recentDocuments.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 mb-8">
+            {recentDocuments.map((doc) => {
+              const fileUrl = pb.files.getURL(doc, doc.file)
+              const expiryStatus = getExpiryStatus(doc.expiry_date)
+              return (
+                <Card
+                  key={doc.id}
+                  className="hover:shadow-md transition-shadow group relative cursor-pointer"
+                  onClick={() => window.open(fileUrl, '_blank')}
+                >
+                  <CardContent className="p-4 flex flex-col h-full gap-3">
+                    <div className="flex justify-between items-start">
+                      <div className="bg-primary/10 p-2 rounded-lg text-primary">
+                        <FileText className="h-5 w-5" />
+                      </div>
+                      <Badge variant="outline" className="capitalize text-[10px]">
+                        {doc.type === 'exam'
+                          ? 'Exame'
+                          : doc.type === 'prescription'
+                            ? 'Receita'
+                            : doc.type === 'certificate'
+                              ? 'Atestado'
+                              : 'Outros'}
+                      </Badge>
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-sm line-clamp-1" title={doc.title}>
+                        {doc.title}
+                      </h3>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {format(new Date(doc.created), 'dd/MM/yyyy', { locale: ptBR })}
+                      </p>
+                    </div>
+                    {expiryStatus && (
+                      <div className="mt-auto pt-2">
+                        <Badge
+                          variant="outline"
+                          className={`text-[10px] w-full justify-center ${expiryStatus.color}`}
+                        >
+                          {expiryStatus.label}
+                        </Badge>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              )
+            })}
+          </div>
+        ) : (
+          <Card className="bg-muted/20 border-dashed mb-8">
+            <CardContent className="p-8 text-center text-muted-foreground">
+              <Folder className="h-8 w-8 mx-auto mb-3 opacity-20" />
+              <p className="text-sm">Nenhum documento recente.</p>
+              <Button
+                variant="link"
+                size="sm"
+                onClick={() => navigate('/documents')}
+                className="mt-2"
+              >
+                Fazer upload
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+      </section>
+
+      <section className="animate-fade-in-up" style={{ animationDelay: '0.5s' }}>
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-semibold">Especialistas Recomendados</h2>
           <Button variant="ghost" size="sm" onClick={() => navigate('/search')}>

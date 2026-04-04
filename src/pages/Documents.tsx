@@ -32,11 +32,18 @@ import {
   FileCheck,
   Pill,
   Stethoscope,
+  Filter,
+  ArrowUpDown,
+  CalendarIcon,
 } from 'lucide-react'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { toast } from 'sonner'
 import pb from '@/lib/pocketbase/client'
+import { Calendar } from '@/components/ui/calendar'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { cn } from '@/lib/utils'
+import { getExpiryStatus } from '@/lib/document-utils'
 
 const TYPE_LABELS: Record<string, string> = {
   exam: 'Exame',
@@ -58,6 +65,7 @@ export default function Documents() {
   const [appointments, setAppointments] = useState<any[]>([])
   const [searchTerm, setSearchTerm] = useState('')
   const [typeFilter, setTypeFilter] = useState('all')
+  const [sortOrder, setSortOrder] = useState('-created')
   const [isUploadOpen, setIsUploadOpen] = useState(false)
   const [loading, setLoading] = useState(false)
 
@@ -67,11 +75,12 @@ export default function Documents() {
   const [file, setFile] = useState<File | null>(null)
   const [appointmentId, setAppointmentId] = useState('none')
   const [notes, setNotes] = useState('')
+  const [expiryDate, setExpiryDate] = useState<Date | undefined>(undefined)
 
   const loadData = async () => {
     if (!user?.id) return
     try {
-      const docs = await getDocuments(user.id)
+      const docs = await getDocuments(user.id, sortOrder)
       setDocuments(docs)
 
       const appts =
@@ -86,7 +95,8 @@ export default function Documents() {
 
   useEffect(() => {
     loadData()
-  }, [user?.id])
+  }, [user?.id, sortOrder])
+
   useRealtime('documents', loadData)
 
   const handleUpload = async (e: React.FormEvent) => {
@@ -100,6 +110,7 @@ export default function Documents() {
       formData.append('type', type)
       formData.append('file', file)
       if (notes) formData.append('notes', notes)
+      if (expiryDate) formData.append('expiry_date', expiryDate.toISOString())
 
       if (appointmentId !== 'none') {
         formData.append('appointment_id', appointmentId)
@@ -147,6 +158,7 @@ export default function Documents() {
     setFile(null)
     setAppointmentId('none')
     setNotes('')
+    setExpiryDate(undefined)
   }
 
   const filteredDocs = documents.filter((doc) => {
@@ -167,11 +179,11 @@ export default function Documents() {
               <Upload className="mr-2 h-4 w-4" /> Novo Documento
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-md">
+          <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Enviar Documento</DialogTitle>
             </DialogHeader>
-            <form onSubmit={handleUpload} className="space-y-4">
+            <form onSubmit={handleUpload} className="space-y-4 pt-2">
               <div className="space-y-2">
                 <Label>Título *</Label>
                 <Input
@@ -181,20 +193,47 @@ export default function Documents() {
                   placeholder="Ex: Raio-X Torax"
                 />
               </div>
-              <div className="space-y-2">
-                <Label>Tipo *</Label>
-                <Select value={type} onValueChange={setType}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Object.entries(TYPE_LABELS).map(([k, v]) => (
-                      <SelectItem key={k} value={k}>
-                        {v}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Tipo *</Label>
+                  <Select value={type} onValueChange={setType}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(TYPE_LABELS).map(([k, v]) => (
+                        <SelectItem key={k} value={k}>
+                          {v}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2 flex flex-col">
+                  <Label>Validade (Opcional)</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant={'outline'}
+                        className={cn(
+                          'w-full justify-start text-left font-normal',
+                          !expiryDate && 'text-muted-foreground',
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {expiryDate ? format(expiryDate, 'dd/MM/yyyy') : <span>Sem validade</span>}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={expiryDate}
+                        onSelect={setExpiryDate}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
               </div>
               <div className="space-y-2">
                 <Label>Agendamento Relacionado {user?.role === 'professional' && '*'}</Label>
@@ -266,6 +305,20 @@ export default function Documents() {
             </SelectContent>
           </Select>
         </div>
+        <div className="w-full sm:w-[220px]">
+          <Select value={sortOrder} onValueChange={setSortOrder}>
+            <SelectTrigger>
+              <ArrowUpDown className="h-4 w-4 mr-2 text-muted-foreground" />
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="-created">Mais recentes</SelectItem>
+              <SelectItem value="created">Mais antigos</SelectItem>
+              <SelectItem value="+expiry_date">Vencimento (Crescente)</SelectItem>
+              <SelectItem value="-expiry_date">Vencimento (Decrescente)</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {filteredDocs.length === 0 ? (
@@ -279,6 +332,7 @@ export default function Documents() {
             const Icon = TYPE_ICONS[doc.type] || FileText
             const fileUrl = pb.files.getURL(doc, doc.file)
             const canDelete = doc.patient_id === user?.id || doc.professional_id === user?.id
+            const expiryStatus = getExpiryStatus(doc.expiry_date)
 
             return (
               <Card key={doc.id} className="group hover:shadow-md transition-all">
@@ -297,9 +351,16 @@ export default function Documents() {
                         </p>
                       </div>
                     </div>
-                    <Badge variant="outline" className="capitalize text-[10px]">
-                      {TYPE_LABELS[doc.type]}
-                    </Badge>
+                    <div className="flex flex-col items-end gap-1 shrink-0">
+                      <Badge variant="outline" className="capitalize text-[10px]">
+                        {TYPE_LABELS[doc.type]}
+                      </Badge>
+                      {expiryStatus && (
+                        <Badge variant="outline" className={`text-[10px] ${expiryStatus.color}`}>
+                          {expiryStatus.label}
+                        </Badge>
+                      )}
+                    </div>
                   </div>
 
                   {doc.notes && (
