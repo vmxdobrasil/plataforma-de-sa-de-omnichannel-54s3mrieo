@@ -13,7 +13,17 @@ import { CheckCircle2, Clock, CreditCard, Video, Home as HomeIcon, MapPin } from
 import { Badge } from '@/components/ui/badge'
 import { useAuth } from '@/hooks/use-auth'
 import { createAppointment } from '@/services/appointments'
+import { getDependents } from '@/services/users'
 import pb from '@/lib/pocketbase/client'
+import { useEffect } from 'react'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Label } from '@/components/ui/label'
 
 interface BookingFlowProps {
   open: boolean
@@ -28,6 +38,15 @@ export function BookingFlow({ open, onOpenChange, professional }: BookingFlowPro
   const [mode, setMode] = useState<'Presencial' | 'Online' | 'Domiciliar'>('Presencial')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const { user } = useAuth()
+  const [dependents, setDependents] = useState<any[]>([])
+  const [selectedPatientId, setSelectedPatientId] = useState<string>('')
+
+  useEffect(() => {
+    if (user?.id) {
+      setSelectedPatientId(user.id)
+      getDependents(user.id).then(setDependents).catch(console.error)
+    }
+  }, [user])
 
   const timeSlots = ['09:00', '10:30', '14:00', '15:30', '16:00']
 
@@ -55,7 +74,7 @@ export function BookingFlow({ open, onOpenChange, professional }: BookingFlowPro
       dateTime.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0)
 
       const appointment = await createAppointment({
-        patient_id: user.id,
+        patient_id: selectedPatientId || user.id,
         professional_id: professional.id,
         dateTime: dateTime.toISOString(),
         type: mode,
@@ -107,6 +126,25 @@ export function BookingFlow({ open, onOpenChange, professional }: BookingFlowPro
         <div className="py-4">
           {step === 1 && (
             <div className="space-y-4 animate-fade-in-up">
+              {dependents.length > 0 && (
+                <div className="space-y-2 mb-4">
+                  <Label>Para quem é a consulta?</Label>
+                  <Select value={selectedPatientId} onValueChange={setSelectedPatientId}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o paciente" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={user?.id || 'self'}>Para mim ({user?.name})</SelectItem>
+                      {dependents.map((dep) => (
+                        <SelectItem key={dep.id} value={dep.id}>
+                          {dep.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
               <div className="flex gap-2 justify-center mb-4">
                 <Button
                   size="sm"

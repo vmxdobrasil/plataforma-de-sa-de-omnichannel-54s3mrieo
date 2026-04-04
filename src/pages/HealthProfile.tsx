@@ -44,6 +44,7 @@ import { getPatientAppointments, updateAppointmentStatus } from '@/services/appo
 import { useRealtime } from '@/hooks/use-realtime'
 import { format } from 'date-fns'
 import pb from '@/lib/pocketbase/client'
+import { SOSCard } from '@/components/SOSCard'
 
 const bpData = [
   { date: 'Jan', sys: 120, dia: 80 },
@@ -69,6 +70,7 @@ export default function HealthProfile() {
     emergency_contact_name: '',
     emergency_contact_phone: '',
     document_id: '',
+    phone: '',
   })
   const [depErrors, setDepErrors] = useState<Record<string, string>>({})
 
@@ -76,7 +78,10 @@ export default function HealthProfile() {
     if (!user?.id) return
     try {
       setDepErrors({})
-      await createDependent(user.id, depFormData)
+      await createDependent(user.id, {
+        ...depFormData,
+        company_id: user.company_id || undefined,
+      })
       setIsAddDependentOpen(false)
       setDepFormData({
         name: '',
@@ -85,6 +90,7 @@ export default function HealthProfile() {
         emergency_contact_name: '',
         emergency_contact_phone: '',
         document_id: '',
+        phone: '',
       })
       loadData()
       toast.success('Dependente adicionado com sucesso.')
@@ -231,18 +237,32 @@ export default function HealthProfile() {
                   />
                   {depErrors.name && <p className="text-xs text-destructive">{depErrors.name}</p>}
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="document_id">Documento (CPF/RG)</Label>
-                  <Input
-                    id="document_id"
-                    value={depFormData.document_id}
-                    onChange={(e) =>
-                      setDepFormData({ ...depFormData, document_id: e.target.value })
-                    }
-                  />
-                  {depErrors.document_id && (
-                    <p className="text-xs text-destructive">{depErrors.document_id}</p>
-                  )}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="document_id">Documento (CPF/RG)</Label>
+                    <Input
+                      id="document_id"
+                      value={depFormData.document_id}
+                      onChange={(e) =>
+                        setDepFormData({ ...depFormData, document_id: e.target.value })
+                      }
+                    />
+                    {depErrors.document_id && (
+                      <p className="text-xs text-destructive">{depErrors.document_id}</p>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="phone">Telefone</Label>
+                    <Input
+                      id="phone"
+                      value={depFormData.phone}
+                      onChange={(e) => setDepFormData({ ...depFormData, phone: e.target.value })}
+                      placeholder="(Opcional)"
+                    />
+                    {depErrors.phone && (
+                      <p className="text-xs text-destructive">{depErrors.phone}</p>
+                    )}
+                  </div>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="blood_type">Tipo Sanguíneo</Label>
@@ -315,49 +335,54 @@ export default function HealthProfile() {
         </div>
       </div>
 
-      <div className="flex flex-col md:flex-row items-center gap-6 p-6 bg-card rounded-xl border shadow-sm animate-fade-in-up relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-bl-[100px] -z-0"></div>
-        <div className="relative group">
-          <Avatar className="h-28 w-28 border-4 border-background shadow-md">
-            <AvatarImage src={avatarUrl} />
-            <AvatarFallback>{activeProfile.name[0]}</AvatarFallback>
-          </Avatar>
-          <div
-            className="absolute bottom-0 right-0 bg-primary text-white p-1.5 rounded-full cursor-pointer shadow-sm hover:scale-105 transition-transform"
-            onClick={() => fileInputRef.current?.click()}
-          >
-            <Camera className="h-4 w-4" />
+      <div className="grid md:grid-cols-3 gap-6 animate-fade-in-up">
+        <div className="md:col-span-2 flex flex-col md:flex-row items-center gap-6 p-6 bg-card rounded-xl border shadow-sm relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-bl-[100px] -z-0"></div>
+          <div className="relative group">
+            <Avatar className="h-28 w-28 border-4 border-background shadow-md">
+              <AvatarImage src={avatarUrl} />
+              <AvatarFallback>{activeProfile.name[0]}</AvatarFallback>
+            </Avatar>
+            <div
+              className="absolute bottom-0 right-0 bg-primary text-white p-1.5 rounded-full cursor-pointer shadow-sm hover:scale-105 transition-transform"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <Camera className="h-4 w-4" />
+            </div>
+            <input
+              type="file"
+              ref={fileInputRef}
+              className="hidden"
+              accept="image/*"
+              onChange={handleAvatarChange}
+            />
           </div>
-          <input
-            type="file"
-            ref={fileInputRef}
-            className="hidden"
-            accept="image/*"
-            onChange={handleAvatarChange}
-          />
+          <div className="text-center md:text-left flex-1 z-10">
+            <div className="flex items-center justify-center md:justify-start gap-3">
+              <h1 className="text-3xl font-bold">{activeProfile.name}</h1>
+              {activeProfile.loyalty_points > 0 && (
+                <Badge className="bg-yellow-400/20 text-yellow-700 hover:bg-yellow-400/30 border-yellow-400/30">
+                  <Sparkles className="w-3 h-3 mr-1" /> {activeProfile.loyalty_points} pts
+                </Badge>
+              )}
+            </div>
+            <p className="text-muted-foreground mt-1">
+              Sangue {activeProfile.blood_type || '?'} • Plano Bradesco Top
+            </p>
+            <div className="flex flex-wrap gap-2 mt-3 justify-center md:justify-start">
+              <Badge variant="secondary" className="bg-emerald-100 text-emerald-700">
+                <ShieldCheck className="w-3 h-3 mr-1" /> LGPD Protegido
+              </Badge>
+              {activeProfile.allergies && (
+                <Badge variant="secondary" className="bg-red-100 text-red-700">
+                  Alergia: {activeProfile.allergies}
+                </Badge>
+              )}
+            </div>
+          </div>
         </div>
-        <div className="text-center md:text-left flex-1 z-10">
-          <div className="flex items-center justify-center md:justify-start gap-3">
-            <h1 className="text-3xl font-bold">{activeProfile.name}</h1>
-            {activeProfile.loyalty_points > 0 && (
-              <Badge className="bg-yellow-400/20 text-yellow-700 hover:bg-yellow-400/30 border-yellow-400/30">
-                <Sparkles className="w-3 h-3 mr-1" /> {activeProfile.loyalty_points} pts
-              </Badge>
-            )}
-          </div>
-          <p className="text-muted-foreground mt-1">
-            Sangue {activeProfile.blood_type || '?'} • Plano Bradesco Top
-          </p>
-          <div className="flex flex-wrap gap-2 mt-3 justify-center md:justify-start">
-            <Badge variant="secondary" className="bg-emerald-100 text-emerald-700">
-              <ShieldCheck className="w-3 h-3 mr-1" /> LGPD Protegido
-            </Badge>
-            {activeProfile.allergies && (
-              <Badge variant="secondary" className="bg-red-100 text-red-700">
-                Alergia: {activeProfile.allergies}
-              </Badge>
-            )}
-          </div>
+        <div className="md:col-span-1 h-full">
+          <SOSCard user={activeProfile} />
         </div>
       </div>
 

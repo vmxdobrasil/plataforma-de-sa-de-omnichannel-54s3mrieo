@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-04-03T23:51:27.404Z",
+  "generatedAt": "2026-04-04T00:01:33.315Z",
   "collections": [
     {
       "name": "users",
@@ -143,8 +143,8 @@
       "name": "appointments",
       "type": "base",
       "apiRules": {
-        "list": "@request.auth.id != ''",
-        "view": "@request.auth.id != ''",
+        "list": "@request.auth.id != '' && (patient_id = @request.auth.id || patient_id.parent_id = @request.auth.id || professional_id = @request.auth.id || @request.auth.role = 'company')",
+        "view": "@request.auth.id != '' && (patient_id = @request.auth.id || patient_id.parent_id = @request.auth.id || professional_id = @request.auth.id || @request.auth.role = 'company')",
         "create": "@request.auth.id != ''",
         "update": "@request.auth.id != ''",
         "delete": "@request.auth.id != ''"
@@ -211,8 +211,8 @@
       "name": "health_records",
       "type": "base",
       "apiRules": {
-        "list": "@request.auth.id != ''",
-        "view": "@request.auth.id != ''",
+        "list": "@request.auth.id != '' && (patient_id = @request.auth.id || patient_id.parent_id = @request.auth.id || professional_id = @request.auth.id)",
+        "view": "@request.auth.id != '' && (patient_id = @request.auth.id || patient_id.parent_id = @request.auth.id || professional_id = @request.auth.id)",
         "create": "@request.auth.id != ''",
         "update": "@request.auth.id != ''",
         "delete": "@request.auth.id != ''"
@@ -380,8 +380,8 @@
       "name": "prescriptions",
       "type": "base",
       "apiRules": {
-        "list": "@request.auth.id != '' && (patient_id = @request.auth.id || professional_id = @request.auth.id)",
-        "view": "@request.auth.id != '' && (patient_id = @request.auth.id || professional_id = @request.auth.id)",
+        "list": "@request.auth.id != '' && (patient_id = @request.auth.id || patient_id.parent_id = @request.auth.id || professional_id = @request.auth.id)",
+        "view": "@request.auth.id != '' && (patient_id = @request.auth.id || patient_id.parent_id = @request.auth.id || professional_id = @request.auth.id)",
         "create": "@request.auth.id != '' && professional_id = @request.auth.id",
         "update": "@request.auth.id != '' && professional_id = @request.auth.id",
         "delete": "@request.auth.id != '' && professional_id = @request.auth.id"

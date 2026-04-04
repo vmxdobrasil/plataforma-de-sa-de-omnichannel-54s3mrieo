@@ -4,12 +4,12 @@ import { AlertCircle, Phone, Droplet, User as UserIcon, FileText } from 'lucide-
 export function SOSCard({ user }: { user: any }) {
   if (!user) return null
   return (
-    <Card className="border-red-500 shadow-xl overflow-hidden animate-fade-in-up">
+    <Card className="border-red-500 shadow-xl overflow-hidden animate-fade-in-up h-full flex flex-col">
       <CardHeader className="bg-red-500 text-white py-4 flex flex-row items-center gap-3">
         <AlertCircle className="h-6 w-6" />
         <CardTitle className="text-xl m-0">Cartão de Emergência SOS</CardTitle>
       </CardHeader>
-      <CardContent className="p-6 space-y-4 bg-red-50/30">
+      <CardContent className="p-6 space-y-4 bg-red-50/30 flex-1">
         <div className="flex items-center gap-4 border-b border-red-100 pb-3">
           <Droplet className="h-5 w-5 text-red-500 shrink-0" />
           <div>
