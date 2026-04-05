@@ -76,11 +76,19 @@ export default function Layout() {
       <div className="min-h-screen flex w-full bg-background font-sans text-foreground">
         <Sidebar className="border-r border-border/50">
           <SidebarContent>
-            <div className="p-6 flex items-center gap-3 border-b">
-              <div className="bg-primary/10 p-2 rounded-xl text-primary">
-                <Activity className="h-6 w-6" />
-              </div>
-              <h1 className="font-heading font-bold text-2xl tracking-tight text-primary">V MED</h1>
+            <div className="p-6 flex border-b">
+              <Link
+                to="/"
+                className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+                aria-label="V MED Logo"
+              >
+                <div className="bg-primary/10 p-2 rounded-xl text-primary">
+                  <Activity className="h-6 w-6" />
+                </div>
+                <span className="font-heading font-bold text-2xl tracking-tight text-primary">
+                  V MED
+                </span>
+              </Link>
             </div>
             <SidebarGroup>
               <SidebarGroupContent>
@@ -110,9 +118,21 @@ export default function Layout() {
         </Sidebar>
 
         <div className="flex-1 flex flex-col overflow-hidden">
-          <header className="h-16 border-b flex items-center justify-between px-6 bg-card sticky top-0 z-30">
-            <div className="flex items-center gap-4 flex-1">
+          <header className="h-16 border-b flex items-center justify-between px-4 sm:px-6 bg-card sticky top-0 z-30">
+            <div className="flex items-center gap-2 sm:gap-4 flex-1">
               <SidebarTrigger />
+              <Link
+                to="/"
+                className="flex items-center gap-2 md:hidden hover:opacity-80 transition-opacity"
+                aria-label="V MED Logo"
+              >
+                <div className="bg-primary/10 p-1.5 rounded-lg text-primary shrink-0">
+                  <Activity className="h-5 w-5" />
+                </div>
+                <span className="font-heading font-bold text-lg tracking-tight text-primary hidden sm:block">
+                  V MED
+                </span>
+              </Link>
               <div className="relative max-w-md w-full hidden md:block">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -122,7 +142,7 @@ export default function Layout() {
               </div>
             </div>
 
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 sm:gap-4">
               <Button
                 variant="ghost"
                 size="icon"
