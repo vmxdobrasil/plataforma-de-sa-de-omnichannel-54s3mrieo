@@ -11,6 +11,7 @@ import {
   MessageSquare,
   Folder,
   Settings,
+  Sliders,
 } from 'lucide-react'
 import {
   Sidebar,
@@ -42,6 +43,8 @@ import { SOSCard } from './SOSCard'
 import { ChatApp } from './ChatApp'
 import { NotificationsPopover } from './NotificationsPopover'
 import pb from '@/lib/pocketbase/client'
+import { useState, useEffect } from 'react'
+import { useRealtime } from '@/hooks/use-realtime'
 
 const navItems = [
   { title: 'Início', icon: Home, url: '/', roles: ['patient', 'professional'] },
@@ -56,6 +59,12 @@ const navItems = [
     roles: ['professional'],
   },
   { title: 'Configurações', icon: Settings, url: '/settings', roles: ['company'] },
+  {
+    title: 'Admin Settings',
+    icon: Sliders,
+    url: '/admin/settings',
+    roles: ['company', 'professional'],
+  },
 ]
 
 export default function Layout() {
@@ -74,8 +83,24 @@ export default function Layout() {
     ? pb.files.getURL({ id: user.id, collectionId: 'users' }, user.avatar)
     : `https://api.dicebear.com/7.x/notionists/svg?seed=${user?.name}`
 
-  const brandLogoUrl =
-    user?.role === 'company' && user?.avatar
+  const [systemSettings, setSystemSettings] = useState<any>(null)
+
+  useEffect(() => {
+    pb.collection('system_settings')
+      .getFirstListItem('')
+      .then(setSystemSettings)
+      .catch(() => {})
+  }, [])
+
+  useRealtime('system_settings', (e) => {
+    if (e.action === 'update' || e.action === 'create') {
+      setSystemSettings(e.record)
+    }
+  })
+
+  const brandLogoUrl = systemSettings?.logo
+    ? pb.files.getURL(systemSettings, systemSettings.logo)
+    : user?.role === 'company' && user?.avatar
       ? pb.files.getURL({ id: user.id, collectionId: 'users' }, user.avatar)
       : null
 
