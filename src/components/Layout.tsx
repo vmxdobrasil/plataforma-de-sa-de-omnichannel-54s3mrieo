@@ -10,6 +10,7 @@ import {
   LogOut,
   MessageSquare,
   Folder,
+  Settings,
 } from 'lucide-react'
 import {
   Sidebar,
@@ -44,6 +45,7 @@ import pb from '@/lib/pocketbase/client'
 
 const navItems = [
   { title: 'Início', icon: Home, url: '/', roles: ['patient', 'professional'] },
+  { title: 'Painel da Empresa', icon: Activity, url: '/company/dashboard', roles: ['company'] },
   { title: 'Buscar Especialistas', icon: Search, url: '/search', roles: ['patient'] },
   { title: 'Meu Perfil de Saúde', icon: HeartPulse, url: '/health-profile', roles: ['patient'] },
   { title: 'Documentos', icon: Folder, url: '/documents', roles: ['patient', 'professional'] },
@@ -53,6 +55,7 @@ const navItems = [
     url: '/professional',
     roles: ['professional'],
   },
+  { title: 'Configurações', icon: Settings, url: '/settings', roles: ['company'] },
 ]
 
 export default function Layout() {
@@ -71,6 +74,11 @@ export default function Layout() {
     ? pb.files.getURL({ id: user.id, collectionId: 'users' }, user.avatar)
     : `https://api.dicebear.com/7.x/notionists/svg?seed=${user?.name}`
 
+  const brandLogoUrl =
+    user?.role === 'company' && user?.avatar
+      ? pb.files.getURL({ id: user.id, collectionId: 'users' }, user.avatar)
+      : null
+
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-background font-sans text-foreground">
@@ -82,12 +90,22 @@ export default function Layout() {
                 className="flex items-center gap-3 hover:opacity-80 transition-opacity"
                 aria-label="V MED Logo"
               >
-                <div className="bg-primary/10 p-2 rounded-xl text-primary">
-                  <Activity className="h-6 w-6" />
-                </div>
-                <span className="font-heading font-bold text-2xl tracking-tight text-primary">
-                  V MED
-                </span>
+                {brandLogoUrl ? (
+                  <img
+                    src={brandLogoUrl}
+                    alt={user?.name || 'Company Logo'}
+                    className="h-8 max-w-[140px] object-contain"
+                  />
+                ) : (
+                  <>
+                    <div className="bg-primary/10 p-2 rounded-xl text-primary">
+                      <Activity className="h-6 w-6" />
+                    </div>
+                    <span className="font-heading font-bold text-2xl tracking-tight text-primary">
+                      V MED
+                    </span>
+                  </>
+                )}
               </Link>
             </div>
             <SidebarGroup>
@@ -126,12 +144,22 @@ export default function Layout() {
                 className="flex items-center gap-2 md:hidden hover:opacity-80 transition-opacity"
                 aria-label="V MED Logo"
               >
-                <div className="bg-primary/10 p-1.5 rounded-lg text-primary shrink-0">
-                  <Activity className="h-5 w-5" />
-                </div>
-                <span className="font-heading font-bold text-lg tracking-tight text-primary hidden sm:block">
-                  V MED
-                </span>
+                {brandLogoUrl ? (
+                  <img
+                    src={brandLogoUrl}
+                    alt={user?.name || 'Company Logo'}
+                    className="h-8 max-w-[120px] object-contain"
+                  />
+                ) : (
+                  <>
+                    <div className="bg-primary/10 p-1.5 rounded-lg text-primary shrink-0">
+                      <Activity className="h-5 w-5" />
+                    </div>
+                    <span className="font-heading font-bold text-lg tracking-tight text-primary hidden sm:block">
+                      V MED
+                    </span>
+                  </>
+                )}
               </Link>
               <div className="relative max-w-md w-full hidden md:block">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />

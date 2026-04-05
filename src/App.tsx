@@ -15,6 +15,7 @@ import CompanyDashboard from './pages/CompanyDashboard'
 import BenefitStatement from './pages/BenefitStatement'
 import HRSimulator from './pages/HRSimulator'
 import Documents from './pages/Documents'
+import Settings from './pages/Settings'
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth()
@@ -42,6 +43,7 @@ const AppRoutes = () => {
         <Route path="/benefits/statement" element={<BenefitStatement />} />
         <Route path="/hr/simulator" element={<HRSimulator />} />
         <Route path="/documents" element={<Documents />} />
+        <Route path="/settings" element={<Settings />} />
       </Route>
       <Route path="*" element={<NotFound />} />
     </Routes>
