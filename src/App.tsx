@@ -22,6 +22,11 @@ import AdminSettings from './pages/AdminSettings'
 import TelemedicineRoom from './pages/TelemedicineRoom'
 import AdminVerification from './pages/AdminVerification'
 import SocialAI from './pages/SocialAI'
+import Marketplace from './pages/dashboard/Marketplace'
+import BrandKit from './pages/dashboard/BrandKit'
+import Academy from './pages/dashboard/Academy'
+import AgentsHub from './pages/dashboard/AgentsHub'
+import AgencyDashboard from './pages/dashboard/AgencyDashboard'
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth()
@@ -55,6 +60,11 @@ const AppRoutes = () => {
         <Route path="/admin/verification" element={<AdminVerification />} />
         <Route path="/telemedicine/:id" element={<TelemedicineRoom />} />
         <Route path="/dashboard/social-ai" element={<SocialAI />} />
+        <Route path="/dashboard/marketplace" element={<Marketplace />} />
+        <Route path="/dashboard/brand-kit" element={<BrandKit />} />
+        <Route path="/dashboard/academy" element={<Academy />} />
+        <Route path="/dashboard/agents" element={<AgentsHub />} />
+        <Route path="/dashboard/agency" element={<AgencyDashboard />} />
       </Route>
       <Route path="*" element={<NotFound />} />
     </Routes>

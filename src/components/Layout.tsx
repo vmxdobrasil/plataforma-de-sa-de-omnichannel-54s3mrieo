@@ -12,6 +12,11 @@ import {
   Folder,
   Settings,
   Sliders,
+  ShoppingBag,
+  Palette,
+  GraduationCap,
+  Bot,
+  TrendingUp,
 } from 'lucide-react'
 import {
   Sidebar,
@@ -57,6 +62,26 @@ const navItems = [
     title: 'Painel do Profissional',
     icon: Stethoscope,
     url: '/professional',
+    roles: ['professional'],
+  },
+  {
+    title: 'Marketplace',
+    icon: ShoppingBag,
+    url: '/dashboard/marketplace',
+    roles: ['professional'],
+  },
+  { title: 'Brand Kit', icon: Palette, url: '/dashboard/brand-kit', roles: ['professional'] },
+  {
+    title: 'V MED Academy',
+    icon: GraduationCap,
+    url: '/dashboard/academy',
+    roles: ['professional'],
+  },
+  { title: 'Hub de Agentes IA', icon: Bot, url: '/dashboard/agents', roles: ['professional'] },
+  {
+    title: 'Dashboard de Agência',
+    icon: TrendingUp,
+    url: '/dashboard/agency',
     roles: ['professional'],
   },
   { title: 'Configurações', icon: Settings, url: '/settings', roles: ['company'] },
