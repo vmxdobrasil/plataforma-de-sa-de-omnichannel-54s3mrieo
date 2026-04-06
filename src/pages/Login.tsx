@@ -8,6 +8,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Label } from '@/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { toast } from 'sonner'
 import { extractFieldErrors } from '@/lib/pocketbase/errors'
 
@@ -16,6 +23,8 @@ export default function Login() {
   const [password, setPassword] = useState('')
   const [name, setName] = useState('')
   const [role, setRole] = useState('patient')
+  const [crmNumber, setCrmNumber] = useState('')
+  const [crmState, setCrmState] = useState('')
   const [isLoading, setIsLoading] = useState(false)
 
   const { signIn, signUp, user } = useAuth()
@@ -45,8 +54,12 @@ export default function Login() {
       toast.error('Preencha todos os campos.')
       return
     }
+    if (role === 'professional' && (!crmNumber || !crmState)) {
+      toast.error('Preencha os campos de CRM obrigatórios.')
+      return
+    }
     setIsLoading(true)
-    const { error } = await signUp(email, password, name, role)
+    const { error } = await signUp(email, password, name, role, crmNumber, crmState)
     setIsLoading(false)
 
     if (error) {
@@ -172,6 +185,69 @@ export default function Login() {
                     minLength={8}
                   />
                 </div>
+
+                {role === 'professional' && (
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="crm-number">Número do CRM</Label>
+                      <Input
+                        id="crm-number"
+                        placeholder="Ex: 123456"
+                        value={crmNumber}
+                        onChange={(e) => setCrmNumber(e.target.value)}
+                        required={role === 'professional'}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="crm-state">UF do CRM</Label>
+                      <Select
+                        value={crmState}
+                        onValueChange={setCrmState}
+                        required={role === 'professional'}
+                      >
+                        <SelectTrigger id="crm-state">
+                          <SelectValue placeholder="Estado" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {[
+                            'AC',
+                            'AL',
+                            'AP',
+                            'AM',
+                            'BA',
+                            'CE',
+                            'DF',
+                            'ES',
+                            'GO',
+                            'MA',
+                            'MT',
+                            'MS',
+                            'MG',
+                            'PA',
+                            'PB',
+                            'PR',
+                            'PE',
+                            'PI',
+                            'RJ',
+                            'RN',
+                            'RS',
+                            'RO',
+                            'RR',
+                            'SC',
+                            'SP',
+                            'SE',
+                            'TO',
+                          ].map((uf) => (
+                            <SelectItem key={uf} value={uf}>
+                              {uf}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                )}
+
                 <Button type="submit" className="w-full" disabled={isLoading}>
                   {isLoading ? 'Criando...' : 'Criar Conta'}
                 </Button>
