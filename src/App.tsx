@@ -16,6 +16,7 @@ import BenefitStatement from './pages/BenefitStatement'
 import HRSimulator from './pages/HRSimulator'
 import Documents from './pages/Documents'
 import Settings from './pages/Settings'
+import ProfessionalSchedule from './pages/ProfessionalSchedule'
 import AdminSettings from './pages/AdminSettings'
 import TelemedicineRoom from './pages/TelemedicineRoom'
 
@@ -40,6 +41,7 @@ const AppRoutes = () => {
         <Route path="/" element={<Index />} />
         <Route path="/search" element={<Search />} />
         <Route path="/professional" element={<ProfessionalDashboard />} />
+        <Route path="/professional/schedule" element={<ProfessionalSchedule />} />
         <Route path="/health-profile" element={<HealthProfile />} />
         <Route path="/company/dashboard" element={<CompanyDashboard />} />
         <Route path="/benefits/statement" element={<BenefitStatement />} />

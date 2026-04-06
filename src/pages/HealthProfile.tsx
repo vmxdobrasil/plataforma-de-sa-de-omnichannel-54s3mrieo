@@ -6,6 +6,9 @@ import { useAuth } from '@/hooks/use-auth'
 import { useRealtime } from '@/hooks/use-realtime'
 import { getPatientPrescriptions } from '@/services/prescriptions'
 import { Pill, FileText, ShoppingBag, Folder } from 'lucide-react'
+import { HealthTimeline } from '@/components/HealthTimeline'
+import { HealthGoals } from '@/components/HealthGoals'
+import { DependentSwitcher } from '@/components/DependentSwitcher'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { Link } from 'react-router-dom'
@@ -123,6 +126,13 @@ export default function HealthProfile() {
       </div>
 
       <div className="grid md:grid-cols-2 gap-6">
+        <div className="md:col-span-2">
+          <HealthGoals patientId={activeProfileId} />
+        </div>
+        <div className="md:col-span-2">
+          <HealthTimeline patientId={activeProfileId} />
+        </div>
+
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">

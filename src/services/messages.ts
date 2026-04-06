@@ -21,11 +21,19 @@ export const getMessages = async (userId1?: string, userId2?: string) => {
   return pb.collection('messages').getFullList({ sort: 'created' })
 }
 
-export const sendMessage = async (senderId: string, receiverId: string, content: string) => {
-  return pb.collection('messages').create({
-    sender_id: senderId,
-    receiver_id: receiverId,
-    content,
-    is_read: false,
-  })
+export const sendMessage = async (
+  senderId: string,
+  receiverId: string,
+  content: string,
+  file?: File,
+) => {
+  const formData = new FormData()
+  formData.append('sender_id', senderId)
+  formData.append('receiver_id', receiverId)
+  formData.append('content', content)
+  formData.append('is_read', 'false')
+  if (file) {
+    formData.append('file', file)
+  }
+  return pb.collection('messages').create(formData)
 }

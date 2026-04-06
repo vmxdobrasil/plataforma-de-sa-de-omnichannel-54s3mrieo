@@ -14,6 +14,7 @@ import { Badge } from '@/components/ui/badge'
 import { useAuth } from '@/hooks/use-auth'
 import { createAppointment } from '@/services/appointments'
 import { getDependents } from '@/services/users'
+import { getAvailabilitySlots } from '@/services/availability'
 import pb from '@/lib/pocketbase/client'
 import { useEffect } from 'react'
 import {
@@ -41,6 +42,7 @@ export function BookingFlow({ open, onOpenChange, professional }: BookingFlowPro
   const [dependents, setDependents] = useState<any[]>([])
   const [selectedPatientId, setSelectedPatientId] = useState<string>('')
   const [employeeData, setEmployeeData] = useState<any>(null)
+  const [availableSlots, setAvailableSlots] = useState<any[]>([])
   const [paymentDetails, setPaymentDetails] = useState<{
     amount: number
     remaining: number
@@ -48,6 +50,9 @@ export function BookingFlow({ open, onOpenChange, professional }: BookingFlowPro
   } | null>(null)
 
   useEffect(() => {
+    if (professional?.id) {
+      getAvailabilitySlots(professional.id).then(setAvailableSlots).catch(console.error)
+    }
     if (user?.id) {
       setSelectedPatientId(user.id)
       getDependents(user.id).then(setDependents).catch(console.error)
@@ -60,7 +65,26 @@ export function BookingFlow({ open, onOpenChange, professional }: BookingFlowPro
     }
   }, [user])
 
-  const timeSlots = ['09:00', '10:30', '14:00', '15:30', '16:00']
+  const generatedTimeSlots = date
+    ? (() => {
+        const dayOfWeek = date.getDay().toString()
+        const matchSlots = availableSlots.filter(
+          (s) => s.day_of_week === dayOfWeek && s.slot_type === mode,
+        )
+        if (matchSlots.length === 0) return []
+        const slots = []
+        for (const s of matchSlots) {
+          const startH = parseInt(s.start_time.split(':')[0])
+          const endH = parseInt(s.end_time.split(':')[0])
+          for (let h = startH; h < endH; h++) {
+            slots.push(`${h.toString().padStart(2, '0')}:00`)
+          }
+        }
+        return Array.from(new Set(slots)).sort()
+      })()
+    : []
+
+  const timeSlots = generatedTimeSlots.length > 0 ? generatedTimeSlots : []
 
   const handleSelectTime = (t: string) => {
     setTime(t)
@@ -214,19 +238,24 @@ export function BookingFlow({ open, onOpenChange, professional }: BookingFlowPro
                 />
               </div>
 
-              <div className="grid grid-cols-3 gap-2">
-                {timeSlots.map((t) => (
-                  <Button
-                    key={t}
-                    variant="outline"
-                    onClick={() => handleSelectTime(t)}
-                    disabled={!date}
-                    className="w-full hover:bg-primary hover:text-primary-foreground transition-colors"
-                  >
-                    <Clock className="mr-2 h-4 w-4" /> {t}
-                  </Button>
-                ))}
-              </div>
+              {date && timeSlots.length > 0 ? (
+                <div className="grid grid-cols-3 gap-2">
+                  {timeSlots.map((t) => (
+                    <Button
+                      key={t}
+                      variant="outline"
+                      onClick={() => handleSelectTime(t)}
+                      className="w-full hover:bg-primary hover:text-primary-foreground transition-colors"
+                    >
+                      <Clock className="mr-2 h-4 w-4" /> {t}
+                    </Button>
+                  ))}
+                </div>
+              ) : date && timeSlots.length === 0 ? (
+                <p className="text-center text-sm text-muted-foreground mt-4">
+                  Profissional não possui horários para este dia/modalidade.
+                </p>
+              ) : null}
             </div>
           )}
 

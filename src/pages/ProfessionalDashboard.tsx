@@ -171,6 +171,9 @@ export default function ProfessionalDashboard() {
           <h1 className="text-3xl font-bold">Dashboard Clínico</h1>
           <p className="text-muted-foreground mt-1">Bem-vindo, {user?.name}</p>
         </div>
+        <Button onClick={() => (window.location.href = '/professional/schedule')} variant="outline">
+          <CalIcon className="mr-2 h-4 w-4" /> Gerenciar Agenda
+        </Button>
       </div>
 
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 animate-fade-in-up">

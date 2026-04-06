@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-04-06T18:54:23.593Z",
+  "generatedAt": "2026-04-06T19:15:11.504Z",
   "collections": [
     {
       "name": "users",
@@ -390,6 +390,12 @@
           "required": false,
           "system": false,
           "autodateTriggers": ["onCreate", "onUpdate"]
+        },
+        {
+          "name": "file",
+          "type": "file",
+          "required": false,
+          "system": false
         }
       ],
       "indexes": []
@@ -629,6 +635,133 @@
         {
           "name": "logo",
           "type": "file",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate"]
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate", "onUpdate"]
+        }
+      ],
+      "indexes": []
+    },
+    {
+      "name": "availability_slots",
+      "type": "base",
+      "apiRules": {
+        "list": "@request.auth.id != ''",
+        "view": "@request.auth.id != ''",
+        "create": "@request.auth.id != '' && professional_id = @request.auth.id",
+        "update": "@request.auth.id != '' && professional_id = @request.auth.id",
+        "delete": "@request.auth.id != '' && professional_id = @request.auth.id"
+      },
+      "fields": [
+        {
+          "name": "professional_id",
+          "type": "relation",
+          "required": true,
+          "system": false,
+          "collectionRef": "users"
+        },
+        {
+          "name": "day_of_week",
+          "type": "select",
+          "required": true,
+          "system": false,
+          "selectValues": ["0", "1", "2", "3", "4", "5", "6"]
+        },
+        {
+          "name": "start_time",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "end_time",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "slot_type",
+          "type": "select",
+          "required": true,
+          "system": false,
+          "selectValues": ["Presencial", "Online", "Domiciliar"]
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate"]
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate", "onUpdate"]
+        }
+      ],
+      "indexes": []
+    },
+    {
+      "name": "health_goals",
+      "type": "base",
+      "apiRules": {
+        "list": "@request.auth.id != ''",
+        "view": "@request.auth.id != ''",
+        "create": "@request.auth.id != ''",
+        "update": "@request.auth.id != ''",
+        "delete": "@request.auth.id != ''"
+      },
+      "fields": [
+        {
+          "name": "patient_id",
+          "type": "relation",
+          "required": true,
+          "system": false,
+          "collectionRef": "users"
+        },
+        {
+          "name": "title",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "description",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "points_reward",
+          "type": "number",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "status",
+          "type": "select",
+          "required": true,
+          "system": false,
+          "selectValues": ["pending", "completed"]
+        },
+        {
+          "name": "category",
+          "type": "text",
           "required": false,
           "system": false
         },
