@@ -58,3 +58,15 @@ export const updateEmployeeBenefit = async (
     medication_allowance: medAllowance,
   })
 }
+
+export const getCompanyTransactions = async (companyId: string) => {
+  return pb.collection('benefit_transactions').getFullList({
+    filter: `company_id = "${companyId}"`,
+    sort: '-created',
+    expand: 'employee_id',
+  })
+}
+
+export const executeRenewal = async (companyId: string) => {
+  return pb.send(`/backend/v1/companies/${companyId}/renew`, { method: 'POST' })
+}

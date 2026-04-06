@@ -52,7 +52,9 @@ export default function TelemedicineRoom() {
     if (appointment && user?.role === 'professional') {
       try {
         await updateAppointmentStatus(appointment.id, 'completed')
-      } catch (e) {}
+      } catch (e) {
+        console.error('Failed to update status', e)
+      }
     }
     navigate('/')
   }

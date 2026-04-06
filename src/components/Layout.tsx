@@ -123,7 +123,9 @@ export default function Layout() {
         setSystemSettings(rec)
         applyBrandColor(rec.primary_color)
       })
-      .catch(() => {})
+      .catch(() => {
+        /* ignore */
+      })
   }, [])
 
   useRealtime('system_settings', (e) => {
