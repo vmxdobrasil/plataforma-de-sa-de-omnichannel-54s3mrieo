@@ -1,31 +1,30 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import {
-  Mic,
-  MicOff,
-  Video,
-  VideoOff,
-  PhoneOff,
-  Settings,
-  ShieldCheck,
-  Activity,
-} from 'lucide-react'
+import { Mic, MicOff, Video, VideoOff, PhoneOff, Activity, ShieldCheck } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import pb from '@/lib/pocketbase/client'
 import { useAuth } from '@/hooks/use-auth'
 import { updateAppointmentStatus } from '@/services/appointments'
 
+declare global {
+  interface Window {
+    JitsiMeetExternalAPI: any
+  }
+}
+
 export default function TelemedicineRoom() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { user } = useAuth()
+  const jitsiContainerRef = useRef<HTMLDivElement>(null)
+  const apiRef = useRef<any>(null)
 
   const [appointment, setAppointment] = useState<any>(null)
   const [isMicOn, setIsMicOn] = useState(true)
   const [isVideoOn, setIsVideoOn] = useState(true)
   const [timer, setTimer] = useState('00:00')
+  const [jitsiLoaded, setJitsiLoaded] = useState(false)
 
   useEffect(() => {
     if (!id) return
@@ -48,6 +47,70 @@ export default function TelemedicineRoom() {
     return () => clearInterval(interval)
   }, [])
 
+  useEffect(() => {
+    if (!appointment || !jitsiContainerRef.current) return
+
+    if (!window.JitsiMeetExternalAPI) {
+      const script = document.createElement('script')
+      script.src = 'https://meet.jit.si/external_api.js'
+      script.async = true
+      script.onload = initJitsi
+      document.body.appendChild(script)
+    } else {
+      initJitsi()
+    }
+
+    function initJitsi() {
+      if (apiRef.current) return
+      const domain = 'meet.jit.si'
+      const options = {
+        roomName: `vmed-appointment-${appointment.id}`,
+        width: '100%',
+        height: '100%',
+        parentNode: jitsiContainerRef.current,
+        userInfo: {
+          displayName: user?.name || 'Visitante',
+        },
+        configOverwrite: {
+          startWithAudioMuted: false,
+          startWithVideoMuted: false,
+          disableDeepLinking: true,
+        },
+        interfaceConfigOverwrite: {
+          TOOLBAR_BUTTONS: [], // Hide default toolbar to use our custom buttons
+          SHOW_JITSI_WATERMARK: false,
+        },
+      }
+
+      const api = new window.JitsiMeetExternalAPI(domain, options)
+      apiRef.current = api
+
+      api.on('audioMuteStatusChanged', (e: any) => setIsMicOn(!e.muted))
+      api.on('videoMuteStatusChanged', (e: any) => setIsVideoOn(!e.muted))
+
+      setJitsiLoaded(true)
+    }
+
+    return () => {
+      if (apiRef.current) {
+        apiRef.current.dispose()
+        apiRef.current = null
+      }
+    }
+  }, [appointment, user])
+
+  const toggleMic = () => {
+    if (apiRef.current) {
+      apiRef.current.executeCommand('toggleAudio')
+    }
+  }
+
+  const toggleVideo = () => {
+    if (apiRef.current) {
+      apiRef.current.executeCommand('toggleVideo')
+    }
+  }
+
   const handleEndCall = async () => {
     if (appointment && user?.role === 'professional') {
       try {
@@ -58,11 +121,6 @@ export default function TelemedicineRoom() {
     }
     navigate('/')
   }
-
-  const otherUser =
-    user?.role === 'patient'
-      ? appointment?.expand?.professional_id
-      : appointment?.expand?.patient_id
 
   if (!appointment) {
     return (
@@ -75,53 +133,33 @@ export default function TelemedicineRoom() {
   return (
     <div className="h-[calc(100vh-4rem)] -m-6 bg-black flex flex-col md:flex-row relative">
       <div className="flex-1 relative flex items-center justify-center bg-zinc-900 p-4">
-        {/* Main Video Placeholder (Other Person) */}
-        <div className="relative w-full max-w-4xl aspect-video bg-zinc-800 rounded-xl overflow-hidden shadow-2xl border border-zinc-700/50 flex items-center justify-center">
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent z-10" />
+        {/* Jitsi Container */}
+        <div
+          ref={jitsiContainerRef}
+          className="w-full h-full max-w-5xl rounded-xl overflow-hidden shadow-2xl border border-zinc-700/50"
+        />
 
-          <div className="flex flex-col items-center opacity-30">
-            <img
-              src={`https://api.dicebear.com/7.x/notionists/svg?seed=${otherUser?.name || 'Wait'}`}
-              className="w-32 h-32 rounded-full mb-4 opacity-50"
-              alt="Participant"
-            />
-            <p className="text-zinc-400 font-medium">Aguardando vídeo de {otherUser?.name}...</p>
+        {!jitsiLoaded && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-zinc-900 z-10">
+            <Activity className="animate-spin text-primary h-8 w-8 mb-4" />
+            <p className="text-zinc-400 font-medium">Iniciando sala segura...</p>
           </div>
+        )}
 
-          <div className="absolute bottom-4 left-4 z-20 flex items-center gap-3">
-            <Badge
-              variant="secondary"
-              className="bg-zinc-800/80 text-white backdrop-blur-md border-none"
-            >
-              {otherUser?.name}
-            </Badge>
-            <div className="flex items-center gap-1 text-emerald-400 text-xs font-medium bg-emerald-400/10 px-2 py-1 rounded-full backdrop-blur-sm">
-              <ShieldCheck className="h-3 w-3" /> Criptografia E2E
-            </div>
+        <div className="absolute top-6 left-6 z-20 flex items-center gap-3">
+          <Badge
+            variant="secondary"
+            className="bg-zinc-800/80 text-white backdrop-blur-md border-none"
+          >
+            Consulta Online
+          </Badge>
+          <div className="flex items-center gap-1 text-emerald-400 text-xs font-medium bg-emerald-400/10 px-2 py-1 rounded-full backdrop-blur-sm">
+            <ShieldCheck className="h-3 w-3" /> Criptografia E2E
           </div>
-        </div>
-
-        {/* Self Video Mini */}
-        <div className="absolute bottom-6 right-6 w-32 md:w-48 aspect-video bg-zinc-800 rounded-lg overflow-hidden shadow-xl border-2 border-zinc-700 z-30 transition-all hover:scale-105 cursor-pointer flex items-center justify-center">
-          {isVideoOn ? (
-            <div className="text-xs text-zinc-500 font-medium flex flex-col items-center">
-              <Video className="h-6 w-6 mb-1 opacity-50" />
-              Você
-            </div>
-          ) : (
-            <div className="bg-zinc-900 w-full h-full flex items-center justify-center">
-              <VideoOff className="text-zinc-600 h-6 w-6" />
-            </div>
-          )}
-          {!isMicOn && (
-            <div className="absolute top-2 right-2 bg-red-500 rounded-full p-1 shadow-sm">
-              <MicOff className="h-3 w-3 text-white" />
-            </div>
-          )}
         </div>
       </div>
 
-      <div className="w-full md:w-80 bg-zinc-950 border-l border-zinc-800 flex flex-col">
+      <div className="w-full md:w-80 bg-zinc-950 border-l border-zinc-800 flex flex-col z-20">
         <div className="p-4 border-b border-zinc-800">
           <h2 className="text-white font-semibold flex items-center gap-2">
             <Activity className="h-5 w-5 text-emerald-500" />
@@ -161,7 +199,7 @@ export default function TelemedicineRoom() {
             variant="secondary"
             size="icon"
             className={`rounded-full h-12 w-12 border-none ${isMicOn ? 'bg-zinc-800 hover:bg-zinc-700 text-white' : 'bg-red-500/20 text-red-500 hover:bg-red-500/30'}`}
-            onClick={() => setIsMicOn(!isMicOn)}
+            onClick={toggleMic}
           >
             {isMicOn ? <Mic className="h-5 w-5" /> : <MicOff className="h-5 w-5" />}
           </Button>
@@ -170,7 +208,7 @@ export default function TelemedicineRoom() {
             variant="secondary"
             size="icon"
             className={`rounded-full h-12 w-12 border-none ${isVideoOn ? 'bg-zinc-800 hover:bg-zinc-700 text-white' : 'bg-red-500/20 text-red-500 hover:bg-red-500/30'}`}
-            onClick={() => setIsVideoOn(!isVideoOn)}
+            onClick={toggleVideo}
           >
             {isVideoOn ? <Video className="h-5 w-5" /> : <VideoOff className="h-5 w-5" />}
           </Button>

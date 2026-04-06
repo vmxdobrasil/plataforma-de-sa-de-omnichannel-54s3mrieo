@@ -39,6 +39,7 @@ import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 
 import { DependentSwitcher } from '@/components/DependentSwitcher'
+import { AddToCalendar } from '@/components/AddToCalendar'
 
 export default function Index() {
   const navigate = useNavigate()
@@ -315,11 +316,14 @@ export default function Index() {
                           -60 * 60 * 1000 && (
                           <Button
                             onClick={() => navigate(`/telemedicine/${upcomingAppt.id}`)}
-                            className="animate-pulse-glow bg-blue-600 hover:bg-blue-700"
+                            className="animate-pulse-glow bg-blue-600 hover:bg-blue-700 text-white"
                           >
                             <Video className="mr-2 h-4 w-4" /> Entrar na Sala
                           </Button>
                         )}
+                      <div className="mt-2 sm:mt-0">
+                        <AddToCalendar appointment={upcomingAppt} />
+                      </div>
                     </div>
                   </div>
                 </div>

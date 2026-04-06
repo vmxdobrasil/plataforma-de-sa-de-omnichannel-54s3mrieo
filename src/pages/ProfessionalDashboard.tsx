@@ -28,6 +28,9 @@ import { format } from 'date-fns'
 import pb from '@/lib/pocketbase/client'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
+import { AddToCalendar } from '@/components/AddToCalendar'
+import { Video } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 
 const templates = [
   {
@@ -46,6 +49,7 @@ const templates = [
 
 export default function ProfessionalDashboard() {
   const { user } = useAuth()
+  const navigate = useNavigate()
   const [appointments, setAppointments] = useState<any[]>([])
   const [treatmentPlans, setTreatmentPlans] = useState<any[]>([])
   const [patientGoals, setPatientGoals] = useState<any[]>([])
@@ -326,9 +330,21 @@ export default function ProfessionalDashboard() {
                   )}
                   <div>
                     <CardTitle className="text-lg">Prontuário (V MED EHR)</CardTitle>
-                    <div className="text-sm text-muted-foreground flex items-center gap-2 mt-1">
+                    <div className="text-sm text-muted-foreground flex flex-wrap items-center gap-2 mt-1">
                       Paciente:{' '}
                       {activeAppt ? activeAppt.expand?.patient_id?.name : 'Selecione um paciente'}
+                      {activeAppt && <AddToCalendar appointment={activeAppt} />}
+                      {activeAppt?.type === 'Online' &&
+                        new Date(activeAppt.dateTime).getTime() - Date.now() <= 15 * 60 * 1000 &&
+                        new Date(activeAppt.dateTime).getTime() - Date.now() >= -60 * 60 * 1000 && (
+                          <Button
+                            size="sm"
+                            onClick={() => navigate(`/telemedicine/${activeAppt.id}`)}
+                            className="bg-blue-600 hover:bg-blue-700 text-white ml-2"
+                          >
+                            <Video className="mr-2 h-4 w-4" /> Entrar na Sala
+                          </Button>
+                        )}
                       {activeAppt && (
                         <Dialog>
                           <DialogTrigger asChild>

@@ -4,6 +4,7 @@ import { Toaster as Sonner } from '@/components/ui/sonner'
 import { TooltipProvider } from '@/components/ui/tooltip'
 
 import { AuthProvider, useAuth } from './hooks/use-auth'
+import { ThemeProvider } from './components/ThemeProvider'
 import Layout from './components/Layout'
 import Index from './pages/Index'
 import Search from './pages/Search'
@@ -59,13 +60,15 @@ const AppRoutes = () => {
 const App = () => {
   return (
     <BrowserRouter future={{ v7_startTransition: false, v7_relativeSplatPath: false }}>
-      <TooltipProvider>
-        <AuthProvider>
-          <Toaster />
-          <Sonner />
-          <AppRoutes />
-        </AuthProvider>
-      </TooltipProvider>
+      <ThemeProvider defaultTheme="system" storageKey="vmed-theme">
+        <TooltipProvider>
+          <AuthProvider>
+            <Toaster />
+            <Sonner />
+            <AppRoutes />
+          </AuthProvider>
+        </TooltipProvider>
+      </ThemeProvider>
     </BrowserRouter>
   )
 }

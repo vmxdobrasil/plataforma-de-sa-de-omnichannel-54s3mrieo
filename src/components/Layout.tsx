@@ -27,6 +27,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { ThemeToggle } from './ThemeToggle'
 import { AIAssistant } from './AIAssistant'
 import { useAuth } from '@/hooks/use-auth'
 import {
@@ -233,6 +234,8 @@ export default function Layout() {
             </div>
 
             <div className="flex items-center gap-2 sm:gap-4">
+              <ThemeToggle />
+
               <Button
                 variant="ghost"
                 size="icon"
