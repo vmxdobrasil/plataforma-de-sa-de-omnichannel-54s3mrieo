@@ -1,6 +1,23 @@
 import { useEffect, useState, useMemo } from 'react'
-import { Users, Calendar as CalIcon, FileText, CheckCircle2 } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Users,
+  Calendar as CalIcon,
+  FileText,
+  CheckCircle2,
+  Video,
+  RefreshCcw,
+  Loader2,
+  Download,
+  AlertCircle,
+} from 'lucide-react'
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardFooter,
+  CardDescription,
+} from '@/components/ui/card'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -8,6 +25,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert'
 import {
   Select,
   SelectContent,
@@ -23,13 +41,13 @@ import { getProfessionalAppointments, updateAppointmentStatus } from '@/services
 import { createPrescription } from '@/services/prescriptions'
 import { getTreatmentPlans, updateTreatmentPlanStatus } from '@/services/treatment_plans'
 import { createHealthRecord } from '@/services/health_records'
+import { uploadDocument } from '@/services/documents'
 import { useRealtime } from '@/hooks/use-realtime'
 import { format } from 'date-fns'
 import pb from '@/lib/pocketbase/client'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { AddToCalendar } from '@/components/AddToCalendar'
-import { Video } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
 const templates = [
@@ -60,6 +78,11 @@ export default function ProfessionalDashboard() {
   const [notes, setNotes] = useState('')
   const [meds, setMeds] = useState('')
   const [insts, setInsts] = useState('')
+
+  // External Labs States
+  const [externalLabs, setExternalLabs] = useState<any[]>([])
+  const [loadingLabs, setLoadingLabs] = useState(false)
+  const [syncingLab, setSyncingLab] = useState<string | null>(null)
 
   const loadData = async () => {
     if (!user?.id) return
@@ -101,7 +124,10 @@ export default function ProfessionalDashboard() {
   }, [user?.id])
 
   useEffect(() => {
-    if (activeAppt?.patient_id) loadPlans(activeAppt.patient_id)
+    if (activeAppt?.patient_id) {
+      loadPlans(activeAppt.patient_id)
+      setExternalLabs([]) // Reset labs when switching patients
+    }
   }, [activeAppt])
 
   useRealtime('appointments', () => loadData())
@@ -187,6 +213,147 @@ export default function ProfessionalDashboard() {
     }
   }
 
+  const fetchExternalLabs = async () => {
+    if (!activeAppt?.expand?.patient_id?.id || !user?.id) return
+    setLoadingLabs(true)
+    try {
+      const res = await pb.send(`/backend/v1/external-labs/${activeAppt.expand.patient_id.id}`, {
+        method: 'GET',
+      })
+      setExternalLabs(res.labs || [])
+      toast.success('Exames sincronizados com sucesso.')
+    } catch (e: any) {
+      if (e.status === 403) {
+        toast.error('Paciente não autorizou a sincronização.')
+      } else if (e.status === 400) {
+        toast.error(e.message || 'Dados incompletos para sincronização.')
+      } else {
+        toast.error('Erro ao buscar exames externos.')
+      }
+    } finally {
+      setLoadingLabs(false)
+    }
+  }
+
+  const handleImportLab = async (lab: any) => {
+    if (!activeAppt?.expand?.patient_id?.id || !user?.id) return
+    setSyncingLab(lab.id)
+    try {
+      const formData = new FormData()
+      const blob = new Blob([lab.content], { type: 'text/plain' })
+      formData.append('file', blob, `${lab.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.txt`)
+      formData.append('title', lab.title)
+      formData.append('type', 'exam')
+      formData.append('patient_id', activeAppt.expand.patient_id.id)
+      formData.append('professional_id', user.id)
+      if (activeAppt.id) formData.append('appointment_id', activeAppt.id)
+      formData.append(
+        'notes',
+        `Importado automaticamente de: ${lab.laboratory}\nData do Exame: ${lab.date}`,
+      )
+
+      await uploadDocument(formData)
+      toast.success('Exame importado para os Documentos do paciente.')
+    } catch (e) {
+      toast.error('Erro ao importar exame.')
+    } finally {
+      setSyncingLab(null)
+    }
+  }
+
+  const renderExternalLabs = () => {
+    if (!user?.crm_number || !user?.crm_state) {
+      return (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>CRM não cadastrado</AlertTitle>
+          <AlertDescription>
+            Você precisa cadastrar seu CRM nas Configurações para sincronizar exames de redes
+            parceiras.
+          </AlertDescription>
+        </Alert>
+      )
+    }
+    if (!activeAppt?.expand?.patient_id?.allow_external_sync) {
+      return (
+        <Alert>
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Sincronização não autorizada</AlertTitle>
+          <AlertDescription>
+            O paciente não autorizou a sincronização de exames externos em suas configurações de
+            privacidade.
+          </AlertDescription>
+        </Alert>
+      )
+    }
+    if (!activeAppt?.expand?.patient_id?.document_id) {
+      return (
+        <Alert>
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>CPF Inválido</AlertTitle>
+          <AlertDescription>
+            O paciente precisa ter um CPF/Documento cadastrado no perfil para que a busca em
+            laboratórios parceiros funcione.
+          </AlertDescription>
+        </Alert>
+      )
+    }
+
+    return (
+      <div className="space-y-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-muted/30 p-4 rounded-lg border gap-4">
+          <div>
+            <h3 className="font-medium">Portal de Integração de Laboratórios</h3>
+            <p className="text-sm text-muted-foreground mt-1">
+              Busque resultados de exames realizados por {activeAppt.expand.patient_id.name} em
+              redes parceiras.
+            </p>
+          </div>
+          <Button onClick={fetchExternalLabs} disabled={loadingLabs} className="w-full sm:w-auto">
+            {loadingLabs ? (
+              <Loader2 className="animate-spin mr-2 h-4 w-4" />
+            ) : (
+              <RefreshCcw className="mr-2 h-4 w-4" />
+            )}
+            Sincronizar
+          </Button>
+        </div>
+
+        {externalLabs.length > 0 && (
+          <div className="space-y-3 animate-in fade-in slide-in-from-bottom-2">
+            {externalLabs.map((lab) => (
+              <div
+                key={lab.id}
+                className="border p-4 rounded-lg flex flex-col sm:flex-row items-start sm:items-center justify-between bg-card gap-4"
+              >
+                <div>
+                  <p className="font-semibold text-sm sm:text-base">{lab.title}</p>
+                  <p className="text-xs sm:text-sm text-muted-foreground">
+                    {lab.laboratory} • {lab.date}
+                  </p>
+                </div>
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => handleImportLab(lab)}
+                  disabled={syncingLab === lab.id}
+                  className="w-full sm:w-auto"
+                >
+                  {syncingLab === lab.id ? (
+                    <Loader2 className="animate-spin h-4 w-4 mr-2" />
+                  ) : (
+                    <Download className="h-4 w-4 mr-2" />
+                  )}
+                  Importar Documento
+                </Button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    )
+  }
+
   const todayAppts = appointments.filter((a) => {
     const d = new Date(a.dateTime)
     const today = new Date()
@@ -247,12 +414,12 @@ export default function ProfessionalDashboard() {
             className="grid lg:grid-cols-3 gap-6 animate-fade-in-up"
             style={{ animationDelay: '0.1s' }}
           >
-            <Card className="lg:col-span-1">
+            <Card className="lg:col-span-1 flex flex-col max-h-[700px]">
               <CardHeader>
                 <CardTitle className="text-lg">Agenda</CardTitle>
               </CardHeader>
-              <CardContent className="px-0">
-                <div className="divide-y max-h-[500px] overflow-y-auto">
+              <CardContent className="px-0 flex-1 overflow-y-auto">
+                <div className="divide-y">
                   {appointments.map((apt) => (
                     <div
                       key={apt.id}
@@ -310,7 +477,7 @@ export default function ProfessionalDashboard() {
               </CardContent>
             </Card>
 
-            <Card className="lg:col-span-2 flex flex-col h-[600px]">
+            <Card className="lg:col-span-2 flex flex-col h-[700px]">
               <CardHeader className="flex flex-row items-center justify-between pb-2 border-b">
                 <div className="flex items-center gap-4">
                   {activeAppt && (
@@ -340,9 +507,9 @@ export default function ProfessionalDashboard() {
                           <Button
                             size="sm"
                             onClick={() => navigate(`/telemedicine/${activeAppt.id}`)}
-                            className="bg-blue-600 hover:bg-blue-700 text-white ml-2"
+                            className="bg-blue-600 hover:bg-blue-700 text-white ml-2 h-7 text-xs"
                           >
-                            <Video className="mr-2 h-4 w-4" /> Entrar na Sala
+                            <Video className="mr-1 h-3 w-3" /> Entrar na Sala
                           </Button>
                         )}
                       {activeAppt && (
@@ -367,10 +534,19 @@ export default function ProfessionalDashboard() {
               <CardContent className="flex-1 overflow-auto p-4">
                 {activeAppt ? (
                   <Tabs defaultValue="notes" className="w-full h-full flex flex-col">
-                    <TabsList className="grid w-full grid-cols-3 mb-4">
-                      <TabsTrigger value="notes">Evolução</TabsTrigger>
-                      <TabsTrigger value="prescriptions">Receitas</TabsTrigger>
-                      <TabsTrigger value="plans">Planos (Gamificação)</TabsTrigger>
+                    <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4 mb-4 h-auto gap-1">
+                      <TabsTrigger value="notes" className="py-2">
+                        Evolução
+                      </TabsTrigger>
+                      <TabsTrigger value="prescriptions" className="py-2">
+                        Receitas
+                      </TabsTrigger>
+                      <TabsTrigger value="plans" className="py-2">
+                        Planos
+                      </TabsTrigger>
+                      <TabsTrigger value="external" className="py-2">
+                        Exames Externos
+                      </TabsTrigger>
                     </TabsList>
 
                     <TabsContent value="notes" className="space-y-4 flex-1 flex flex-col m-0">
@@ -463,6 +639,10 @@ export default function ProfessionalDashboard() {
                       {treatmentPlans.length === 0 && (
                         <p className="text-sm text-muted-foreground">Nenhum plano ativo.</p>
                       )}
+                    </TabsContent>
+
+                    <TabsContent value="external" className="m-0 space-y-4">
+                      {renderExternalLabs()}
                     </TabsContent>
                   </Tabs>
                 ) : (
