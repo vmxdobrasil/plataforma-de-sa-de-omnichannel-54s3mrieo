@@ -21,6 +21,7 @@ import ProfessionalSchedule from './pages/ProfessionalSchedule'
 import AdminSettings from './pages/AdminSettings'
 import TelemedicineRoom from './pages/TelemedicineRoom'
 import AdminVerification from './pages/AdminVerification'
+import SocialAI from './pages/SocialAI'
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth()
@@ -53,6 +54,7 @@ const AppRoutes = () => {
         <Route path="/admin/settings" element={<AdminSettings />} />
         <Route path="/admin/verification" element={<AdminVerification />} />
         <Route path="/telemedicine/:id" element={<TelemedicineRoom />} />
+        <Route path="/dashboard/social-ai" element={<SocialAI />} />
       </Route>
       <Route path="*" element={<NotFound />} />
     </Routes>

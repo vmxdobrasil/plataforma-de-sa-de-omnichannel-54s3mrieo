@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-04-06T19:54:52.684Z",
+  "generatedAt": "2026-04-06T20:16:41.542Z",
   "collections": [
     {
       "name": "users",
@@ -787,6 +787,73 @@
           "name": "category",
           "type": "text",
           "required": false,
+          "system": false
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate"]
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate", "onUpdate"]
+        }
+      ],
+      "indexes": []
+    },
+    {
+      "name": "generated_content",
+      "type": "base",
+      "apiRules": {
+        "list": "@request.auth.id != '' && professional_id = @request.auth.id",
+        "view": "@request.auth.id != '' && professional_id = @request.auth.id",
+        "create": "@request.auth.id != '' && professional_id = @request.auth.id",
+        "update": "@request.auth.id != '' && professional_id = @request.auth.id",
+        "delete": "@request.auth.id != '' && professional_id = @request.auth.id"
+      },
+      "fields": [
+        {
+          "name": "professional_id",
+          "type": "relation",
+          "required": true,
+          "system": false,
+          "collectionRef": "users"
+        },
+        {
+          "name": "specialty",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "topic",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "content_type",
+          "type": "select",
+          "required": true,
+          "system": false,
+          "selectValues": ["Instagram Post", "Reels Script", "LinkedIn Article", "Patient Guide"]
+        },
+        {
+          "name": "tone",
+          "type": "select",
+          "required": true,
+          "system": false,
+          "selectValues": ["Informative", "Empathetic", "Professional", "Educational"]
+        },
+        {
+          "name": "generated_text",
+          "type": "text",
+          "required": true,
           "system": false
         },
         {
