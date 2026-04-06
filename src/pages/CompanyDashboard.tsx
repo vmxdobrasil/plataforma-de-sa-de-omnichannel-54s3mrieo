@@ -33,6 +33,7 @@ import { Switch } from '@/components/ui/switch'
 import { Building2, Users, DollarSign, Search, Plus, Edit } from 'lucide-react'
 import { toast } from 'sonner'
 import { updateUser } from '@/services/users'
+import { HRCharts } from '@/components/HRCharts'
 
 export default function CompanyDashboard() {
   const { user } = useAuth()
@@ -232,6 +233,8 @@ export default function CompanyDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      <HRCharts companyId={user?.id} />
 
       <Card>
         <CardHeader>

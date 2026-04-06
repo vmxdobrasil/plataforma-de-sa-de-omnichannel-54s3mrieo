@@ -9,15 +9,17 @@ export const getEmployees = async (companyId: string) => {
 
 export const linkEmployee = async (
   email: string,
-  healthAllowance: number,
-  allowanceType: string,
-  medicationAllowance: number = 0,
+  allowance: number,
+  type: string,
+  medAllowance: number,
 ) => {
-  const user = await pb.collection('users').getFirstListItem(`email = "${email}"`)
-  return pb.collection('users').update(user.id, {
-    health_allowance: healthAllowance,
-    allowance_type: allowanceType,
-    medication_allowance: medicationAllowance,
+  const emp = await pb.collection('users').getFirstListItem(`email="${email}"`)
+  if (!emp) throw new Error('Usuário não encontrado.')
+
+  return pb.collection('users').update(emp.id, {
+    health_allowance: allowance,
+    allowance_type: type,
+    medication_allowance: medAllowance,
     company_id: pb.authStore.record?.id,
   })
 }
@@ -26,11 +28,11 @@ export const registerEmployee = async (
   companyId: string,
   name: string,
   email: string,
-  healthAllowance: number,
-  allowanceType: string,
-  medicationAllowance: number = 0,
+  allowance: number,
+  type: string,
+  medAllowance: number,
 ) => {
-  const password = Math.random().toString(36).slice(-8) + 'A1!'
+  const password = `Tmp_${Math.random().toString(36)}!`
   return pb.collection('users').create({
     name,
     email,
@@ -38,33 +40,21 @@ export const registerEmployee = async (
     passwordConfirm: password,
     role: 'patient',
     company_id: companyId,
-    health_allowance: healthAllowance,
-    allowance_type: allowanceType,
-    medication_allowance: medicationAllowance,
+    health_allowance: allowance,
+    allowance_type: type,
+    medication_allowance: medAllowance,
   })
 }
 
 export const updateEmployeeBenefit = async (
-  id: string,
-  healthAllowance: number,
-  allowanceType: string,
-  medicationAllowance: number = 0,
+  empId: string,
+  allowance: number,
+  type: string,
+  medAllowance: number,
 ) => {
-  return pb.collection('users').update(id, {
-    health_allowance: healthAllowance,
-    allowance_type: allowanceType,
-    medication_allowance: medicationAllowance,
-  })
-}
-
-export const getCompanyTransactions = async (companyId: string) => {
-  return pb.collection('benefit_transactions').getFullList({
-    filter: `company_id = "${companyId}"`,
-  })
-}
-
-export const executeRenewal = async () => {
-  return pb.send('/backend/v1/company/execute-renewal', {
-    method: 'POST',
+  return pb.collection('users').update(empId, {
+    health_allowance: allowance,
+    allowance_type: type,
+    medication_allowance: medAllowance,
   })
 }

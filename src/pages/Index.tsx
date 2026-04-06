@@ -38,14 +38,21 @@ import { useRealtime } from '@/hooks/use-realtime'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 
+import { DependentSwitcher } from '@/components/DependentSwitcher'
+
 export default function Index() {
   const navigate = useNavigate()
   const { user } = useAuth()
+  const [activeProfileId, setActiveProfileId] = useState<string>(user?.id || '')
   const [appointments, setAppointments] = useState<any[]>([])
   const [professionals, setProfessionals] = useState<any[]>([])
   const [recentDocuments, setRecentDocuments] = useState<any[]>([])
   const [companyName, setCompanyName] = useState<string>('')
   const [employeeData, setEmployeeData] = useState<any>(null)
+
+  useEffect(() => {
+    if (user?.id && !activeProfileId) setActiveProfileId(user.id)
+  }, [user?.id])
 
   const loadEmployeeData = async () => {
     if (user?.parent_id) {
@@ -82,11 +89,12 @@ export default function Index() {
   })
 
   const loadData = async () => {
-    if (user?.id) {
+    const targetId = activeProfileId || user?.id
+    if (targetId) {
       try {
-        const appts = await getPatientAppointments(user.id)
+        const appts = await getPatientAppointments(targetId)
         setAppointments(appts)
-        const docs = await getRecentDocuments(user.id)
+        const docs = await getRecentDocuments(targetId)
         setRecentDocuments(docs)
       } catch (e) {
         console.error(e)
@@ -102,7 +110,7 @@ export default function Index() {
 
   useEffect(() => {
     loadData()
-  }, [user?.id])
+  }, [activeProfileId, user?.id])
 
   useRealtime('appointments', () => {
     loadData()
@@ -205,12 +213,19 @@ export default function Index() {
       )}
 
       <section className="animate-fade-in-up">
-        <h1 className="text-3xl md:text-4xl font-bold mb-2">
-          Bom dia, {user?.name?.split(' ')[0]}! 👋
-        </h1>
-        <p className="text-muted-foreground mb-6 text-lg">
-          Sua saúde está em dia. Como você está se sentindo hoje?
-        </p>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+          <div>
+            <h1 className="text-3xl md:text-4xl font-bold mb-2">
+              Bom dia, {user?.name?.split(' ')[0]}! 👋
+            </h1>
+            <p className="text-muted-foreground text-lg">
+              Sua saúde está em dia. Como você está se sentindo hoje?
+            </p>
+          </div>
+          {user?.role === 'patient' && (
+            <DependentSwitcher activeId={activeProfileId} setActiveId={setActiveProfileId} />
+          )}
+        </div>
 
         <Card className="bg-gradient-to-r from-primary/10 to-secondary/10 border-none shadow-sm">
           <CardContent className="p-6">
@@ -267,30 +282,45 @@ export default function Index() {
                     <div className="h-3 w-3 bg-primary rounded-full animate-pulse" />
                     <div className="w-0.5 h-full bg-border min-h-[40px] my-1" />
                   </div>
-                  <div className="pb-6">
-                    <Badge
-                      variant="secondary"
-                      className="mb-2 bg-primary/20 text-primary-foreground"
-                    >
-                      {format(new Date(upcomingAppt.dateTime), "dd 'de' MMMM, HH:mm", {
-                        locale: ptBR,
-                      })}
-                    </Badge>
-                    <h3 className="font-semibold text-lg flex items-center gap-2">
-                      Consulta com {upcomingAppt.expand?.professional_id?.name}
-                      {upcomingAppt.type === 'Online' && (
-                        <Video className="h-4 w-4 text-blue-500" />
-                      )}
-                      {upcomingAppt.type === 'Presencial' && (
-                        <MapPin className="h-4 w-4 text-emerald-500" />
-                      )}
-                      {upcomingAppt.type === 'Domiciliar' && (
-                        <HomeIcon className="h-4 w-4 text-amber-500" />
-                      )}
-                    </h3>
-                    <p className="text-muted-foreground text-sm mt-1">
-                      {upcomingAppt.notes || 'Sessão de acompanhamento agendada.'}
-                    </p>
+                  <div className="pb-6 flex-1">
+                    <div className="flex justify-between items-start flex-wrap gap-4">
+                      <div>
+                        <Badge
+                          variant="secondary"
+                          className="mb-2 bg-primary/20 text-primary-foreground"
+                        >
+                          {format(new Date(upcomingAppt.dateTime), "dd 'de' MMMM, HH:mm", {
+                            locale: ptBR,
+                          })}
+                        </Badge>
+                        <h3 className="font-semibold text-lg flex items-center gap-2">
+                          Consulta com {upcomingAppt.expand?.professional_id?.name}
+                          {upcomingAppt.type === 'Online' && (
+                            <Video className="h-4 w-4 text-blue-500" />
+                          )}
+                          {upcomingAppt.type === 'Presencial' && (
+                            <MapPin className="h-4 w-4 text-emerald-500" />
+                          )}
+                          {upcomingAppt.type === 'Domiciliar' && (
+                            <HomeIcon className="h-4 w-4 text-amber-500" />
+                          )}
+                        </h3>
+                        <p className="text-muted-foreground text-sm mt-1">
+                          {upcomingAppt.notes || 'Sessão de acompanhamento agendada.'}
+                        </p>
+                      </div>
+                      {upcomingAppt.type === 'Online' &&
+                        new Date(upcomingAppt.dateTime).getTime() - Date.now() <= 15 * 60 * 1000 &&
+                        new Date(upcomingAppt.dateTime).getTime() - Date.now() >=
+                          -60 * 60 * 1000 && (
+                          <Button
+                            onClick={() => navigate(`/telemedicine/${upcomingAppt.id}`)}
+                            className="animate-pulse-glow bg-blue-600 hover:bg-blue-700"
+                          >
+                            <Video className="mr-2 h-4 w-4" /> Entrar na Sala
+                          </Button>
+                        )}
+                    </div>
                   </div>
                 </div>
               ) : (

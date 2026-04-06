@@ -17,6 +17,7 @@ import HRSimulator from './pages/HRSimulator'
 import Documents from './pages/Documents'
 import Settings from './pages/Settings'
 import AdminSettings from './pages/AdminSettings'
+import TelemedicineRoom from './pages/TelemedicineRoom'
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth()
@@ -46,6 +47,7 @@ const AppRoutes = () => {
         <Route path="/documents" element={<Documents />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/admin/settings" element={<AdminSettings />} />
+        <Route path="/telemedicine/:id" element={<TelemedicineRoom />} />
       </Route>
       <Route path="*" element={<NotFound />} />
     </Routes>

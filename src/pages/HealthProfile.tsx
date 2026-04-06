@@ -30,14 +30,21 @@ export default function HealthProfile() {
   const [deductionAmount, setDeductionAmount] = useState('')
   const [records, setRecords] = useState<any[]>([])
 
+  const [activeProfileId, setActiveProfileId] = useState<string>(user?.id || '')
+
+  useEffect(() => {
+    if (user?.id && !activeProfileId) setActiveProfileId(user.id)
+  }, [user?.id])
+
   const loadData = async () => {
-    if (!user?.id) return
+    const targetId = activeProfileId || user?.id
+    if (!targetId) return
     try {
-      const pxs = await getPatientPrescriptions(user.id)
+      const pxs = await getPatientPrescriptions(targetId)
       setPrescriptions(pxs)
 
       const recs = await pb.collection('health_records').getFullList({
-        filter: `patient_id = "${user.id}"`,
+        filter: `patient_id = "${targetId}"`,
         sort: '-created',
         expand: 'professional_id',
       })
@@ -49,7 +56,7 @@ export default function HealthProfile() {
 
   useEffect(() => {
     loadData()
-  }, [user?.id])
+  }, [activeProfileId, user?.id])
 
   useRealtime('prescriptions', loadData)
   useRealtime('health_records', loadData)
@@ -106,9 +113,14 @@ export default function HealthProfile() {
 
   return (
     <div className="space-y-8 pb-10 animate-fade-in-up">
-      <h1 className="text-3xl font-bold flex items-center gap-3">
-        <FileText className="h-8 w-8 text-primary" /> Perfil de Saúde
-      </h1>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <h1 className="text-3xl font-bold flex items-center gap-3">
+          <FileText className="h-8 w-8 text-primary" /> Perfil de Saúde
+        </h1>
+        {user?.role === 'patient' && (
+          <DependentSwitcher activeId={activeProfileId} setActiveId={setActiveProfileId} />
+        )}
+      </div>
 
       <div className="grid md:grid-cols-2 gap-6">
         <Card>
@@ -141,8 +153,18 @@ export default function HealthProfile() {
                       {px.pharmacy_instructions}
                     </p>
                   )}
-                  {(user?.company_id || user?.parent_id) && (
-                    <div className="pt-2">
+                  <div className="pt-2 flex flex-wrap gap-2">
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button variant="outline" size="sm">
+                          <FileText className="mr-2 h-4 w-4" /> Ver Receita Digital
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-3xl">
+                        <DigitalPrescription prescription={px} />
+                      </DialogContent>
+                    </Dialog>
+                    {(user?.company_id || user?.parent_id) && (
                       <Button
                         variant="outline"
                         size="sm"
@@ -152,11 +174,10 @@ export default function HealthProfile() {
                           setIsDeductionOpen(true)
                         }}
                       >
-                        <ShoppingBag className="mr-2 h-4 w-4" /> Solicitar Reembolso/Pagamento via
-                        Crédito
+                        <ShoppingBag className="mr-2 h-4 w-4" /> Pagamento via Crédito
                       </Button>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
               ))
             )}
