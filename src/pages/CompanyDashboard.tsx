@@ -30,7 +30,7 @@ import {
 } from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Switch } from '@/components/ui/switch'
-import { Building2, Users, DollarSign, Search, Plus, Edit } from 'lucide-react'
+import { Building2, Users, DollarSign, Search, Plus, Edit, Download } from 'lucide-react'
 import { toast } from 'sonner'
 import { updateUser } from '@/services/users'
 import { HRCharts } from '@/components/HRCharts'
@@ -174,14 +174,45 @@ export default function CompanyDashboard() {
             Gerencie os benefícios de saúde dos seus colaboradores.
           </p>
         </div>
-        <Button
-          onClick={() => {
-            resetForm()
-            setIsAddOpen(true)
-          }}
-        >
-          <Plus className="mr-2 h-4 w-4" /> Adicionar Colaborador
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            onClick={() => {
+              const exportData = employees.map((emp) => ({
+                id: emp.id,
+                role: emp.role,
+                health_allowance: emp.health_allowance || 0,
+                medication_allowance: emp.medication_allowance || 0,
+                allowance_type: emp.allowance_type || 'benefit',
+                auto_renew: emp.auto_renew_benefits || false,
+              }))
+              const csv = [
+                'ID,Role,Health Allowance,Medication Allowance,Allowance Type,Auto Renew',
+                ...exportData.map(
+                  (e) =>
+                    `${e.id},${e.role},${e.health_allowance},${e.medication_allowance},${e.allowance_type},${e.auto_renew}`,
+                ),
+              ].join('\n')
+              const blob = new Blob([csv], { type: 'text/csv' })
+              const url = window.URL.createObjectURL(blob)
+              const a = document.createElement('a')
+              a.href = url
+              a.download = 'hr_analytics_anonymized.csv'
+              a.click()
+              window.URL.revokeObjectURL(url)
+            }}
+          >
+            <Download className="mr-2 h-4 w-4" /> Exportar Dados
+          </Button>
+          <Button
+            onClick={() => {
+              resetForm()
+              setIsAddOpen(true)
+            }}
+          >
+            <Plus className="mr-2 h-4 w-4" /> Adicionar Colaborador
+          </Button>
+        </div>
       </div>
 
       <div className="grid md:grid-cols-3 gap-6">

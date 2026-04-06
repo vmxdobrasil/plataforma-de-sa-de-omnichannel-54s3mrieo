@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Bell, Check } from 'lucide-react'
+import { Bell, Check, Paperclip } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -93,6 +93,11 @@ export function NotificationsPopover() {
                   </div>
                   <div className="flex-1 space-y-1">
                     <p className="text-sm leading-snug">{notif.content}</p>
+                    {notif.file && (
+                      <span className="text-xs font-medium text-blue-600 flex items-center gap-1">
+                        <Paperclip className="h-3 w-3" /> Anexo incluído
+                      </span>
+                    )}
                     <p className="text-xs text-muted-foreground">
                       {new Date(notif.created).toLocaleString('pt-BR', {
                         day: '2-digit',

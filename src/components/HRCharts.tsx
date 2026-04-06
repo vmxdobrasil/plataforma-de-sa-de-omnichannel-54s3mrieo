@@ -25,6 +25,7 @@ const COLORS = [
 export function HRCharts({ companyId }: { companyId?: string }) {
   const [usageData, setUsageData] = useState<any[]>([])
   const [specialtyData, setSpecialtyData] = useState<any[]>([])
+  const [analytics, setAnalytics] = useState<any>(null)
 
   useEffect(() => {
     if (!companyId) return
@@ -61,6 +62,11 @@ export function HRCharts({ companyId }: { companyId?: string }) {
         })
 
         setSpecialtyData(Object.entries(specCounts).map(([name, count]) => ({ name, count })))
+
+        const customAnalytics = await pb.send(`/backend/v1/company/${companyId}/analytics`, {
+          method: 'GET',
+        })
+        setAnalytics(customAnalytics)
       } catch (e) {
         console.error('Failed to load chart data', e)
       }
@@ -70,6 +76,14 @@ export function HRCharts({ companyId }: { companyId?: string }) {
   }, [companyId])
 
   if (!companyId) return null
+
+  const apptTypeData = analytics
+    ? Object.entries(analytics.appointments).map(([name, count]) => ({ name, count }))
+    : []
+
+  const recordsTypeData = analytics
+    ? Object.entries(analytics.health_records).map(([name, count]) => ({ name, count }))
+    : []
 
   return (
     <div className="grid md:grid-cols-2 gap-6">
@@ -126,6 +140,62 @@ export function HRCharts({ companyId }: { companyId?: string }) {
           ) : (
             <p className="text-muted-foreground text-sm">Sem dados suficientes.</p>
           )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Agendamentos por Modalidade</CardTitle>
+        </CardHeader>
+        <CardContent className="flex justify-center items-center h-[300px]">
+          {apptTypeData.length > 0 ? (
+            <ChartContainer config={{ count: { label: 'Agendamentos' } }} className="h-full w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={apptTypeData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={90}
+                    paddingAngle={2}
+                    dataKey="count"
+                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                    labelLine={false}
+                  >
+                    {apptTypeData.map((_, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                </PieChart>
+              </ResponsiveContainer>
+            </ChartContainer>
+          ) : (
+            <p className="text-muted-foreground text-sm">Sem dados suficientes.</p>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Tipos de Prontuários (Anônimo)</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ChartContainer
+            config={{ count: { label: 'Registros', color: 'hsl(var(--chart-2))' } }}
+            className="h-[300px] w-full"
+          >
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={recordsTypeData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.3} />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} />
+                <YAxis axisLine={false} tickLine={false} />
+                <ChartTooltip content={<ChartTooltipContent />} />
+                <Bar dataKey="count" fill="hsl(var(--chart-2))" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </ChartContainer>
         </CardContent>
       </Card>
     </div>
