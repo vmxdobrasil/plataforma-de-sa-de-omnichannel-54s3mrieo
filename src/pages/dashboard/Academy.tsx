@@ -11,22 +11,34 @@ import {
 } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { PlayCircle, BookOpen } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Link, Navigate } from 'react-router-dom'
+import { useRealtime } from '@/hooks/use-realtime'
 
 export default function Academy() {
   const [courses, setCourses] = useState<any[]>([])
   const { user } = useAuth()
 
-  useEffect(() => {
+  const loadData = async () => {
     if (user) {
-      getSubscriptions(user.id).then((subs) => {
-        const enrolledCourses = subs
-          .filter((s) => s.expand?.product_id?.category === 'course' && s.status === 'active')
-          .map((s) => s.expand.product_id)
-        setCourses(enrolledCourses)
-      })
+      const subs = await getSubscriptions(user.id)
+      const enrolledCourses = subs
+        .filter((s) => s.expand?.product_id?.category === 'course' && s.status === 'active')
+        .map((s) => s.expand.product_id)
+      setCourses(enrolledCourses)
     }
+  }
+
+  useEffect(() => {
+    loadData()
   }, [user])
+
+  useRealtime('subscriptions', () => {
+    loadData()
+  })
+
+  if (user?.role !== 'professional') {
+    return <Navigate to="/" />
+  }
 
   return (
     <div className="space-y-6">

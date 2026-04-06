@@ -5,6 +5,7 @@ export interface GenerateContentParams {
   specialty: string
   content_type: string
   tone: string
+  audience?: string
 }
 
 export const generateContent = async (params: GenerateContentParams) => {

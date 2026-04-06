@@ -13,6 +13,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/hooks/use-toast'
 import { Check, ShoppingCart } from 'lucide-react'
+import { useRealtime } from '@/hooks/use-realtime'
+import { Navigate } from 'react-router-dom'
 
 export default function Marketplace() {
   const [products, setProducts] = useState<any[]>([])
@@ -32,6 +34,10 @@ export default function Marketplace() {
     setSubscriptions(subs)
   }
 
+  useRealtime('subscriptions', () => {
+    if (user) loadData()
+  })
+
   const handleSubscribe = async (productId: string) => {
     try {
       await subscribeToProduct(productId, user.id)
@@ -48,6 +54,10 @@ export default function Marketplace() {
 
   const isSubscribed = (productId: string) => {
     return subscriptions.some((s) => s.product_id === productId && s.status === 'active')
+  }
+
+  if (user?.role !== 'professional') {
+    return <Navigate to="/" />
   }
 
   const ProductList = ({ category }: { category: string }) => {
@@ -95,10 +105,11 @@ export default function Marketplace() {
       </div>
 
       <Tabs defaultValue="course" className="w-full">
-        <TabsList className="grid w-full max-w-md grid-cols-3">
+        <TabsList className="grid w-full max-w-2xl grid-cols-4">
           <TabsTrigger value="course">Cursos</TabsTrigger>
           <TabsTrigger value="agent">Agentes IA</TabsTrigger>
           <TabsTrigger value="mentorship">Mentorias</TabsTrigger>
+          <TabsTrigger value="service">Serviços</TabsTrigger>
         </TabsList>
         <TabsContent value="course">
           <ProductList category="course" />
@@ -108,6 +119,9 @@ export default function Marketplace() {
         </TabsContent>
         <TabsContent value="mentorship">
           <ProductList category="mentorship" />
+        </TabsContent>
+        <TabsContent value="service">
+          <ProductList category="service" />
         </TabsContent>
       </Tabs>
     </div>

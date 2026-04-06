@@ -25,6 +25,7 @@ import {
 } from '@/components/ui/select'
 import { useToast } from '@/hooks/use-toast'
 import { Loader2, Palette } from 'lucide-react'
+import { Navigate } from 'react-router-dom'
 
 const brandKitSchema = z.object({
   primary_color: z.string().min(1, 'Cor primária é obrigatória'),
@@ -82,6 +83,10 @@ export default function BrandKit() {
   }
 
   if (initialLoading) return null
+
+  if (user?.role !== 'professional') {
+    return <Navigate to="/" />
+  }
 
   return (
     <div className="space-y-6 max-w-3xl">

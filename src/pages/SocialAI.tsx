@@ -28,6 +28,7 @@ import {
   getGeneratedContent,
   deleteGeneratedContent,
 } from '@/services/social_ai'
+import { getBrandKit } from '@/services/ecosystem'
 import { useRealtime } from '@/hooks/use-realtime'
 
 export default function SocialAI() {
@@ -36,6 +37,7 @@ export default function SocialAI() {
   const [topic, setTopic] = useState('')
   const [contentType, setContentType] = useState('Instagram Post')
   const [tone, setTone] = useState('Informative')
+  const [audience, setAudience] = useState('')
   const [isGenerating, setIsGenerating] = useState(false)
   const [generatedText, setGeneratedText] = useState('')
   const [history, setHistory] = useState<any[]>([])
@@ -53,6 +55,12 @@ export default function SocialAI() {
   useEffect(() => {
     if (user?.role === 'professional' && user?.is_verified) {
       loadHistory()
+      getBrandKit(user.id).then((bk) => {
+        if (bk) {
+          if (bk.tone) setTone(bk.tone)
+          if (bk.audience_description) setAudience(bk.audience_description)
+        }
+      })
     }
   }, [user])
 
@@ -120,6 +128,7 @@ export default function SocialAI() {
         specialty: user.specialty,
         content_type: contentType,
         tone,
+        audience,
       })
 
       setGeneratedText(res.generated_text)
@@ -206,6 +215,15 @@ export default function SocialAI() {
                     <SelectItem value="Patient Guide">Patient Guide</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Audience (from Brand Kit)</Label>
+                <Input
+                  placeholder="e.g. Women 25-45 looking for skincare..."
+                  value={audience}
+                  onChange={(e) => setAudience(e.target.value)}
+                />
               </div>
 
               <div className="space-y-2">

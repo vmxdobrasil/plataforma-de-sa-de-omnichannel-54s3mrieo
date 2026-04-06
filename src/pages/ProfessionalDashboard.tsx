@@ -42,6 +42,8 @@ import { createPrescription } from '@/services/prescriptions'
 import { getTreatmentPlans, updateTreatmentPlanStatus } from '@/services/treatment_plans'
 import { createHealthRecord } from '@/services/health_records'
 import { uploadDocument } from '@/services/documents'
+import { getBrandKit, getSubscriptions } from '@/services/ecosystem'
+import { getGeneratedContent } from '@/services/social_ai'
 import { useRealtime } from '@/hooks/use-realtime'
 import { format } from 'date-fns'
 import pb from '@/lib/pocketbase/client'
@@ -84,6 +86,10 @@ export default function ProfessionalDashboard() {
   const [loadingLabs, setLoadingLabs] = useState(false)
   const [syncingLab, setSyncingLab] = useState<string | null>(null)
 
+  const [brandKit, setBrandKit] = useState<any>(null)
+  const [subscriptions, setSubscriptions] = useState<any[]>([])
+  const [recentContent, setRecentContent] = useState<any[]>([])
+
   const loadData = async () => {
     if (!user?.id) return
     try {
@@ -118,9 +124,26 @@ export default function ProfessionalDashboard() {
     }
   }
 
+  const loadBusinessData = async () => {
+    if (!user?.id) return
+    try {
+      const [bk, subs, content] = await Promise.all([
+        getBrandKit(user.id),
+        getSubscriptions(user.id),
+        getGeneratedContent(),
+      ])
+      setBrandKit(bk)
+      setSubscriptions(subs.filter((s: any) => s.status === 'active'))
+      setRecentContent(content.slice(0, 3))
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
   useEffect(() => {
     loadData()
     loadGoals()
+    loadBusinessData()
   }, [user?.id])
 
   useEffect(() => {
@@ -135,6 +158,9 @@ export default function ProfessionalDashboard() {
   useRealtime('treatment_plans', () => {
     if (activeAppt) loadPlans(activeAppt.patient_id)
   })
+  useRealtime('brand_kits', () => loadBusinessData())
+  useRealtime('subscriptions', () => loadBusinessData())
+  useRealtime('generated_content', () => loadBusinessData())
 
   useEffect(() => {
     if (selectedTemplate) {
@@ -404,9 +430,10 @@ export default function ProfessionalDashboard() {
       </div>
 
       <Tabs defaultValue="agenda" className="w-full">
-        <TabsList className="mb-4">
+        <TabsList className="mb-4 flex-wrap">
           <TabsTrigger value="agenda">Agenda & Prontuário</TabsTrigger>
           <TabsTrigger value="adherence">Adesão de Pacientes</TabsTrigger>
+          <TabsTrigger value="business">Negócios & Marketing</TabsTrigger>
         </TabsList>
 
         <TabsContent value="agenda" className="m-0">
@@ -734,6 +761,139 @@ export default function ProfessionalDashboard() {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="business" className="m-0 animate-fade-in space-y-6">
+          {!brandKit && (
+            <Alert variant="default" className="border-primary/50 bg-primary/5">
+              <AlertCircle className="h-4 w-4 text-primary" />
+              <AlertTitle>Complete seu Brand Kit</AlertTitle>
+              <AlertDescription className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-2">
+                <span>
+                  Defina sua identidade visual e tom de voz para personalizar seus conteúdos gerados
+                  por IA.
+                </span>
+                <Button
+                  size="sm"
+                  onClick={() => navigate('/dashboard/brand-kit')}
+                  className="w-full sm:w-auto"
+                >
+                  Configurar Agora
+                </Button>
+              </AlertDescription>
+            </Alert>
+          )}
+
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  Pontos de Fidelidade
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{user?.loyalty_points || 0}</div>
+                <p className="text-xs text-muted-foreground mt-1">Acumulados com pacientes</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  Assinaturas Ativas
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{subscriptions.length}</div>
+                <Button
+                  variant="link"
+                  className="px-0 h-auto text-xs mt-1"
+                  onClick={() => navigate('/dashboard/marketplace')}
+                >
+                  Gerenciar no Marketplace
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  Conteúdos Gerados (IA)
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {recentContent.length}{' '}
+                  <span className="text-sm font-normal text-muted-foreground">recentes</span>
+                </div>
+                <Button
+                  variant="link"
+                  className="px-0 h-auto text-xs mt-1"
+                  onClick={() => navigate('/dashboard/social-ai')}
+                >
+                  Acessar Social AI
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="grid lg:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Últimos Conteúdos Gerados</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {recentContent.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">
+                    Nenhum conteúdo gerado recentemente.
+                  </p>
+                ) : (
+                  <div className="space-y-4">
+                    {recentContent.map((content) => (
+                      <div key={content.id} className="border-b last:border-0 pb-4 last:pb-0">
+                        <p className="font-medium text-sm line-clamp-1">{content.topic}</p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {content.content_type} • {content.tone}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Suas Assinaturas</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {subscriptions.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">
+                    Você não possui assinaturas ativas.
+                  </p>
+                ) : (
+                  <div className="space-y-4">
+                    {subscriptions.map((sub) => (
+                      <div
+                        key={sub.id}
+                        className="flex justify-between items-center border-b last:border-0 pb-4 last:pb-0"
+                      >
+                        <div>
+                          <p className="font-medium text-sm">{sub.expand?.product_id?.name}</p>
+                          <p className="text-xs text-muted-foreground mt-1 capitalize">
+                            {sub.expand?.product_id?.category}
+                          </p>
+                        </div>
+                        <Badge variant="secondary" className="bg-emerald-100 text-emerald-700">
+                          Ativa
+                        </Badge>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
       </Tabs>
     </div>
