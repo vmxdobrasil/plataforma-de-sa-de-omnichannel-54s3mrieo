@@ -6,9 +6,20 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { getMessages, sendMessage } from '@/services/messages'
 import { useRealtime } from '@/hooks/use-realtime'
 import { useAuth } from '@/hooks/use-auth'
-import { Send, User as UserIcon, Paperclip, File as FileIcon, X } from 'lucide-react'
+import {
+  Send,
+  User as UserIcon,
+  Paperclip,
+  File as FileIcon,
+  X,
+  Video,
+  Phone,
+  ShieldCheck,
+} from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Label } from '@/components/ui/label'
+import { Badge } from '@/components/ui/badge'
+import { useNavigate, Link } from 'react-router-dom'
 import pb from '@/lib/pocketbase/client'
 
 export function ChatBox({
@@ -21,9 +32,11 @@ export function ChatBox({
   peerAvatar?: string
 }) {
   const { user } = useAuth()
+  const navigate = useNavigate()
   const [messages, setMessages] = useState<any[]>([])
   const [input, setInput] = useState('')
   const [file, setFile] = useState<File | null>(null)
+  const [peerData, setPeerData] = useState<any>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
 
   const loadMessages = async () => {
@@ -37,8 +50,15 @@ export function ChatBox({
   }
 
   useEffect(() => {
+    if (peerId) {
+      pb.collection('users').getOne(peerId).then(setPeerData).catch(console.error)
+    }
+  }, [peerId])
+
+  useEffect(() => {
     loadMessages()
   }, [user?.id, peerId])
+
   useRealtime('messages', () => loadMessages())
 
   useEffect(() => {
@@ -58,9 +78,56 @@ export function ChatBox({
     }
   }
 
+  const handleCall = async (type: 'video' | 'audio') => {
+    if (!user || !peerId) return
+    try {
+      const patientId = user.role === 'patient' ? user.id : peerId
+      const professionalId = user.role === 'professional' ? user.id : peerId
+
+      const apt = await pb.collection('appointments').create({
+        patient_id: patientId,
+        professional_id: professionalId,
+        dateTime: new Date().toISOString(),
+        type: 'Online',
+        status: 'scheduled',
+        notes: `Chamada instantânea (${type})`,
+      })
+
+      const url = `/telemedicine/${apt.id}`
+      await sendMessage(user.id, peerId, `📞 Chamada iniciada: ${url}`)
+      navigate(url)
+    } catch (e) {
+      console.error('Failed to initiate call', e)
+    }
+  }
+
+  const renderContent = (content: string) => {
+    if (content.startsWith('📞 Chamada iniciada:')) {
+      const url = content.split(' ')[3]
+      return (
+        <div className="flex flex-col gap-2 items-start">
+          <span className="font-medium text-xs uppercase tracking-wider opacity-80">
+            📞 Chamada Iniciada
+          </span>
+          {url && (
+            <Button
+              asChild
+              size="sm"
+              variant="secondary"
+              className="w-full text-xs bg-background/50 hover:bg-background/80"
+            >
+              <Link to={url}>Entrar na Sala</Link>
+            </Button>
+          )}
+        </div>
+      )
+    }
+    return <p>{content}</p>
+  }
+
   return (
     <Card className="flex flex-col h-[500px] shadow-sm border-0">
-      <CardHeader className="py-3 border-b bg-muted/30">
+      <CardHeader className="py-3 border-b bg-muted/30 flex flex-row items-center justify-between">
         <div className="flex items-center gap-3">
           <Avatar className="h-8 w-8">
             <AvatarImage
@@ -70,8 +137,49 @@ export function ChatBox({
               <UserIcon className="h-4 w-4" />
             </AvatarFallback>
           </Avatar>
-          <CardTitle className="text-sm font-medium">{peerName}</CardTitle>
+          <div className="flex flex-col">
+            <div className="flex items-center gap-2">
+              <CardTitle className="text-sm font-medium">{peerName}</CardTitle>
+              {peerData?.role === 'professional' && peerData?.is_verified && (
+                <Badge
+                  variant="secondary"
+                  className="h-4 text-[10px] px-1 bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
+                >
+                  <ShieldCheck className="h-3 w-3 mr-0.5" /> Verificado
+                </Badge>
+              )}
+            </div>
+            {peerData?.role === 'professional' && (
+              <span className="text-[10px] text-muted-foreground">
+                {peerData.specialty || 'Profissional de Saúde'}
+              </span>
+            )}
+          </div>
         </div>
+
+        {((user?.role === 'professional' && peerData?.role === 'patient') ||
+          (user?.role === 'patient' && peerData?.role === 'professional')) && (
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 rounded-full"
+              onClick={() => handleCall('audio')}
+              title="Chamada de Áudio"
+            >
+              <Phone className="h-4 w-4 text-muted-foreground" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 rounded-full"
+              onClick={() => handleCall('video')}
+              title="Chamada de Vídeo"
+            >
+              <Video className="h-4 w-4 text-muted-foreground" />
+            </Button>
+          </div>
+        )}
       </CardHeader>
       <CardContent className="flex-1 p-0 overflow-hidden relative">
         <ScrollArea className="h-full p-4 absolute inset-0" ref={scrollRef}>
@@ -89,7 +197,7 @@ export function ChatBox({
                   <div
                     className={`max-w-[80%] rounded-2xl p-3 text-sm flex flex-col gap-2 ${isMine ? 'bg-primary text-primary-foreground rounded-tr-sm' : 'bg-muted rounded-tl-sm'}`}
                   >
-                    {msg.content && <p>{msg.content}</p>}
+                    {msg.content && renderContent(msg.content)}
                     {fileUrl && (
                       <a href={fileUrl} target="_blank" rel="noreferrer" className="block mt-1">
                         {isImage ? (
@@ -161,7 +269,7 @@ export function ChatBox({
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Digite sua mensagem..."
-            className="flex-1 rounded-full"
+            className="flex-1 rounded-full bg-muted/50 border-transparent focus-visible:ring-1 focus-visible:ring-ring"
           />
           <Button
             type="submit"

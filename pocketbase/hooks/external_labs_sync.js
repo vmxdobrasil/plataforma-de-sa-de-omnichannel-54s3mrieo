@@ -18,6 +18,10 @@ routerAdd(
       throw new BadRequestError('Profissional sem CRM cadastrado.')
     }
 
+    if (!auth.get('is_verified')) {
+      throw new ForbiddenError('Profissional ainda não verificado pela plataforma.')
+    }
+
     const patientId = e.request.pathValue('patientId')
     let patient
     try {

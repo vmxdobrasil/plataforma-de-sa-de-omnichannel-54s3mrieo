@@ -20,6 +20,7 @@ import Settings from './pages/Settings'
 import ProfessionalSchedule from './pages/ProfessionalSchedule'
 import AdminSettings from './pages/AdminSettings'
 import TelemedicineRoom from './pages/TelemedicineRoom'
+import AdminVerification from './pages/AdminVerification'
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth()
@@ -50,6 +51,7 @@ const AppRoutes = () => {
         <Route path="/documents" element={<Documents />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/admin/settings" element={<AdminSettings />} />
+        <Route path="/admin/verification" element={<AdminVerification />} />
         <Route path="/telemedicine/:id" element={<TelemedicineRoom />} />
       </Route>
       <Route path="*" element={<NotFound />} />

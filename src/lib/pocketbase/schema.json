@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-04-06T19:47:47.596Z",
+  "generatedAt": "2026-04-06T19:54:52.684Z",
   "collections": [
     {
       "name": "users",
@@ -165,6 +165,12 @@
         },
         {
           "name": "allow_external_sync",
+          "type": "bool",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "is_verified",
           "type": "bool",
           "required": false,
           "system": false

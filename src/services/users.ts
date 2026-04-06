@@ -15,6 +15,10 @@ export const updateUser = async (id: string, data: any) => {
   return pb.collection('users').update(id, data)
 }
 
+export const verifyProfessional = async (id: string, isVerified: boolean) => {
+  return pb.collection('users').update(id, { is_verified: isVerified })
+}
+
 export const getDependents = async (parentId: string) => {
   return pb.collection('users').getFullList({
     filter: `parent_id = "${parentId}"`,
