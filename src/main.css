@@ -6,8 +6,8 @@
 
 @layer base {
   :root {
-    /* Emerald-600 for Primary */
-    --primary: 160 84% 39%;
+    /* V MED Green for Primary */
+    --primary: 148 100% 32%;
     --primary-foreground: 0 0% 100%;
 
     /* Soft-Pink-400 for Secondary */
@@ -34,20 +34,20 @@
 
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 160 84% 39%;
+    --ring: 148 100% 32%;
 
     --radius: 0.75rem;
 
     --sidebar-background: 0 0% 100%;
     --sidebar-foreground: 222.2 84% 4.9%;
-    --sidebar-primary: 160 84% 39%;
+    --sidebar-primary: 148 100% 32%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 210 40% 96.1%;
     --sidebar-accent-foreground: 222.2 84% 4.9%;
     --sidebar-border: 214.3 31.8% 91.4%;
-    --sidebar-ring: 160 84% 39%;
+    --sidebar-ring: 148 100% 32%;
 
-    --chart-1: 160 84% 39%;
+    --chart-1: 148 100% 32%;
     --chart-2: 338 71% 73%;
     --chart-3: 209 100% 32%;
     --chart-4: 42 100% 50%;
@@ -61,7 +61,7 @@
     --card-foreground: 210 40% 98%;
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
-    --primary: 160 84% 39%;
+    --primary: 148 100% 32%;
     --primary-foreground: 0 0% 100%;
     --secondary: 338 71% 73%;
     --secondary-foreground: 0 0% 100%;
@@ -73,15 +73,15 @@
     --destructive-foreground: 210 40% 98%;
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
-    --ring: 160 84% 39%;
+    --ring: 148 100% 32%;
     --sidebar-background: 222.2 84% 4.9%;
     --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 160 84% 39%;
+    --sidebar-primary: 148 100% 32%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 217.2 32.6% 17.5%;
     --sidebar-accent-foreground: 210 40% 98%;
     --sidebar-border: 217.2 32.6% 17.5%;
-    --sidebar-ring: 160 84% 39%;
+    --sidebar-ring: 148 100% 32%;
   }
 }
 

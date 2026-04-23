@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Activity, HeartPulse, Stethoscope } from 'lucide-react'
+import { HeartPulse, Stethoscope } from 'lucide-react'
+import logoUrl from '@/assets/logo-v-med-90542.jpg'
 import { useAuth } from '@/hooks/use-auth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -73,11 +74,12 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-muted/30 p-4">
-      <div className="mb-8 flex items-center gap-3">
-        <div className="bg-primary/10 p-3 rounded-2xl text-primary">
-          <Activity className="h-8 w-8" />
-        </div>
-        <h1 className="font-heading font-bold text-4xl tracking-tight text-primary">V MED</h1>
+      <div className="mb-8 flex justify-center">
+        <img
+          src={logoUrl}
+          alt="V MED Logo"
+          className="h-24 md:h-32 object-contain mix-blend-multiply dark:mix-blend-normal dark:bg-white dark:p-3 dark:rounded-2xl"
+        />
       </div>
 
       <Card className="w-full max-w-md shadow-xl border-primary/10">

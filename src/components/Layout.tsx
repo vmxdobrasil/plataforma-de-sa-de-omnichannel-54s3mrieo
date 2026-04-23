@@ -51,6 +51,7 @@ import { NotificationsPopover } from './NotificationsPopover'
 import pb from '@/lib/pocketbase/client'
 import { useState, useEffect } from 'react'
 import { useRealtime } from '@/hooks/use-realtime'
+import logoUrl from '@/assets/logo-v-med-90542.jpg'
 
 const navItems = [
   { title: 'Início', icon: Home, url: '/', roles: ['patient', 'professional'] },
@@ -182,17 +183,14 @@ export default function Layout() {
                   <img
                     src={brandLogoUrl}
                     alt={user?.name || 'Company Logo'}
-                    className="h-8 max-w-[140px] object-contain"
+                    className="h-10 max-w-[140px] object-contain"
                   />
                 ) : (
-                  <>
-                    <div className="bg-primary/10 p-2 rounded-xl text-primary">
-                      <Activity className="h-6 w-6" />
-                    </div>
-                    <span className="font-heading font-bold text-2xl tracking-tight text-primary">
-                      V MED
-                    </span>
-                  </>
+                  <img
+                    src={logoUrl}
+                    alt="V MED"
+                    className="h-10 max-w-[140px] object-contain mix-blend-multiply dark:mix-blend-normal dark:bg-white dark:p-1 dark:rounded-md"
+                  />
                 )}
               </Link>
             </div>
@@ -239,14 +237,11 @@ export default function Layout() {
                     className="h-8 max-w-[120px] object-contain"
                   />
                 ) : (
-                  <>
-                    <div className="bg-primary/10 p-1.5 rounded-lg text-primary shrink-0">
-                      <Activity className="h-5 w-5" />
-                    </div>
-                    <span className="font-heading font-bold text-lg tracking-tight text-primary hidden sm:block">
-                      V MED
-                    </span>
-                  </>
+                  <img
+                    src={logoUrl}
+                    alt="V MED"
+                    className="h-8 max-w-[120px] object-contain mix-blend-multiply dark:mix-blend-normal dark:bg-white dark:p-1 dark:rounded-md"
+                  />
                 )}
               </Link>
               <div className="relative max-w-md w-full hidden md:block">
