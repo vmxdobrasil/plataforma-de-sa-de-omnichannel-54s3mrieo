@@ -51,7 +51,7 @@ import { NotificationsPopover } from './NotificationsPopover'
 import pb from '@/lib/pocketbase/client'
 import { useState, useEffect } from 'react'
 import { useRealtime } from '@/hooks/use-realtime'
-import logoUrl from '@/assets/logo-v-med-90542.jpg'
+import logoUrl from '@/assets/image-editing1-ddf9f.png'
 
 const navItems = [
   { title: 'Início', icon: Home, url: '/', roles: ['patient', 'professional'] },
@@ -176,20 +176,20 @@ export default function Layout() {
             <div className="p-6 flex border-b">
               <Link
                 to="/"
-                className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+                className="flex items-center gap-3 w-full hover:opacity-80 transition-opacity"
                 aria-label="MED Logo"
               >
                 {brandLogoUrl ? (
                   <img
                     src={brandLogoUrl}
                     alt={user?.name || 'Company Logo'}
-                    className="h-10 max-w-[140px] object-contain"
+                    className="h-14 max-w-full object-contain object-left"
                   />
                 ) : (
                   <img
                     src={logoUrl}
                     alt="MED Logo"
-                    className="h-10 max-w-[140px] object-contain mix-blend-multiply dark:mix-blend-normal dark:bg-white dark:p-1 dark:rounded-md"
+                    className="h-14 w-full object-contain object-left mix-blend-multiply dark:mix-blend-normal dark:bg-white dark:p-1.5 dark:rounded-md"
                   />
                 )}
               </Link>
@@ -234,13 +234,13 @@ export default function Layout() {
                   <img
                     src={brandLogoUrl}
                     alt={user?.name || 'Company Logo'}
-                    className="h-8 max-w-[120px] object-contain"
+                    className="h-10 max-w-full object-contain"
                   />
                 ) : (
                   <img
                     src={logoUrl}
                     alt="MED Logo"
-                    className="h-8 max-w-[120px] object-contain mix-blend-multiply dark:mix-blend-normal dark:bg-white dark:p-1 dark:rounded-md"
+                    className="h-10 max-w-[180px] object-contain mix-blend-multiply dark:mix-blend-normal dark:bg-white dark:p-1 dark:rounded-md"
                   />
                 )}
               </Link>
