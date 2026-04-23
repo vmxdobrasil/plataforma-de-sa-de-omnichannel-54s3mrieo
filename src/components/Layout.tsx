@@ -73,7 +73,7 @@ const navItems = [
   },
   { title: 'Brand Kit', icon: Palette, url: '/dashboard/brand-kit', roles: ['professional'] },
   {
-    title: 'V MED Academy',
+    title: 'MED Academy',
     icon: GraduationCap,
     url: '/dashboard/academy',
     roles: ['professional'],
@@ -177,7 +177,7 @@ export default function Layout() {
               <Link
                 to="/"
                 className="flex items-center gap-3 hover:opacity-80 transition-opacity"
-                aria-label="V MED Logo"
+                aria-label="MED Logo"
               >
                 {brandLogoUrl ? (
                   <img
@@ -188,7 +188,7 @@ export default function Layout() {
                 ) : (
                   <img
                     src={logoUrl}
-                    alt="V MED"
+                    alt="MED Logo"
                     className="h-10 max-w-[140px] object-contain mix-blend-multiply dark:mix-blend-normal dark:bg-white dark:p-1 dark:rounded-md"
                   />
                 )}
@@ -228,7 +228,7 @@ export default function Layout() {
               <Link
                 to="/"
                 className="flex items-center gap-2 md:hidden hover:opacity-80 transition-opacity"
-                aria-label="V MED Logo"
+                aria-label="MED Logo"
               >
                 {brandLogoUrl ? (
                   <img
@@ -239,7 +239,7 @@ export default function Layout() {
                 ) : (
                   <img
                     src={logoUrl}
-                    alt="V MED"
+                    alt="MED Logo"
                     className="h-8 max-w-[120px] object-contain mix-blend-multiply dark:mix-blend-normal dark:bg-white dark:p-1 dark:rounded-md"
                   />
                 )}
@@ -247,7 +247,7 @@ export default function Layout() {
               <div className="relative max-w-md w-full hidden md:block">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="V MED AI: Como posso ajudar?"
+                  placeholder="MED AI: Como posso ajudar?"
                   className="pl-10 bg-muted/50 border-none rounded-full"
                 />
               </div>

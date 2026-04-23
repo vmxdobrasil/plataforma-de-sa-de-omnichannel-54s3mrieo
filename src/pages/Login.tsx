@@ -77,7 +77,7 @@ export default function Login() {
       <div className="mb-8 flex justify-center">
         <img
           src={logoUrl}
-          alt="V MED Logo"
+          alt="MED Logo"
           className="h-24 md:h-32 object-contain mix-blend-multiply dark:mix-blend-normal dark:bg-white dark:p-3 dark:rounded-2xl"
         />
       </div>
@@ -128,7 +128,7 @@ export default function Login() {
 
           <TabsContent value="signup">
             <CardHeader>
-              <CardTitle>Junte-se à V MED</CardTitle>
+              <CardTitle>Junte-se à MED</CardTitle>
               <CardDescription>Crie sua conta para começar sua jornada.</CardDescription>
             </CardHeader>
             <CardContent>
