@@ -183,13 +183,13 @@ export default function Layout() {
                   <img
                     src={brandLogoUrl}
                     alt={user?.name || 'Company Logo'}
-                    className="h-14 max-w-full object-contain object-left"
+                    className="h-11 max-w-[80%] object-contain object-left"
                   />
                 ) : (
                   <img
                     src={logoUrl}
                     alt="MED Logo"
-                    className="h-14 w-full object-contain object-left mix-blend-multiply dark:mix-blend-normal dark:bg-white dark:p-1.5 dark:rounded-md"
+                    className="h-11 w-4/5 object-contain object-left mix-blend-multiply dark:mix-blend-normal dark:bg-white dark:p-1.5 dark:rounded-md"
                   />
                 )}
               </Link>
@@ -234,13 +234,13 @@ export default function Layout() {
                   <img
                     src={brandLogoUrl}
                     alt={user?.name || 'Company Logo'}
-                    className="h-10 max-w-full object-contain"
+                    className="h-8 max-w-[80%] object-contain"
                   />
                 ) : (
                   <img
                     src={logoUrl}
                     alt="MED Logo"
-                    className="h-10 max-w-[180px] object-contain mix-blend-multiply dark:mix-blend-normal dark:bg-white dark:p-1 dark:rounded-md"
+                    className="h-8 max-w-[144px] w-4/5 object-contain mix-blend-multiply dark:mix-blend-normal dark:bg-white dark:p-1 dark:rounded-md"
                   />
                 )}
               </Link>
