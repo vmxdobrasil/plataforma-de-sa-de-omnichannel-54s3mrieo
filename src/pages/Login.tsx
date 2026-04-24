@@ -78,7 +78,7 @@ export default function Login() {
         <img
           src={logoUrl}
           alt="MED Logo"
-          className="w-[64%] h-auto max-h-32 object-contain mix-blend-multiply dark:mix-blend-normal dark:bg-white dark:p-4 dark:rounded-2xl"
+          className="w-full h-auto max-h-48 object-contain mix-blend-multiply dark:mix-blend-normal dark:bg-white dark:p-4 dark:rounded-2xl"
         />
       </div>
 
