@@ -183,16 +183,16 @@ export default function Layout() {
                   <img
                     src={brandLogoUrl}
                     alt={user?.name || 'Company Logo'}
-                    className="w-full h-12 object-contain object-left"
+                    className="w-full h-16 sm:h-20 object-contain object-left"
                   />
                 ) : (
                   <img
                     src={logoUrl}
                     alt="MED Logo"
-                    className="w-full h-12 object-contain object-left mix-blend-multiply dark:mix-blend-normal dark:bg-white dark:p-1.5 dark:rounded-md"
+                    className="w-full h-16 sm:h-20 object-contain object-left mix-blend-multiply dark:mix-blend-normal dark:bg-white dark:p-1.5 dark:rounded-md"
                   />
                 )}
-              </Link>
+              </Link>{' '}
             </div>
             <SidebarGroup>
               <SidebarGroupContent>
@@ -222,7 +222,7 @@ export default function Layout() {
         </Sidebar>
 
         <div className="flex-1 flex flex-col overflow-hidden">
-          <header className="h-16 border-b flex items-center justify-between px-4 sm:px-6 bg-card sticky top-0 z-30">
+          <header className="h-20 sm:h-24 border-b flex items-center justify-between px-4 sm:px-6 bg-card sticky top-0 z-30">
             <div className="flex items-center gap-2 sm:gap-4 flex-1">
               <SidebarTrigger />
               <Link
@@ -234,16 +234,16 @@ export default function Layout() {
                   <img
                     src={brandLogoUrl}
                     alt={user?.name || 'Company Logo'}
-                    className="h-10 sm:h-12 w-auto max-w-[200px] object-contain"
+                    className="h-14 sm:h-16 w-auto max-w-[250px] object-contain"
                   />
                 ) : (
                   <img
                     src={logoUrl}
                     alt="MED Logo"
-                    className="h-10 sm:h-12 w-auto max-w-[200px] object-contain mix-blend-multiply dark:mix-blend-normal dark:bg-white dark:p-1 dark:rounded-md"
+                    className="h-14 sm:h-16 w-auto max-w-[250px] object-contain mix-blend-multiply dark:mix-blend-normal dark:bg-white dark:p-1 dark:rounded-md"
                   />
                 )}
-              </Link>
+              </Link>{' '}
               <div className="relative max-w-md w-full hidden md:block">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -255,7 +255,6 @@ export default function Layout() {
 
             <div className="flex items-center gap-2 sm:gap-4">
               <ThemeToggle />
-
               <Button
                 variant="ghost"
                 size="icon"
@@ -265,10 +264,8 @@ export default function Layout() {
               >
                 <span className="font-bold text-lg">A+</span>
               </Button>
-
-              <NotificationsPopover />
-
-              {user?.role === 'patient' && (
+              {user && <NotificationsPopover />}
+              {user && user.role === 'patient' && (
                 <Dialog>
                   <DialogTrigger asChild>
                     <Button
@@ -284,48 +281,57 @@ export default function Layout() {
                   </DialogContent>
                 </Dialog>
               )}
-
-              <Sheet>
-                <SheetTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="relative text-muted-foreground hover:text-primary"
-                  >
-                    <MessageSquare className="h-5 w-5" />
-                    <span className="absolute top-2 right-2 h-2 w-2 bg-blue-500 rounded-full border border-background"></span>
-                  </Button>
-                </SheetTrigger>
-                <SheetContent className="w-[400px] sm:w-[540px]">
-                  <SheetHeader>
-                    <SheetTitle>Mensagens Clínicas</SheetTitle>
-                  </SheetHeader>
-                  <ChatApp />
-                </SheetContent>
-              </Sheet>
-
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Avatar className="h-9 w-9 border-2 border-primary/20 cursor-pointer">
-                    <AvatarImage src={avatarUrl} />
-                    <AvatarFallback>
-                      <User className="h-4 w-4" />
-                    </AvatarFallback>
-                  </Avatar>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuLabel>
-                    <div className="flex flex-col space-y-1">
-                      <p className="text-sm font-medium leading-none">{user?.name}</p>
-                      <p className="text-xs leading-none text-muted-foreground">{user?.email}</p>
-                    </div>
-                  </DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleLogout} className="text-red-600 cursor-pointer">
-                    <LogOut className="mr-2 h-4 w-4" /> Sair
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              {user && (
+                <Sheet>
+                  <SheetTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="relative text-muted-foreground hover:text-primary"
+                    >
+                      <MessageSquare className="h-5 w-5" />
+                      <span className="absolute top-2 right-2 h-2 w-2 bg-blue-500 rounded-full border border-background"></span>
+                    </Button>
+                  </SheetTrigger>
+                  <SheetContent className="w-[400px] sm:w-[540px]">
+                    <SheetHeader>
+                      <SheetTitle>Mensagens Clínicas</SheetTitle>
+                    </SheetHeader>
+                    <ChatApp />
+                  </SheetContent>
+                </Sheet>
+              )}
+              {user ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Avatar className="h-9 w-9 border-2 border-primary/20 cursor-pointer">
+                      <AvatarImage src={avatarUrl} />
+                      <AvatarFallback>
+                        <User className="h-4 w-4" />
+                      </AvatarFallback>
+                    </Avatar>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56">
+                    <DropdownMenuLabel>
+                      <div className="flex flex-col space-y-1">
+                        <p className="text-sm font-medium leading-none">{user?.name}</p>
+                        <p className="text-xs leading-none text-muted-foreground">{user?.email}</p>
+                      </div>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={handleLogout}
+                      className="text-red-600 cursor-pointer"
+                    >
+                      <LogOut className="mr-2 h-4 w-4" /> Sair
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
+                <Button onClick={() => navigate('/login')} className="rounded-full px-6">
+                  Entrar
+                </Button>
+              )}{' '}
             </div>
           </header>
 

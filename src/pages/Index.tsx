@@ -11,6 +11,9 @@ import {
   Video,
   Home as HomeIcon,
   MessageSquare,
+  Loader2,
+  ShieldCheck,
+  Stethoscope,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
@@ -43,7 +46,7 @@ import { AddToCalendar } from '@/components/AddToCalendar'
 
 export default function Index() {
   const navigate = useNavigate()
-  const { user } = useAuth()
+  const { user, loading } = useAuth()
   const [activeProfileId, setActiveProfileId] = useState<string>(user?.id || '')
   const [appointments, setAppointments] = useState<any[]>([])
   const [professionals, setProfessionals] = useState<any[]>([])
@@ -153,6 +156,82 @@ export default function Index() {
   )
 
   const checkedInAppt = appointments.find((a) => a.status === 'checked_in')
+
+  if (loading) {
+    return (
+      <div className="flex h-full min-h-[60vh] w-full items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-10 w-10 animate-spin text-primary" />
+          <p className="text-muted-foreground font-medium animate-pulse">Carregando...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!user) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[70vh] text-center px-4 animate-fade-in-up">
+        <div className="bg-primary/10 p-6 rounded-full mb-8">
+          <ShieldCheck className="h-16 w-16 text-primary" />
+        </div>
+        <h1 className="text-4xl md:text-6xl font-extrabold text-foreground mb-6 tracking-tight">
+          Sua Saúde, <span className="text-primary">Nossa Prioridade</span>
+        </h1>
+        <p className="text-xl text-muted-foreground max-w-2xl mb-10 leading-relaxed">
+          Conecte-se com os melhores profissionais de saúde, gerencie seus exames e tenha acesso a
+          telemedicina de onde estiver com a Plataforma V MED.
+        </p>
+        <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
+          <Button
+            size="lg"
+            onClick={() => navigate('/login')}
+            className="h-14 px-8 text-lg rounded-full shadow-lg hover:shadow-xl transition-all"
+          >
+            Acessar Minha Conta
+          </Button>
+          <Button
+            size="lg"
+            variant="outline"
+            onClick={() => navigate('/search')}
+            className="h-14 px-8 text-lg rounded-full"
+          >
+            <Stethoscope className="mr-2 h-5 w-5" />
+            Buscar Especialistas
+          </Button>
+        </div>
+
+        <div className="mt-20 grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-5xl text-left">
+          <Card className="border-none shadow-md bg-secondary/20 hover:bg-secondary/30 transition-colors">
+            <CardContent className="p-6">
+              <Video className="h-10 w-10 text-primary mb-4" />
+              <h3 className="text-xl font-bold mb-2">Telemedicina</h3>
+              <p className="text-muted-foreground">
+                Consultas online com segurança e praticidade do conforto do seu lar.
+              </p>
+            </CardContent>
+          </Card>
+          <Card className="border-none shadow-md bg-secondary/20 hover:bg-secondary/30 transition-colors">
+            <CardContent className="p-6">
+              <FileText className="h-10 w-10 text-primary mb-4" />
+              <h3 className="text-xl font-bold mb-2">Prontuário Digital</h3>
+              <p className="text-muted-foreground">
+                Todos os seus exames e receitas médicas em um só lugar seguro.
+              </p>
+            </CardContent>
+          </Card>
+          <Card className="border-none shadow-md bg-secondary/20 hover:bg-secondary/30 transition-colors">
+            <CardContent className="p-6">
+              <ActivitySquare className="h-10 w-10 text-primary mb-4" />
+              <h3 className="text-xl font-bold mb-2">Prevenção</h3>
+              <p className="text-muted-foreground">
+                Acompanhamento contínuo e metas de saúde guiadas por especialistas.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    )
+  }
 
   if (user?.role === 'company') {
     return <Navigate to="/company/dashboard" replace />
