@@ -77,11 +77,11 @@ export default function Login() {
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-muted/50 to-muted/10 p-4 sm:p-8">
       {/* Brand Header */}
       <div className="w-full max-w-md flex flex-col items-center text-center mb-8 animate-fade-in-up">
-        <div className="bg-white p-4 sm:p-6 rounded-3xl shadow-sm mb-6 border border-primary/10">
+        <div className="bg-white p-6 sm:p-8 rounded-3xl shadow-sm mb-8 border border-primary/10">
           <img
             src={logoUrl}
             alt="V MED Logo"
-            className="w-auto h-20 sm:h-24 object-contain transition-transform duration-500 hover:scale-105"
+            className="w-auto h-32 sm:h-36 object-contain transition-transform duration-500 hover:scale-105"
           />
         </div>
         <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground mb-3">
