@@ -5,6 +5,7 @@ import { TooltipProvider } from '@/components/ui/tooltip'
 
 import { AuthProvider, useAuth } from './hooks/use-auth'
 import { ThemeProvider } from './components/ThemeProvider'
+import { DynamicBranding } from './components/DynamicBranding'
 import Layout from './components/Layout'
 import Index from './pages/Index'
 import Search from './pages/Search'
@@ -77,6 +78,7 @@ const App = () => {
       <ThemeProvider defaultTheme="system" storageKey="vmed-theme">
         <TooltipProvider>
           <AuthProvider>
+            <DynamicBranding />
             <Toaster />
             <Sonner />
             <AppRoutes />
