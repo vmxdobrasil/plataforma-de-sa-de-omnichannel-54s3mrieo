@@ -183,13 +183,13 @@ export default function Layout() {
                   <img
                     src={brandLogoUrl}
                     alt={user?.name || 'Company Logo'}
-                    className="w-full h-20 object-contain object-left"
+                    className="w-full h-12 object-contain object-left"
                   />
                 ) : (
                   <img
                     src={logoUrl}
                     alt="MED Logo"
-                    className="w-full h-20 object-contain object-left mix-blend-multiply dark:mix-blend-normal dark:bg-white dark:p-2 dark:rounded-md"
+                    className="w-full h-12 object-contain object-left mix-blend-multiply dark:mix-blend-normal dark:bg-white dark:p-1.5 dark:rounded-md"
                   />
                 )}
               </Link>
@@ -222,7 +222,7 @@ export default function Layout() {
         </Sidebar>
 
         <div className="flex-1 flex flex-col overflow-hidden">
-          <header className="h-20 border-b flex items-center justify-between px-4 sm:px-6 bg-card sticky top-0 z-30">
+          <header className="h-16 border-b flex items-center justify-between px-4 sm:px-6 bg-card sticky top-0 z-30">
             <div className="flex items-center gap-2 sm:gap-4 flex-1">
               <SidebarTrigger />
               <Link
@@ -234,13 +234,13 @@ export default function Layout() {
                   <img
                     src={brandLogoUrl}
                     alt={user?.name || 'Company Logo'}
-                    className="h-16 w-auto max-w-[240px] object-contain"
+                    className="h-10 sm:h-12 w-auto max-w-[200px] object-contain"
                   />
                 ) : (
                   <img
                     src={logoUrl}
                     alt="MED Logo"
-                    className="h-16 w-auto max-w-[240px] object-contain mix-blend-multiply dark:mix-blend-normal dark:bg-white dark:p-1.5 dark:rounded-md"
+                    className="h-10 sm:h-12 w-auto max-w-[200px] object-contain mix-blend-multiply dark:mix-blend-normal dark:bg-white dark:p-1 dark:rounded-md"
                   />
                 )}
               </Link>
