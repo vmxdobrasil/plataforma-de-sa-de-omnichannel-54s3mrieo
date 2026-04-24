@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { HeartPulse, Stethoscope } from 'lucide-react'
-import logoUrl from '@/assets/image-editing1-ddf9f.png'
+import logoUrl from '@/assets/image-editing3-e6f7b.png'
 import { useAuth } from '@/hooks/use-auth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -78,7 +78,7 @@ export default function Login() {
         <img
           src={logoUrl}
           alt="MED Logo"
-          className="w-4/5 h-auto max-h-40 object-contain mix-blend-multiply dark:mix-blend-normal dark:bg-white dark:p-4 dark:rounded-2xl"
+          className="w-[64%] h-auto max-h-32 object-contain mix-blend-multiply dark:mix-blend-normal dark:bg-white dark:p-4 dark:rounded-2xl"
         />
       </div>
 
