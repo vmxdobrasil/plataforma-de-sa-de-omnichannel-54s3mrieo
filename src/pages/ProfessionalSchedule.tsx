@@ -15,7 +15,9 @@ import {
   createAvailabilitySlot,
   deleteAvailabilitySlot,
 } from '@/services/availability'
-import { Calendar, Clock, Trash2, Plus } from 'lucide-react'
+import { getProfessionalAppointments } from '@/services/appointments'
+import { useRealtime } from '@/hooks/use-realtime'
+import { Calendar, Clock, Trash2, Plus, Users } from 'lucide-react'
 import { toast } from 'sonner'
 import { Badge } from '@/components/ui/badge'
 
@@ -32,6 +34,7 @@ const DAYS = [
 export default function ProfessionalSchedule() {
   const { user } = useAuth()
   const [slots, setSlots] = useState<any[]>([])
+  const [appointments, setAppointments] = useState<any[]>([])
 
   const [day, setDay] = useState('1')
   const [startTime, setStartTime] = useState('09:00')
@@ -48,9 +51,24 @@ export default function ProfessionalSchedule() {
     }
   }
 
+  const loadAppointments = async () => {
+    if (!user?.id) return
+    try {
+      const data = await getProfessionalAppointments(user.id)
+      setAppointments(data)
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
   useEffect(() => {
     loadSlots()
+    loadAppointments()
   }, [user?.id])
+
+  useRealtime('appointments', () => {
+    loadAppointments()
+  })
 
   const handleAddSlot = async () => {
     if (!user?.id) return
@@ -199,6 +217,64 @@ export default function ProfessionalSchedule() {
           </CardContent>
         </Card>
       </div>
+
+      <Card className="mt-6">
+        <CardHeader>
+          <CardTitle className="text-lg flex items-center gap-2">
+            <Users className="h-5 w-5" /> Agendamentos Confirmados
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {appointments.length === 0 ? (
+            <p className="text-muted-foreground text-sm">Nenhum agendamento confirmado.</p>
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {appointments.map((app) => {
+                const isCorporate = !!app.expand?.patient_id?.company_id
+                return (
+                  <div
+                    key={app.id}
+                    className="border p-4 rounded-lg flex flex-col gap-3 bg-card hover:shadow-md transition-shadow"
+                  >
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <p className="font-semibold">
+                          {app.expand?.patient_id?.name || 'Paciente'}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {new Date(app.dateTime).toLocaleString([], {
+                            dateStyle: 'short',
+                            timeStyle: 'short',
+                          })}
+                        </p>
+                      </div>
+                      <Badge
+                        variant={isCorporate ? 'default' : 'secondary'}
+                        className={isCorporate ? 'bg-purple-600 hover:bg-purple-700' : ''}
+                      >
+                        {isCorporate ? 'Corporativo' : 'Particular'}
+                      </Badge>
+                    </div>
+                    <div className="text-sm flex gap-2">
+                      <Badge variant="outline">{app.type}</Badge>
+                      <Badge
+                        variant="outline"
+                        className={
+                          app.status === 'scheduled'
+                            ? 'text-blue-600 border-blue-200 bg-blue-50'
+                            : ''
+                        }
+                      >
+                        {app.status === 'scheduled' ? 'Agendado' : app.status}
+                      </Badge>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   )
 }

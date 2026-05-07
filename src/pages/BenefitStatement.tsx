@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, Briefcase, Pill, ReceiptText } from 'lucide-react'
+import { ArrowLeft, Briefcase, Pill, ReceiptText, PlusCircle, CreditCard } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { toast } from 'sonner'
 import { Badge } from '@/components/ui/badge'
 import {
   Select,
@@ -89,21 +90,73 @@ export default function BenefitStatement() {
     return true
   })
 
+  const isIndependent = employeeData && !employeeData.company_id
+
+  const handleAddCredit = async () => {
+    if (!employeeData) return
+    try {
+      const amount = 200 // Mock Asaas amount
+
+      if (!employeeData.asaas_customer_id) {
+        await pb.collection('users').update(employeeData.id, {
+          asaas_customer_id: 'cus_mock_' + Math.random().toString(36).substring(2, 9),
+        })
+      }
+
+      const newBalance = (employeeData.health_allowance || 0) + amount
+
+      await pb.collection('benefit_transactions').create({
+        employee_id: employeeData.id,
+        company_id: employeeData.id,
+        amount: amount,
+        type: 'credit',
+        category: 'health_service',
+        description: 'Adição de Crédito via Asaas',
+      })
+
+      await pb.collection('users').update(employeeData.id, {
+        health_allowance: newBalance,
+      })
+
+      toast.success('Crédito de R$ 200,00 adicionado com sucesso via Asaas!')
+    } catch (e) {
+      console.error(e)
+      toast.error('Erro ao adicionar crédito.')
+    }
+  }
+
   return (
     <div className="space-y-6 pb-10 animate-fade-in-up">
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="rounded-full">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => navigate(-1)}
+          className="rounded-full shrink-0"
+        >
           <ArrowLeft className="h-5 w-5" />
         </Button>
-        <div>
-          <h1 className="text-2xl font-bold">Extrato de Benefícios</h1>
-          <p className="text-muted-foreground text-sm">
-            Acompanhe o uso e saldo dos seus benefícios corporativos
-          </p>
+        <div className="flex-1 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold">
+              {isIndependent ? 'Minha Carteira' : 'Extrato de Benefícios'}
+            </h1>
+            <p className="text-muted-foreground text-sm">
+              {isIndependent
+                ? 'Gerencie seus créditos e pagamentos'
+                : 'Acompanhe o uso e saldo dos seus benefícios corporativos'}
+            </p>
+          </div>
+          {isIndependent && (
+            <Button onClick={handleAddCredit} className="w-full md:w-auto shrink-0">
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Adicionar Crédito (Asaas)
+            </Button>
+          )}
         </div>
       </div>
 
-      {employeeData?.company_id && (
+      {employeeData?.company_id ? (
         <div className="grid md:grid-cols-2 gap-4">
           <Card className="bg-purple-50 border-purple-200">
             <CardContent className="p-6">
@@ -145,6 +198,27 @@ export default function BenefitStatement() {
             </CardContent>
           </Card>
         </div>
+      ) : (
+        isIndependent && (
+          <div className="grid md:grid-cols-2 gap-4">
+            <Card className="bg-amber-50 border-amber-200">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2 text-amber-800">
+                    <CreditCard className="h-5 w-5" />
+                    <span className="font-semibold">Saldo Asaas</span>
+                  </div>
+                </div>
+                <div className="flex items-end gap-2 mb-1">
+                  <span className="text-3xl font-bold text-amber-900">
+                    R$ {employeeData?.health_allowance?.toFixed(2) || '0.00'}
+                  </span>
+                </div>
+                <p className="text-sm text-amber-700">Créditos disponíveis para agendamentos</p>
+              </CardContent>
+            </Card>
+          </div>
+        )
       )}
 
       <Card className="border-border/50 shadow-sm overflow-hidden">

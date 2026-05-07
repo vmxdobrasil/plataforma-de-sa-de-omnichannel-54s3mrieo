@@ -96,16 +96,22 @@ export function BookingFlow({ open, onOpenChange, professional }: BookingFlowPro
 
     const appointmentCost = 150 // Mock cost
 
-    if (method === 'corporate') {
+    if (method === 'corporate' || method === 'payroll') {
       if (!employeeData?.company_id) {
-        toast.error('Benefício corporativo não encontrado.')
+        toast.error('Vínculo corporativo não encontrado.')
         return
       }
-      if (
-        employeeData.allowance_type === 'benefit' &&
-        (employeeData.health_allowance || 0) < appointmentCost
-      ) {
-        toast.error('Saldo de benefício insuficiente para realizar este agendamento.')
+      if ((employeeData.health_allowance || 0) < appointmentCost) {
+        toast.error(
+          method === 'payroll'
+            ? 'Limite de desconto em folha insuficiente.'
+            : 'Saldo de benefício insuficiente.',
+        )
+        return
+      }
+    } else if (method === 'wallet') {
+      if ((employeeData.health_allowance || 0) < appointmentCost) {
+        toast.error('Saldo em carteira insuficiente.')
         return
       }
     }
@@ -124,17 +130,17 @@ export function BookingFlow({ open, onOpenChange, professional }: BookingFlowPro
         status: 'scheduled',
       })
 
-      if (method === 'corporate') {
+      if (method === 'corporate' || method === 'payroll' || method === 'wallet') {
         const newAllowance = (employeeData.health_allowance || 0) - appointmentCost
 
         await pb.collection('benefit_transactions').create({
           employee_id: employeeData.id,
-          company_id: employeeData.company_id,
+          company_id: employeeData.company_id || employeeData.id,
           appointment_id: appointment.id,
           amount: appointmentCost,
           type: 'debit',
           category: 'health_service',
-          description: `Pagamento de consulta: ${mode}`,
+          description: `Pagamento de consulta: ${mode} (${method === 'payroll' ? 'Desconto em Folha' : method === 'wallet' ? 'Carteira Asaas' : 'Benefício Corporativo'})`,
         })
 
         await pb.collection('users').update(employeeData.id, {
@@ -142,6 +148,23 @@ export function BookingFlow({ open, onOpenChange, professional }: BookingFlowPro
         })
 
         setPaymentDetails({ amount: appointmentCost, remaining: newAllowance, method })
+      } else if (method === 'pix' || method === 'credit') {
+        // Independent payment directly via Asaas Mock
+        if (!employeeData.asaas_customer_id) {
+          await pb.collection('users').update(employeeData.id, {
+            asaas_customer_id: 'cus_mock_' + Math.random().toString(36).substr(2, 9),
+          })
+        }
+        await pb.collection('benefit_transactions').create({
+          employee_id: employeeData.id,
+          company_id: employeeData.id,
+          appointment_id: appointment.id,
+          amount: appointmentCost,
+          type: 'debit',
+          category: 'health_service',
+          description: `Pagamento Direto: ${mode} (${method.toUpperCase()})`,
+        })
+        setPaymentDetails({ amount: appointmentCost, remaining: 0, method })
       } else {
         setPaymentDetails({ amount: appointmentCost, remaining: 0, method })
       }
@@ -271,65 +294,95 @@ export function BookingFlow({ open, onOpenChange, professional }: BookingFlowPro
                 </div>
               </div>
 
-              {employeeData?.company_id && (
-                <Button
-                  variant="outline"
-                  className="w-full justify-start h-16 hover:border-primary"
-                  onClick={() => handleSelectPayment('corporate')}
-                  disabled={isSubmitting}
-                >
-                  <div className="mr-4 h-6 w-6 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 font-bold text-sm">
-                    C
-                  </div>
-                  <div className="text-left">
-                    <p className="font-semibold">Crédito Corporativo</p>
-                    <p className="text-xs text-muted-foreground">
-                      Saldo: R$ {employeeData.health_allowance?.toFixed(2) || '0.00'}
-                    </p>
-                  </div>
-                </Button>
+              {employeeData?.company_id ? (
+                <div className="space-y-4">
+                  <h3 className="font-semibold text-lg">Pagamento via Empresa</h3>
+                  {employeeData.allowance_type === 'payroll_deduction' ? (
+                    <Button
+                      variant="outline"
+                      className="w-full justify-start h-auto py-4 hover:border-primary"
+                      onClick={() => handleSelectPayment('payroll')}
+                      disabled={isSubmitting}
+                    >
+                      <div className="mr-4 h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-sm shrink-0">
+                        F
+                      </div>
+                      <div className="text-left flex-1">
+                        <p className="font-semibold">Desconto em Folha</p>
+                        <p className="text-xs text-muted-foreground whitespace-normal">
+                          O valor será descontado na sua próxima folha de pagamento. Limite
+                          disponível: R$ {employeeData.health_allowance?.toFixed(2) || '0.00'}
+                        </p>
+                      </div>
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      className="w-full justify-start h-16 hover:border-primary"
+                      onClick={() => handleSelectPayment('corporate')}
+                      disabled={isSubmitting}
+                    >
+                      <div className="mr-4 h-6 w-6 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 font-bold text-sm shrink-0">
+                        C
+                      </div>
+                      <div className="text-left">
+                        <p className="font-semibold">Crédito Corporativo</p>
+                        <p className="text-xs text-muted-foreground">
+                          Saldo: R$ {employeeData.health_allowance?.toFixed(2) || '0.00'}
+                        </p>
+                      </div>
+                    </Button>
+                  )}
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <h3 className="font-semibold text-lg">Pagamento Particular</h3>
+                  {employeeData && (employeeData.health_allowance || 0) > 0 && (
+                    <Button
+                      variant="outline"
+                      className="w-full justify-start h-16 hover:border-primary"
+                      onClick={() => handleSelectPayment('wallet')}
+                      disabled={isSubmitting}
+                    >
+                      <div className="mr-4 h-6 w-6 rounded-full bg-amber-100 flex items-center justify-center text-amber-600 font-bold text-sm shrink-0">
+                        $
+                      </div>
+                      <div className="text-left">
+                        <p className="font-semibold">Saldo em Carteira (Asaas)</p>
+                        <p className="text-xs text-muted-foreground">
+                          Saldo: R$ {employeeData.health_allowance?.toFixed(2)}
+                        </p>
+                      </div>
+                    </Button>
+                  )}
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start h-16 hover:border-primary"
+                    onClick={() => handleSelectPayment('credit')}
+                    disabled={isSubmitting}
+                  >
+                    <CreditCard className="mr-4 h-6 w-6 text-primary shrink-0" />
+                    <div className="text-left">
+                      <p className="font-semibold">Cartão de Crédito (Asaas)</p>
+                      <p className="text-xs text-muted-foreground">Adicionar novo cartão</p>
+                    </div>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start h-16 hover:border-emerald-500"
+                    onClick={() => handleSelectPayment('pix')}
+                    disabled={isSubmitting}
+                  >
+                    <div className="mr-4 h-6 w-6 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 font-bold text-sm shrink-0">
+                      P
+                    </div>
+                    <div className="text-left">
+                      <p className="font-semibold">PIX (Asaas)</p>
+                      <p className="text-xs text-muted-foreground">Aprovação imediata</p>
+                    </div>
+                  </Button>
+                </div>
               )}
-
-              <Button
-                variant="outline"
-                className="w-full justify-start h-16 hover:border-primary"
-                onClick={() => handleSelectPayment('credit')}
-                disabled={isSubmitting}
-              >
-                <CreditCard className="mr-4 h-6 w-6 text-primary" />
-                <div className="text-left">
-                  <p className="font-semibold">Cartão de Crédito</p>
-                  <p className="text-xs text-muted-foreground">Finalizado em 4242</p>
-                </div>
-              </Button>
-              <Button
-                variant="outline"
-                className="w-full justify-start h-16 hover:border-primary"
-                onClick={() => handleSelectPayment('insurance')}
-                disabled={isSubmitting}
-              >
-                <div className="mr-4 h-6 w-6 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-sm">
-                  P
-                </div>
-                <div className="text-left">
-                  <p className="font-semibold">Plano de Saúde</p>
-                  <p className="text-xs text-muted-foreground">Bradesco Saúde Top</p>
-                </div>
-              </Button>
-              <Button
-                variant="outline"
-                className="w-full justify-start h-16 hover:border-emerald-500"
-                onClick={() => handleSelectPayment('pix')}
-                disabled={isSubmitting}
-              >
-                <div className="mr-4 h-6 w-6 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 font-bold text-sm">
-                  $
-                </div>
-                <div className="text-left">
-                  <p className="font-semibold">PIX</p>
-                  <p className="text-xs text-muted-foreground">Aprovação imediata</p>
-                </div>
-              </Button>
             </div>
           )}
 
