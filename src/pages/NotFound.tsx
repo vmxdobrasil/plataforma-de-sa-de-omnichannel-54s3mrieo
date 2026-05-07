@@ -1,13 +1,18 @@
-/* 404 Page - Displays when a user attempts to access a non-existent route - translate to the language of the user */
-import { useLocation } from 'react-router-dom'
+import { useLocation, Navigate } from 'react-router-dom'
 import { useEffect } from 'react'
+import { useAuth } from '@/hooks/use-auth'
 
 const NotFound = () => {
   const location = useLocation()
+  const { user } = useAuth()
 
   useEffect(() => {
     console.error('404 Error: User attempted to access non-existent route:', location.pathname)
   }, [location.pathname])
+
+  if (user && location.pathname.includes('/company')) {
+    return <Navigate to="/admin" replace />
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">

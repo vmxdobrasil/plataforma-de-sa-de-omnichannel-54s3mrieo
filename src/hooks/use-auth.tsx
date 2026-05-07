@@ -52,14 +52,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         'current_route',
       ]
       keysToClear.forEach((key) => {
-        const localVal = localStorage.getItem(key)
-        const sessionVal = sessionStorage.getItem(key)
-        if (localVal?.includes('/company') || sessionVal?.includes('/company')) {
-          localStorage.removeItem(key)
-          sessionStorage.removeItem(key)
-        }
-        localStorage.removeItem(key)
-        sessionStorage.removeItem(key)
+        localStorage.setItem(key, '/admin')
+        sessionStorage.setItem(key, '/admin')
       })
     }
   }, [user?.role])

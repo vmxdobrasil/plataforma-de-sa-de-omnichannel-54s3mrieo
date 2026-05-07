@@ -23,7 +23,6 @@ import ProfessionalDashboard from './pages/ProfessionalDashboard'
 import HealthProfile from './pages/HealthProfile'
 import NotFound from './pages/NotFound'
 import Login from './pages/Login'
-import CompanyDashboard from './pages/CompanyDashboard'
 import CompanyEmployees from './pages/CompanyEmployees'
 import CompanyTransactions from './pages/CompanyTransactions'
 import BenefitStatement from './pages/BenefitStatement'
@@ -54,7 +53,7 @@ const EntryPoint = () => {
   useEffect(() => {
     if (user?.role === 'medical_director') {
       const storedRoute = localStorage.getItem('currentRoute')
-      if (storedRoute === '/company/dashboard' || storedRoute?.startsWith('/company')) {
+      if (storedRoute?.includes('/company/dashboard') || storedRoute?.startsWith('/company')) {
         localStorage.setItem('currentRoute', '/admin')
       }
     }
@@ -74,7 +73,7 @@ const EntryPoint = () => {
   if (!user) return <Index />
 
   if (user.role === 'medical_director') return <Navigate to="/admin" replace />
-  if (user.role === 'company') return <Navigate to="/company/dashboard" replace />
+  if (user.role === 'company') return <Navigate to="/company/employees" replace />
   if (user.role === 'professional') return <Navigate to="/professional" replace />
 
   return <Index />
@@ -118,18 +117,24 @@ const AppRoutes = () => {
 
   useEffect(() => {
     if (user?.role === 'medical_director') {
-      if (location.pathname === '/company/dashboard' || location.pathname.startsWith('/company')) {
+      if (
+        location.pathname.includes('/company/dashboard') ||
+        location.pathname.startsWith('/company')
+      ) {
         navigate('/admin', { replace: true })
       }
 
       const storedRouteLocal = localStorage.getItem('currentRoute')
       const storedRouteSession = sessionStorage.getItem('currentRoute')
 
-      if (storedRouteLocal === '/company/dashboard' || storedRouteLocal?.startsWith('/company')) {
+      if (
+        storedRouteLocal?.includes('/company/dashboard') ||
+        storedRouteLocal?.startsWith('/company')
+      ) {
         localStorage.setItem('currentRoute', '/admin')
       }
       if (
-        storedRouteSession === '/company/dashboard' ||
+        storedRouteSession?.includes('/company/dashboard') ||
         storedRouteSession?.startsWith('/company')
       ) {
         sessionStorage.setItem('currentRoute', '/admin')
@@ -154,7 +159,7 @@ const AppRoutes = () => {
           <Route path="/pharmacy" element={<Pharmacy />} />
 
           <Route element={<CompanyOutlet />}>
-            <Route path="/company/dashboard" element={<CompanyDashboard />} />
+            {/* <Route path="/company/dashboard" element={<CompanyDashboard />} /> */}
             <Route path="/company/employees" element={<CompanyEmployees />} />
             <Route path="/company/transactions" element={<CompanyTransactions />} />
           </Route>
@@ -188,7 +193,41 @@ const AppRoutes = () => {
   )
 }
 
+if (typeof window !== 'undefined' && window.location.pathname.includes('/company/dashboard')) {
+  window.location.replace('/admin')
+}
+
 const App = () => {
+  useEffect(() => {
+    const keysToRemove: string[] = []
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i)
+      if (
+        key &&
+        (key.toLowerCase().includes('company') ||
+          key.toLowerCase().includes('dashboard') ||
+          key.includes('currentRoute'))
+      ) {
+        keysToRemove.push(key)
+      }
+    }
+    keysToRemove.forEach((k) => localStorage.removeItem(k))
+
+    const sessionKeysToRemove: string[] = []
+    for (let i = 0; i < sessionStorage.length; i++) {
+      const key = sessionStorage.key(i)
+      if (
+        key &&
+        (key.toLowerCase().includes('company') ||
+          key.toLowerCase().includes('dashboard') ||
+          key.includes('currentRoute'))
+      ) {
+        sessionKeysToRemove.push(key)
+      }
+    }
+    sessionKeysToRemove.forEach((k) => sessionStorage.removeItem(k))
+  }, [])
+
   return (
     <BrowserRouter future={{ v7_startTransition: false, v7_relativeSplatPath: false }}>
       <ThemeProvider defaultTheme="system" storageKey="vmed-theme">
