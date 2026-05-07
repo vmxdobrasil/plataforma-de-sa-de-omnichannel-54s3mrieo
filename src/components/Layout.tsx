@@ -20,6 +20,8 @@ import {
   UserX,
   ReceiptText,
   Shield,
+  Building2,
+  ClipboardList,
 } from 'lucide-react'
 import {
   Sidebar,
@@ -67,6 +69,30 @@ const navItems = [
     title: 'Painel Administrador',
     icon: Shield,
     url: '/admin',
+    roles: ['medical_director'],
+  },
+  {
+    title: 'Gestão de Usuários',
+    icon: Users,
+    url: '/admin/users',
+    roles: ['medical_director'],
+  },
+  {
+    title: 'Parceiros de Seguro',
+    icon: Building2,
+    url: '/admin/insurance',
+    roles: ['medical_director'],
+  },
+  {
+    title: 'Especialidades Médicas',
+    icon: Stethoscope,
+    url: '/admin/specialties',
+    roles: ['medical_director'],
+  },
+  {
+    title: 'Logs de Auditoria',
+    icon: ClipboardList,
+    url: '/admin/audit',
     roles: ['medical_director'],
   },
   {
@@ -376,6 +402,11 @@ export default function Layout() {
                       <div className="flex flex-col space-y-1">
                         <p className="text-sm font-medium leading-none">{user?.name}</p>
                         <p className="text-xs leading-none text-muted-foreground">{user?.email}</p>
+                        {user?.role === 'medical_director' && (
+                          <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary w-fit mt-1">
+                            Administrador da Plataforma
+                          </span>
+                        )}
                       </div>
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />

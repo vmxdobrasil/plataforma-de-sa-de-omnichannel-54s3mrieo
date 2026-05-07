@@ -33,7 +33,9 @@ export default function Login() {
   const navigate = useNavigate()
 
   if (user) {
-    if (user.role === 'company') {
+    if (user.role === 'medical_director') {
+      navigate('/admin')
+    } else if (user.role === 'company') {
       navigate('/company/dashboard')
     } else if (user.role === 'professional') {
       navigate('/professional')
