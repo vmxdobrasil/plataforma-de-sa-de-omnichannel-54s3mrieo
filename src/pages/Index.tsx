@@ -48,6 +48,10 @@ export default function Index() {
   const navigate = useNavigate()
   const { user, loading } = useAuth()
   const [activeProfileId, setActiveProfileId] = useState<string>(user?.id || '')
+
+  useEffect(() => {
+    document.title = 'V MED BRASIL'
+  }, [])
   const [appointments, setAppointments] = useState<any[]>([])
   const [professionals, setProfessionals] = useState<any[]>([])
   const [recentDocuments, setRecentDocuments] = useState<any[]>([])
@@ -239,7 +243,7 @@ export default function Index() {
     )
   }
 
-  if (user?.role === 'medical_director' || user?.role === 'admin') {
+  if (user?.role === 'medical_director') {
     return <Navigate to="/admin" replace />
   }
 

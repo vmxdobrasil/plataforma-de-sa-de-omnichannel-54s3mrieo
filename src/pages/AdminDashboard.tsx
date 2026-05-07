@@ -15,6 +15,11 @@ import { Badge } from '@/components/ui/badge'
 
 export default function AdminDashboard() {
   const { user } = useAuth()
+
+  useEffect(() => {
+    document.title = 'V MED BRASIL ADMIN'
+  }, [])
+
   const [stats, setStats] = useState({
     companies: 0,
     professionals: 0,

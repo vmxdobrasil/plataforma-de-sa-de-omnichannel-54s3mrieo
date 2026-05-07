@@ -19,6 +19,11 @@ import { Button } from '@/components/ui/button'
 
 export default function CompanyDashboard() {
   const { user } = useAuth()
+
+  useEffect(() => {
+    document.title = 'V MED BRASIL - Painel da Empresa'
+  }, [])
+
   const [employees, setEmployees] = useState<any[]>([])
   const [transactions, setTransactions] = useState<any[]>([])
   const [loading, setLoading] = useState(true)

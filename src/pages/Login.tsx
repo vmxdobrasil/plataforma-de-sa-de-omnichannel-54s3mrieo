@@ -33,7 +33,7 @@ export default function Login() {
   const navigate = useNavigate()
 
   if (user) {
-    if (user.role === 'medical_director' || user.role === 'admin') {
+    if (user.role === 'medical_director') {
       return <Navigate to="/admin" replace />
     } else if (user.role === 'company') {
       return <Navigate to="/company/dashboard" replace />
@@ -53,6 +53,7 @@ export default function Login() {
     if (error) {
       toast.error(error.message || 'Erro no login. Verifique suas credenciais.')
     } else {
+      localStorage.removeItem('lastVisitedPath')
       toast.success('Bem-vindo de volta!')
     }
   }
@@ -76,6 +77,7 @@ export default function Login() {
       const msg = Object.values(errs)[0] || 'Erro ao criar conta.'
       toast.error(msg)
     } else {
+      localStorage.removeItem('lastVisitedPath')
       toast.success('Conta criada com sucesso!')
     }
   }
