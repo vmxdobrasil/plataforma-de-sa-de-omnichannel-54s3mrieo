@@ -243,14 +243,6 @@ export default function Index() {
     )
   }
 
-  if (user?.role === 'medical_director') {
-    return <Navigate to="/admin" replace />
-  }
-
-  if (user?.role === 'company') {
-    return <Navigate to="/company/dashboard" replace />
-  }
-
   return (
     <div className="space-y-8 pb-10">
       {checkedInAppt && (

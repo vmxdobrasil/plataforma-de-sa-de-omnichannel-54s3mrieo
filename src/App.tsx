@@ -39,6 +39,29 @@ import AgentsHub from './pages/dashboard/AgentsHub'
 import AgencyDashboard from './pages/dashboard/AgencyDashboard'
 import Pharmacy from './pages/Pharmacy'
 
+const EntryPoint = () => {
+  const { user, loading } = useAuth()
+
+  if (loading) {
+    return (
+      <div className="flex h-full min-h-[60vh] w-full items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-10 w-10 animate-spin text-primary" />
+          <p className="text-muted-foreground font-medium animate-pulse">Carregando...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!user) return <Index />
+
+  if (user.role === 'medical_director') return <Navigate to="/admin" replace />
+  if (user.role === 'company') return <Navigate to="/company/dashboard" replace />
+  if (user.role === 'professional') return <Navigate to="/professional" replace />
+
+  return <Index />
+}
+
 const ProtectedOutlet = () => {
   const { user, loading } = useAuth()
 
@@ -76,8 +99,8 @@ const AppRoutes = () => {
       <Route path="/login" element={<Login />} />
 
       <Route element={<Layout />}>
-        {/* Public Routes */}
-        <Route path="/" element={<Index />} />
+        {/* Entry Point / Public / Patient Dashboard */}
+        <Route path="/" element={<EntryPoint />} />
 
         {/* Protected Routes */}
         <Route element={<ProtectedOutlet />}>

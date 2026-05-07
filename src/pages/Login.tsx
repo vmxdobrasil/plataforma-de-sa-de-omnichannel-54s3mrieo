@@ -53,7 +53,17 @@ export default function Login() {
     if (error) {
       toast.error(error.message || 'Erro no login. Verifique suas credenciais.')
     } else {
-      localStorage.removeItem('lastVisitedPath')
+      const keysToClear = [
+        'lastVisitedPath',
+        'last_visited_route',
+        'navigation_state',
+        'redirect_url',
+        'returnTo',
+      ]
+      keysToClear.forEach((key) => {
+        localStorage.removeItem(key)
+        sessionStorage.removeItem(key)
+      })
       toast.success('Bem-vindo de volta!')
     }
   }
@@ -77,7 +87,17 @@ export default function Login() {
       const msg = Object.values(errs)[0] || 'Erro ao criar conta.'
       toast.error(msg)
     } else {
-      localStorage.removeItem('lastVisitedPath')
+      const keysToClear = [
+        'lastVisitedPath',
+        'last_visited_route',
+        'navigation_state',
+        'redirect_url',
+        'returnTo',
+      ]
+      keysToClear.forEach((key) => {
+        localStorage.removeItem(key)
+        sessionStorage.removeItem(key)
+      })
       toast.success('Conta criada com sucesso!')
     }
   }
