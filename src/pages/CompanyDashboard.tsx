@@ -14,7 +14,7 @@ import {
 } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { HRCharts } from '@/components/HRCharts'
-import { Link } from 'react-router-dom'
+import { Link, Navigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 
 export default function CompanyDashboard() {
@@ -61,14 +61,12 @@ export default function CompanyDashboard() {
     loadData(false)
   })
 
+  if (user?.role === 'medical_director') {
+    return <Navigate to="/admin" replace />
+  }
+
   if (user?.role !== 'company') {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <p className="text-muted-foreground text-lg">
-          Acesso negado. Apenas contas corporativas podem visualizar esta página.
-        </p>
-      </div>
-    )
+    return <Navigate to="/" replace />
   }
 
   if (loading) {

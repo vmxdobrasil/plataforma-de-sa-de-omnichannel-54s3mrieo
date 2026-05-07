@@ -59,6 +59,8 @@ export default function Login() {
         'navigation_state',
         'redirect_url',
         'returnTo',
+        'currentRoute',
+        'current_route',
       ]
       keysToClear.forEach((key) => {
         localStorage.removeItem(key)
@@ -93,6 +95,8 @@ export default function Login() {
         'navigation_state',
         'redirect_url',
         'returnTo',
+        'currentRoute',
+        'current_route',
       ]
       keysToClear.forEach((key) => {
         localStorage.removeItem(key)

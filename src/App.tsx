@@ -51,6 +51,15 @@ import Pharmacy from './pages/Pharmacy'
 const EntryPoint = () => {
   const { user, loading } = useAuth()
 
+  useEffect(() => {
+    if (user?.role === 'medical_director') {
+      const storedRoute = localStorage.getItem('currentRoute')
+      if (storedRoute === '/company/dashboard' || storedRoute?.startsWith('/company')) {
+        localStorage.setItem('currentRoute', '/admin')
+      }
+    }
+  }, [user])
+
   if (loading) {
     return (
       <div className="flex h-full min-h-[60vh] w-full items-center justify-center">
@@ -111,6 +120,19 @@ const AppRoutes = () => {
     if (user?.role === 'medical_director') {
       if (location.pathname === '/company/dashboard' || location.pathname.startsWith('/company')) {
         navigate('/admin', { replace: true })
+      }
+
+      const storedRouteLocal = localStorage.getItem('currentRoute')
+      const storedRouteSession = sessionStorage.getItem('currentRoute')
+
+      if (storedRouteLocal === '/company/dashboard' || storedRouteLocal?.startsWith('/company')) {
+        localStorage.setItem('currentRoute', '/admin')
+      }
+      if (
+        storedRouteSession === '/company/dashboard' ||
+        storedRouteSession?.startsWith('/company')
+      ) {
+        sessionStorage.setItem('currentRoute', '/admin')
       }
     }
   }, [user, location.pathname, navigate])

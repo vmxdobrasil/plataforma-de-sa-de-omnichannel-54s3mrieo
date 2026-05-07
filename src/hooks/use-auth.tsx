@@ -48,6 +48,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         'returnTo',
         'last_path',
         'redirect_to',
+        'currentRoute',
+        'current_route',
       ]
       keysToClear.forEach((key) => {
         const localVal = localStorage.getItem(key)
@@ -119,6 +121,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       'returnTo',
       'last_path',
       'redirect_to',
+      'currentRoute',
+      'current_route',
     ]
     keysToClear.forEach((key) => {
       localStorage.removeItem(key)
