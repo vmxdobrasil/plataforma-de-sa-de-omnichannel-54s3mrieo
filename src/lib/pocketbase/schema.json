@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-04-24T00:39:37.018Z",
+  "generatedAt": "2026-05-07T09:52:40.135Z",
   "collections": [
     {
       "name": "users",
@@ -43,7 +43,14 @@
           "type": "select",
           "required": true,
           "system": false,
-          "selectValues": ["patient", "professional", "company"]
+          "selectValues": [
+            "patient",
+            "professional",
+            "company",
+            "medical_director",
+            "pharmacy",
+            "laboratory"
+          ]
         },
         {
           "name": "specialty",
@@ -174,6 +181,66 @@
           "type": "bool",
           "required": false,
           "system": false
+        },
+        {
+          "name": "notify_email",
+          "type": "bool",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "notify_browser",
+          "type": "bool",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "latitude",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "longitude",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "commission_rate",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "city",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "state",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "has_video_call",
+          "type": "bool",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "asaas_customer_id",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "asaas_wallet_id",
+          "type": "text",
+          "required": false,
+          "system": false
         }
       ],
       "indexes": [
@@ -185,8 +252,8 @@
       "name": "appointments",
       "type": "base",
       "apiRules": {
-        "list": "@request.auth.id != '' && (patient_id = @request.auth.id || patient_id.parent_id = @request.auth.id || professional_id = @request.auth.id || @request.auth.role = 'company')",
-        "view": "@request.auth.id != '' && (patient_id = @request.auth.id || patient_id.parent_id = @request.auth.id || professional_id = @request.auth.id || @request.auth.role = 'company')",
+        "list": "@request.auth.id != '' && (patient_id = @request.auth.id || patient_id.parent_id = @request.auth.id || professional_id = @request.auth.id || @request.auth.role = 'company' || @request.auth.role = 'medical_director')",
+        "view": "@request.auth.id != '' && (patient_id = @request.auth.id || patient_id.parent_id = @request.auth.id || professional_id = @request.auth.id || @request.auth.role = 'company' || @request.auth.role = 'medical_director')",
         "create": "@request.auth.id != ''",
         "update": "@request.auth.id != ''",
         "delete": "@request.auth.id != ''"
@@ -245,6 +312,37 @@
           "required": false,
           "system": false,
           "autodateTriggers": ["onCreate", "onUpdate"]
+        },
+        {
+          "name": "reminder_24h_sent",
+          "type": "bool",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "reminder_12h_sent",
+          "type": "bool",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "reminder_4h_sent",
+          "type": "bool",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "rating",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "insurance_partner_id",
+          "type": "relation",
+          "required": false,
+          "system": false,
+          "collectionRef": "insurance_partners"
         }
       ],
       "indexes": []
@@ -253,8 +351,8 @@
       "name": "health_records",
       "type": "base",
       "apiRules": {
-        "list": "@request.auth.id != '' && (patient_id = @request.auth.id || patient_id.parent_id = @request.auth.id || professional_id = @request.auth.id)",
-        "view": "@request.auth.id != '' && (patient_id = @request.auth.id || patient_id.parent_id = @request.auth.id || professional_id = @request.auth.id)",
+        "list": "@request.auth.id != '' && (patient_id = @request.auth.id || patient_id.parent_id = @request.auth.id || professional_id = @request.auth.id || @request.auth.role = 'medical_director')",
+        "view": "@request.auth.id != '' && (patient_id = @request.auth.id || patient_id.parent_id = @request.auth.id || professional_id = @request.auth.id || @request.auth.role = 'medical_director')",
         "create": "@request.auth.id != ''",
         "update": "@request.auth.id != ''",
         "delete": "@request.auth.id != ''"
@@ -420,6 +518,19 @@
           "type": "file",
           "required": false,
           "system": false
+        },
+        {
+          "name": "message_type",
+          "type": "select",
+          "required": false,
+          "system": false,
+          "selectValues": ["text", "appointment_invite", "file", "video_call_invite"]
+        },
+        {
+          "name": "metadata",
+          "type": "json",
+          "required": false,
+          "system": false
         }
       ],
       "indexes": []
@@ -428,8 +539,8 @@
       "name": "prescriptions",
       "type": "base",
       "apiRules": {
-        "list": "@request.auth.id != '' && (patient_id = @request.auth.id || patient_id.parent_id = @request.auth.id || professional_id = @request.auth.id)",
-        "view": "@request.auth.id != '' && (patient_id = @request.auth.id || patient_id.parent_id = @request.auth.id || professional_id = @request.auth.id)",
+        "list": "@request.auth.id != '' && (patient_id = @request.auth.id || patient_id.parent_id = @request.auth.id || professional_id = @request.auth.id || @request.auth.role = 'medical_director')",
+        "view": "@request.auth.id != '' && (patient_id = @request.auth.id || patient_id.parent_id = @request.auth.id || professional_id = @request.auth.id || @request.auth.role = 'medical_director')",
         "create": "@request.auth.id != '' && professional_id = @request.auth.id",
         "update": "@request.auth.id != '' && professional_id = @request.auth.id",
         "delete": "@request.auth.id != '' && professional_id = @request.auth.id"
@@ -542,13 +653,31 @@
           "type": "select",
           "required": false,
           "system": false,
-          "selectValues": ["health_service", "medication"]
+          "selectValues": [
+            "health_service",
+            "medication",
+            "preventive_service",
+            "emergency_service"
+          ]
         },
         {
           "name": "description",
           "type": "text",
           "required": false,
           "system": false
+        },
+        {
+          "name": "asaas_payment_id",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "payment_status",
+          "type": "select",
+          "required": false,
+          "system": false,
+          "selectValues": ["pending", "confirmed", "failed", "refunded"]
         }
       ],
       "indexes": []
@@ -557,8 +686,8 @@
       "name": "documents",
       "type": "base",
       "apiRules": {
-        "list": "@request.auth.id != '' && (patient_id = @request.auth.id || patient_id.parent_id = @request.auth.id || professional_id = @request.auth.id || @request.auth.role = 'company')",
-        "view": "@request.auth.id != '' && (patient_id = @request.auth.id || patient_id.parent_id = @request.auth.id || professional_id = @request.auth.id || @request.auth.role = 'company')",
+        "list": "@request.auth.id != '' && (patient_id = @request.auth.id || patient_id.parent_id = @request.auth.id || professional_id = @request.auth.id || @request.auth.role = 'company' || @request.auth.role = 'medical_director')",
+        "view": "@request.auth.id != '' && (patient_id = @request.auth.id || patient_id.parent_id = @request.auth.id || professional_id = @request.auth.id || @request.auth.role = 'company' || @request.auth.role = 'medical_director')",
         "create": "@request.auth.id != ''",
         "update": "@request.auth.id != '' && (patient_id = @request.auth.id || professional_id = @request.auth.id)",
         "delete": "@request.auth.id != '' && (patient_id = @request.auth.id || professional_id = @request.auth.id)"
@@ -1046,6 +1175,257 @@
         }
       ],
       "indexes": ["CREATE UNIQUE INDEX idx_brand_kits_user ON brand_kits (user_id)"]
+    },
+    {
+      "name": "audit_logs",
+      "type": "base",
+      "apiRules": {
+        "list": "@request.auth.id != '' && (@request.auth.role = 'company' || @request.auth.role = 'medical_director')",
+        "view": "@request.auth.id != '' && (@request.auth.role = 'company' || @request.auth.role = 'medical_director')",
+        "create": "@request.auth.id != ''",
+        "update": null,
+        "delete": null
+      },
+      "fields": [
+        {
+          "name": "user_id",
+          "type": "relation",
+          "required": true,
+          "system": false,
+          "collectionRef": "users"
+        },
+        {
+          "name": "action",
+          "type": "select",
+          "required": true,
+          "system": false,
+          "selectValues": ["view", "create", "update", "delete"]
+        },
+        {
+          "name": "resource_type",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "resource_id",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "details",
+          "type": "json",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate"]
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate", "onUpdate"]
+        }
+      ],
+      "indexes": []
+    },
+    {
+      "name": "insurance_partners",
+      "type": "base",
+      "apiRules": {
+        "list": "@request.auth.id != '' && (@request.auth.role = 'medical_director' || @request.auth.role = 'company')",
+        "view": "@request.auth.id != '' && (@request.auth.role = 'medical_director' || @request.auth.role = 'company')",
+        "create": "@request.auth.id != '' && @request.auth.role = 'medical_director'",
+        "update": "@request.auth.id != '' && @request.auth.role = 'medical_director'",
+        "delete": "@request.auth.id != '' && @request.auth.role = 'medical_director'"
+      },
+      "fields": [
+        {
+          "name": "name",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "partner_code",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "api_key",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "status",
+          "type": "select",
+          "required": true,
+          "system": false,
+          "selectValues": ["active", "inactive"]
+        },
+        {
+          "name": "webhook_url",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate"]
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate", "onUpdate"]
+        }
+      ],
+      "indexes": [
+        "CREATE UNIQUE INDEX idx_insurance_partners_code ON insurance_partners (partner_code)"
+      ]
+    },
+    {
+      "name": "medical_specialties",
+      "type": "base",
+      "apiRules": {
+        "list": "",
+        "view": "",
+        "create": null,
+        "update": null,
+        "delete": null
+      },
+      "fields": [
+        {
+          "name": "name",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate"]
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate", "onUpdate"]
+        },
+        {
+          "name": "category",
+          "type": "select",
+          "required": false,
+          "system": false,
+          "selectValues": ["Cirurgias", "Clínicas", "Exames", "Outros"]
+        },
+        {
+          "name": "priority",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "keywords",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "symptoms",
+          "type": "text",
+          "required": false,
+          "system": false
+        }
+      ],
+      "indexes": ["CREATE UNIQUE INDEX idx_medical_specialties_name ON medical_specialties (name)"]
+    },
+    {
+      "name": "pharmacy_products",
+      "type": "base",
+      "apiRules": {
+        "list": "",
+        "view": "",
+        "create": "@request.auth.id != ''",
+        "update": "@request.auth.id != '' && pharmacy_id = @request.auth.id",
+        "delete": "@request.auth.id != '' && pharmacy_id = @request.auth.id"
+      },
+      "fields": [
+        {
+          "name": "pharmacy_id",
+          "type": "relation",
+          "required": true,
+          "system": false,
+          "collectionRef": "users"
+        },
+        {
+          "name": "name",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "description",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "price",
+          "type": "number",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "image",
+          "type": "file",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "is_promotion",
+          "type": "bool",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "promo_price",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate"]
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate", "onUpdate"]
+        }
+      ],
+      "indexes": []
     }
   ]
 }
