@@ -56,7 +56,12 @@ export function DependentSwitcher({ activeId, setActiveId }: DependentSwitcherPr
   const handleAddDependent = async () => {
     if (!user || !newDepName.trim()) return
     try {
-      await createDependent(user.id, { name: newDepName })
+      await createDependent({
+        name: newDepName,
+        parent_id: user.id,
+        company_id: user.company_id,
+        role: 'patient',
+      })
       toast.success('Dependente adicionado com sucesso!')
       setIsAddOpen(false)
       setNewDepName('')

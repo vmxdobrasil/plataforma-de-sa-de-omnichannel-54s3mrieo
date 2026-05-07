@@ -1,26 +1,25 @@
 import pb from '@/lib/pocketbase/client'
 
 export const getEmployees = async (companyId: string) => {
-  return pb.collection('users').getFullList({
-    filter: `company_id = "${companyId}"`,
+  return await pb.collection('users').getFullList({
+    filter: `company_id = "${companyId}" && role = "patient"`,
     sort: 'name',
   })
 }
 
 export const linkEmployee = async (
   email: string,
-  allowance: number,
-  type: string,
-  medAllowance: number,
+  health_allowance: number,
+  allowance_type: string,
+  medication_allowance: number,
 ) => {
-  const emp = await pb.collection('users').getFirstListItem(`email="${email}"`)
-  if (!emp) throw new Error('Usuário não encontrado.')
-
-  return pb.collection('users').update(emp.id, {
-    health_allowance: allowance,
-    allowance_type: type,
-    medication_allowance: medAllowance,
-    company_id: pb.authStore.record?.id,
+  const companyId = pb.authStore.record?.id
+  const user = await pb.collection('users').getFirstListItem(`email = "${email}"`)
+  return await pb.collection('users').update(user.id, {
+    company_id: companyId,
+    health_allowance,
+    allowance_type,
+    medication_allowance,
   })
 }
 
@@ -28,45 +27,36 @@ export const registerEmployee = async (
   companyId: string,
   name: string,
   email: string,
-  allowance: number,
-  type: string,
-  medAllowance: number,
+  document_id: string,
+  health_allowance: number,
+  allowance_type: string,
+  medication_allowance: number,
 ) => {
-  const password = `Tmp_${Math.random().toString(36)}!`
-  return pb.collection('users').create({
+  const password = Math.random().toString(36).slice(-8) + 'A1!'
+  return await pb.collection('users').create({
     name,
     email,
     password,
     passwordConfirm: password,
+    document_id,
     role: 'patient',
     company_id: companyId,
-    health_allowance: allowance,
-    allowance_type: type,
-    medication_allowance: medAllowance,
+    health_allowance,
+    allowance_type,
+    medication_allowance,
+    is_verified: true,
   })
 }
 
 export const updateEmployeeBenefit = async (
-  empId: string,
-  allowance: number,
-  type: string,
-  medAllowance: number,
+  id: string,
+  health_allowance: number,
+  allowance_type: string,
+  medication_allowance: number,
 ) => {
-  return pb.collection('users').update(empId, {
-    health_allowance: allowance,
-    allowance_type: type,
-    medication_allowance: medAllowance,
+  return await pb.collection('users').update(id, {
+    health_allowance,
+    allowance_type,
+    medication_allowance,
   })
-}
-
-export const getCompanyTransactions = async (companyId: string) => {
-  return pb.collection('benefit_transactions').getFullList({
-    filter: `company_id = "${companyId}"`,
-    sort: '-created',
-    expand: 'employee_id',
-  })
-}
-
-export const executeRenewal = async (companyId: string) => {
-  return pb.send(`/backend/v1/companies/${companyId}/renew`, { method: 'POST' })
 }

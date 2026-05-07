@@ -97,6 +97,12 @@ export default function Pharmacy() {
 
   const handlePurchase = async (product: any) => {
     if (!employeeData) return
+
+    if (employeeData.is_blocked) {
+      toast.error('O acesso corporativo deste usuário está bloqueado.')
+      return
+    }
+
     const price = product.is_promotion ? product.promo_price : product.price
     const currentBalance = employeeData.medication_allowance || 0
 

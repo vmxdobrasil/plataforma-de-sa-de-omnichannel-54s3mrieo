@@ -97,6 +97,11 @@ export function BookingFlow({ open, onOpenChange, professional }: BookingFlowPro
     const appointmentCost = 150 // Mock cost
     const healthBalance = employeeData?.health_allowance || 0
 
+    if (employeeData?.is_blocked) {
+      toast.error('O acesso corporativo deste usuário está bloqueado.')
+      return
+    }
+
     if (method === 'corporate_full' || method === 'payroll') {
       if (!employeeData?.company_id) {
         toast.error('Vínculo corporativo não encontrado.')

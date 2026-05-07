@@ -19,7 +19,13 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
 import {
   Select,
@@ -29,8 +35,18 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Switch } from '@/components/ui/switch'
-import { Users, Search, Plus, Edit, Download, Loader2, AlertCircle } from 'lucide-react'
+import {
+  Users,
+  Search,
+  Plus,
+  Edit,
+  Download,
+  Loader2,
+  AlertCircle,
+  Ban,
+  CheckCircle,
+  Upload,
+} from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { toast } from 'sonner'
 import { updateUser } from '@/services/users'
@@ -45,11 +61,15 @@ export default function CompanyEmployees() {
 
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
+  const [documentId, setDocumentId] = useState('')
   const [allowance, setAllowance] = useState('0')
   const [medicationAllowance, setMedicationAllowance] = useState('0')
   const [type, setType] = useState('benefit')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+
+  const [bulkFile, setBulkFile] = useState<File | null>(null)
+  const [isUploading, setIsUploading] = useState(false)
 
   const loadData = async (isInitial = false) => {
     if (user?.id) {
@@ -115,11 +135,16 @@ export default function CompanyEmployees() {
   }
 
   const handleRegister = async () => {
+    if (!name || !email || !documentId) {
+      toast.error('Preencha os campos obrigatórios (Nome, Email, CPF/Documento).')
+      return
+    }
     try {
       await registerEmployee(
         user.id,
         name,
         email,
+        documentId,
         parseFloat(allowance),
         type,
         parseFloat(medicationAllowance),
@@ -162,22 +187,68 @@ export default function CompanyEmployees() {
   const resetForm = () => {
     setName('')
     setEmail('')
+    setDocumentId('')
     setAllowance('0')
     setMedicationAllowance('0')
     setType('benefit')
+    setBulkFile(null)
   }
 
-  const handleToggleAutoRenew = async (empId: string, currentValue: boolean) => {
+  const handleToggleBlock = async (empId: string, isBlocked: boolean) => {
     try {
-      await updateUser(empId, { auto_renew_benefits: !currentValue })
-      if (!currentValue) {
-        toast.success('Renovação automática ativada!')
-      } else {
-        toast.success('Renovação automática cancelada com sucesso.')
-      }
+      await updateUser(empId, { is_blocked: !isBlocked })
+      toast.success(!isBlocked ? 'Funcionário bloqueado (suspenso).' : 'Funcionário desbloqueado.')
       loadData()
     } catch (e) {
-      toast.error('Erro ao atualizar renovação automática.')
+      toast.error('Erro ao alterar status do funcionário.')
+    }
+  }
+
+  const handleBulkImport = async () => {
+    if (!bulkFile) {
+      toast.error('Selecione um arquivo CSV para importar.')
+      return
+    }
+    setIsUploading(true)
+    try {
+      const text = await bulkFile.text()
+      const rows = text
+        .split('\n')
+        .map((r) => r.trim())
+        .filter((r) => r)
+
+      let successCount = 0
+      let errorCount = 0
+
+      for (let i = 1; i < rows.length; i++) {
+        const cols = rows[i].split(',')
+        const rowName = cols[0]?.trim()
+        const rowEmail = cols[1]?.trim()
+        const rowDoc = cols[2]?.trim()
+        const health = parseFloat(cols[3] || '0')
+        const med = parseFloat(cols[4] || '0')
+
+        if (!rowName || !rowEmail || !rowDoc) {
+          errorCount++
+          continue
+        }
+
+        try {
+          await registerEmployee(user.id, rowName, rowEmail, rowDoc, health, 'benefit', med)
+          successCount++
+        } catch (e) {
+          errorCount++
+        }
+      }
+
+      toast.success(`Importação concluída: ${successCount} sucesso(s), ${errorCount} erro(s).`)
+      setIsAddOpen(false)
+      resetForm()
+      loadData()
+    } catch (e) {
+      toast.error('Erro ao processar o arquivo CSV.')
+    } finally {
+      setIsUploading(false)
     }
   }
 
@@ -200,17 +271,19 @@ export default function CompanyEmployees() {
                 id: emp.id,
                 name: emp.name,
                 email: emp.email,
+                document_id: emp.document_id,
                 role: emp.role,
                 health_allowance: emp.health_allowance || 0,
                 medication_allowance: emp.medication_allowance || 0,
                 allowance_type: emp.allowance_type || 'benefit',
                 auto_renew: emp.auto_renew_benefits || false,
+                is_blocked: emp.is_blocked || false,
               }))
               const csv = [
-                'ID,Name,Email,Role,Health Allowance,Medication Allowance,Allowance Type,Auto Renew',
+                'ID,Name,Email,Document ID,Role,Health Allowance,Medication Allowance,Allowance Type,Auto Renew,Blocked',
                 ...exportData.map(
                   (e) =>
-                    `${e.id},${e.name},${e.email},${e.role},${e.health_allowance},${e.medication_allowance},${e.allowance_type},${e.auto_renew}`,
+                    `${e.id},${e.name},${e.email},${e.document_id},${e.role},${e.health_allowance},${e.medication_allowance},${e.allowance_type},${e.auto_renew},${e.is_blocked}`,
                 ),
               ].join('\n')
               const blob = new Blob([csv], { type: 'text/csv' })
@@ -264,59 +337,74 @@ export default function CompanyEmployees() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Nome</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Crédito Saúde</TableHead>
-                  <TableHead>Crédito Farmácia</TableHead>
-                  <TableHead>Tipo de Repasse</TableHead>
-                  <TableHead>Renovação</TableHead>
+                  <TableHead>Email / Doc</TableHead>
+                  <TableHead>Saúde</TableHead>
+                  <TableHead>Farmácia</TableHead>
+                  <TableHead>Status</TableHead>
                   <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredEmployees.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
+                    <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
                       Nenhum colaborador encontrado.
                     </TableCell>
                   </TableRow>
                 )}
                 {filteredEmployees.map((emp) => (
-                  <TableRow key={emp.id}>
+                  <TableRow key={emp.id} className={emp.is_blocked ? 'opacity-60' : ''}>
                     <TableCell className="font-medium">{emp.name}</TableCell>
-                    <TableCell>{emp.email}</TableCell>
+                    <TableCell>
+                      <div className="text-sm">{emp.email}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {emp.document_id || 'N/A'}
+                      </div>
+                    </TableCell>
                     <TableCell>R$ {(emp.health_allowance || 0).toFixed(2)}</TableCell>
                     <TableCell>R$ {(emp.medication_allowance || 0).toFixed(2)}</TableCell>
                     <TableCell>
                       <Badge
-                        variant="secondary"
+                        variant={emp.is_blocked ? 'destructive' : 'secondary'}
                         className={
-                          emp.allowance_type === 'benefit'
+                          !emp.is_blocked && emp.allowance_type === 'benefit'
                             ? 'bg-purple-100 text-purple-800 border-purple-200'
-                            : 'bg-blue-100 text-blue-800 border-blue-200'
+                            : !emp.is_blocked && emp.allowance_type === 'payroll_deduction'
+                              ? 'bg-blue-100 text-blue-800 border-blue-200'
+                              : ''
                         }
                       >
-                        {emp.allowance_type === 'benefit'
-                          ? 'Benefício Direto'
-                          : 'Desconto em Folha'}
+                        {emp.is_blocked
+                          ? 'Bloqueado'
+                          : emp.allowance_type === 'benefit'
+                            ? 'Benefício'
+                            : 'Desconto'}
                       </Badge>
                     </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Switch
-                          checked={!!emp.auto_renew_benefits}
-                          onCheckedChange={() =>
-                            handleToggleAutoRenew(emp.id, !!emp.auto_renew_benefits)
-                          }
-                        />
-                        <span className="text-sm text-muted-foreground whitespace-nowrap">
-                          {emp.auto_renew_benefits ? 'Auto' : 'Manual'}
-                        </span>
-                      </div>
-                    </TableCell>
                     <TableCell className="text-right">
-                      <Button variant="ghost" size="sm" onClick={() => openEdit(emp)}>
-                        <Edit className="h-4 w-4" />
-                      </Button>
+                      <div className="flex items-center justify-end gap-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => openEdit(emp)}
+                          disabled={emp.is_blocked}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleToggleBlock(emp.id, emp.is_blocked)}
+                          title={emp.is_blocked ? 'Desbloquear' : 'Bloquear Acesso'}
+                          className={emp.is_blocked ? 'text-emerald-600' : 'text-red-600'}
+                        >
+                          {emp.is_blocked ? (
+                            <CheckCircle className="h-4 w-4" />
+                          ) : (
+                            <Ban className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -327,17 +415,111 @@ export default function CompanyEmployees() {
       </Card>
 
       <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
             <DialogTitle>Adicionar Colaborador</DialogTitle>
           </DialogHeader>
-          <Tabs defaultValue="link" className="mt-4">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="link">Vincular Existente</TabsTrigger>
-              <TabsTrigger value="new">Novo Cadastro</TabsTrigger>
+          <Tabs defaultValue="new" className="mt-4">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="new">Individual</TabsTrigger>
+              <TabsTrigger value="bulk">Em Massa</TabsTrigger>
+              <TabsTrigger value="link">Vincular</TabsTrigger>
             </TabsList>
 
+            <TabsContent value="new" className="space-y-4 mt-4">
+              <div className="space-y-2">
+                <Label>Nome Completo *</Label>
+                <Input
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="João Silva"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Email *</Label>
+                  <Input
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="joao@empresa.com"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>CPF / Documento *</Label>
+                  <Input
+                    value={documentId}
+                    onChange={(e) => setDocumentId(e.target.value)}
+                    placeholder="000.000.000-00"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Crédito Saúde (R$)</Label>
+                  <Input
+                    type="number"
+                    value={allowance}
+                    onChange={(e) => setAllowance(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Crédito Farmácia (R$)</Label>
+                  <Input
+                    type="number"
+                    value={medicationAllowance}
+                    onChange={(e) => setMedicationAllowance(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2 col-span-2">
+                  <Label>Tipo</Label>
+                  <Select value={type} onValueChange={setType}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="benefit">Benefício Direto</SelectItem>
+                      <SelectItem value="payroll_deduction">Desconto em Folha</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <Button className="w-full mt-4" onClick={handleRegister}>
+                Cadastrar Colaborador
+              </Button>
+            </TabsContent>
+
+            <TabsContent value="bulk" className="space-y-4 mt-4">
+              <DialogDescription>
+                Importe uma lista de colaboradores via arquivo CSV. O arquivo deve conter as
+                colunas: <strong>Nome, Email, CPF, Credito_Saude, Credito_Farmacia</strong>.
+              </DialogDescription>
+              <div className="grid w-full items-center gap-1.5">
+                <Label htmlFor="csv">Arquivo CSV</Label>
+                <Input
+                  id="csv"
+                  type="file"
+                  accept=".csv"
+                  onChange={(e) => setBulkFile(e.target.files?.[0] || null)}
+                />
+              </div>
+              <Button
+                className="w-full mt-4"
+                onClick={handleBulkImport}
+                disabled={isUploading || !bulkFile}
+              >
+                {isUploading ? (
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                ) : (
+                  <Upload className="h-4 w-4 mr-2" />
+                )}
+                Importar Lista
+              </Button>
+            </TabsContent>
+
             <TabsContent value="link" className="space-y-4 mt-4">
+              <DialogDescription>
+                Vincule uma conta existente de paciente à sua empresa.
+              </DialogDescription>
               <div className="space-y-2">
                 <Label>Email do Colaborador</Label>
                 <Input
@@ -378,58 +560,6 @@ export default function CompanyEmployees() {
               </div>
               <Button className="w-full mt-4" onClick={handleLink}>
                 Vincular Conta
-              </Button>
-            </TabsContent>
-
-            <TabsContent value="new" className="space-y-4 mt-4">
-              <div className="space-y-2">
-                <Label>Nome Completo</Label>
-                <Input
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="João Silva"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Email Corporativo</Label>
-                <Input
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="joao@empresa.com"
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Crédito Saúde (R$)</Label>
-                  <Input
-                    type="number"
-                    value={allowance}
-                    onChange={(e) => setAllowance(e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Crédito Farmácia (R$)</Label>
-                  <Input
-                    type="number"
-                    value={medicationAllowance}
-                    onChange={(e) => setMedicationAllowance(e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2 col-span-2">
-                  <Label>Tipo</Label>
-                  <Select value={type} onValueChange={setType}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="benefit">Benefício Direto</SelectItem>
-                      <SelectItem value="payroll_deduction">Desconto em Folha</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <Button className="w-full mt-4" onClick={handleRegister}>
-                Cadastrar Colaborador
               </Button>
             </TabsContent>
           </Tabs>
