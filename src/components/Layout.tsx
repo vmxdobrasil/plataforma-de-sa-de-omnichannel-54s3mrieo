@@ -258,25 +258,30 @@ export default function Layout() {
         <Sidebar className="border-r border-border/50">
           <SidebarContent>
             <div className="p-8 flex border-b">
-              <Link
-                to="/"
-                className="flex items-center gap-3 w-full hover:opacity-80 transition-opacity"
-                aria-label="V MED BRASIL Logo"
-              >
-                {brandLogoUrl ? (
-                  <img
-                    src={brandLogoUrl}
-                    alt={user?.name || 'Company Logo'}
-                    className="w-full h-16 sm:h-20 object-contain object-left"
-                  />
-                ) : (
-                  <img
-                    src={logoUrl}
-                    alt="V MED BRASIL Logo"
-                    className="w-full h-16 sm:h-20 object-contain object-left mix-blend-multiply dark:mix-blend-normal dark:bg-white dark:p-1.5 dark:rounded-md"
-                  />
+              <div className="flex flex-col gap-1 w-full">
+                <Link
+                  to="/"
+                  className="flex items-center gap-3 w-full hover:opacity-80 transition-opacity"
+                  aria-label="V MED BRASIL Logo"
+                >
+                  {brandLogoUrl ? (
+                    <img
+                      src={brandLogoUrl}
+                      alt={user?.name || 'Company Logo'}
+                      className="w-full h-16 sm:h-20 object-contain object-left"
+                    />
+                  ) : (
+                    <img
+                      src={logoUrl}
+                      alt="V MED BRASIL Logo"
+                      className="w-full h-16 sm:h-20 object-contain object-left mix-blend-multiply dark:mix-blend-normal dark:bg-white dark:p-1.5 dark:rounded-md"
+                    />
+                  )}
+                </Link>
+                {location.pathname.startsWith('/admin') && (
+                  <div className="text-xs font-bold text-primary tracking-widest mt-1">ADMIN</div>
                 )}
-              </Link>{' '}
+              </div>
             </div>
             <SidebarGroup>
               <SidebarGroupContent>
@@ -311,25 +316,32 @@ export default function Layout() {
           <header className="h-20 sm:h-24 border-b flex items-center justify-between px-4 sm:px-6 bg-card sticky top-0 z-30">
             <div className="flex items-center gap-2 sm:gap-4 flex-1">
               <SidebarTrigger />
-              <Link
-                to="/"
-                className="flex items-center gap-2 md:hidden hover:opacity-80 transition-opacity"
-                aria-label="V MED BRASIL Logo"
-              >
-                {brandLogoUrl ? (
-                  <img
-                    src={brandLogoUrl}
-                    alt={user?.name || 'Company Logo'}
-                    className="h-14 sm:h-16 w-auto max-w-[250px] object-contain"
-                  />
-                ) : (
-                  <img
-                    src={logoUrl}
-                    alt="V MED BRASIL Logo"
-                    className="h-14 sm:h-16 w-auto max-w-[250px] object-contain mix-blend-multiply dark:mix-blend-normal dark:bg-white dark:p-1 dark:rounded-md"
-                  />
+              <div className="flex flex-col md:hidden">
+                <Link
+                  to="/"
+                  className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+                  aria-label="V MED BRASIL Logo"
+                >
+                  {brandLogoUrl ? (
+                    <img
+                      src={brandLogoUrl}
+                      alt={user?.name || 'Company Logo'}
+                      className="h-14 sm:h-16 w-auto max-w-[250px] object-contain"
+                    />
+                  ) : (
+                    <img
+                      src={logoUrl}
+                      alt="V MED BRASIL Logo"
+                      className="h-14 sm:h-16 w-auto max-w-[250px] object-contain mix-blend-multiply dark:mix-blend-normal dark:bg-white dark:p-1 dark:rounded-md"
+                    />
+                  )}
+                </Link>
+                {location.pathname.startsWith('/admin') && (
+                  <div className="text-[10px] font-bold text-primary tracking-widest leading-none ml-1 mt-1">
+                    ADMIN
+                  </div>
                 )}
-              </Link>{' '}
+              </div>
               <div className="relative max-w-md w-full hidden md:block">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input

@@ -65,12 +65,9 @@ export default function AdminDashboard() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
-            <Shield className="h-8 w-8 text-primary" />
-            Painel Administrador
+            <Shield className="h-8 w-8 text-primary" />V MED BRASIL ADMIN
           </h1>
-          <p className="text-muted-foreground mt-2">
-            Gestão global da plataforma <strong className="text-foreground">V MED BRASIL</strong>
-          </p>
+          <p className="text-muted-foreground mt-2">Gestão global administrativa da plataforma.</p>
         </div>
         {isPartner && (
           <Badge
