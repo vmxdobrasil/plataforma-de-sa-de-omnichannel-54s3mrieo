@@ -17,6 +17,8 @@ import {
   GraduationCap,
   Bot,
   TrendingUp,
+  Users,
+  ReceiptText,
 } from 'lucide-react'
 import {
   Sidebar,
@@ -58,12 +60,24 @@ const navItems = [
     title: 'Início',
     icon: Home,
     url: '/',
-    roles: ['patient', 'professional', 'company', 'medical_director'],
+    roles: ['patient', 'professional', 'medical_director'],
   },
   {
     title: 'Painel da Empresa',
     icon: Activity,
     url: '/company/dashboard',
+    roles: ['company', 'medical_director'],
+  },
+  {
+    title: 'Gestão de Funcionários',
+    icon: Users,
+    url: '/company/employees',
+    roles: ['company', 'medical_director'],
+  },
+  {
+    title: 'Transações de Benefícios',
+    icon: ReceiptText,
+    url: '/company/transactions',
     roles: ['company', 'medical_director'],
   },
   {
@@ -74,10 +88,16 @@ const navItems = [
   },
   { title: 'Meu Perfil de Saúde', icon: HeartPulse, url: '/health-profile', roles: ['patient'] },
   {
+    title: 'Documentos Corporativos',
+    icon: Folder,
+    url: '/documents',
+    roles: ['company', 'medical_director'],
+  },
+  {
     title: 'Documentos',
     icon: Folder,
     url: '/documents',
-    roles: ['patient', 'professional', 'company', 'medical_director'],
+    roles: ['patient', 'professional'],
   },
   {
     title: 'Painel do Profissional',
@@ -115,7 +135,7 @@ const navItems = [
     title: 'Branding & Arquivos',
     icon: Sliders,
     url: '/admin/settings',
-    roles: ['company', 'medical_director'],
+    roles: ['medical_director'],
   },
 ]
 

@@ -33,7 +33,13 @@ export default function Login() {
   const navigate = useNavigate()
 
   if (user) {
-    navigate(user.role === 'professional' ? '/professional' : '/')
+    if (user.role === 'company') {
+      navigate('/company/dashboard')
+    } else if (user.role === 'professional') {
+      navigate('/professional')
+    } else {
+      navigate('/')
+    }
     return null
   }
 

@@ -15,6 +15,8 @@ import HealthProfile from './pages/HealthProfile'
 import NotFound from './pages/NotFound'
 import Login from './pages/Login'
 import CompanyDashboard from './pages/CompanyDashboard'
+import CompanyEmployees from './pages/CompanyEmployees'
+import CompanyTransactions from './pages/CompanyTransactions'
 import BenefitStatement from './pages/BenefitStatement'
 import HRSimulator from './pages/HRSimulator'
 import Documents from './pages/Documents'
@@ -48,6 +50,14 @@ const ProtectedOutlet = () => {
   return <Outlet />
 }
 
+const AdminOutlet = () => {
+  const { user } = useAuth()
+  if (user?.role === 'company') return <Navigate to="/company/dashboard" replace />
+  if (user?.role !== 'medical_director' && user?.role !== 'admin')
+    return <Navigate to="/" replace />
+  return <Outlet />
+}
+
 const AppRoutes = () => {
   return (
     <Routes>
@@ -65,12 +75,17 @@ const AppRoutes = () => {
           <Route path="/professional/schedule" element={<ProfessionalSchedule />} />
           <Route path="/health-profile" element={<HealthProfile />} />
           <Route path="/company/dashboard" element={<CompanyDashboard />} />
+          <Route path="/company/employees" element={<CompanyEmployees />} />
+          <Route path="/company/transactions" element={<CompanyTransactions />} />
           <Route path="/benefits/statement" element={<BenefitStatement />} />
           <Route path="/hr/simulator" element={<HRSimulator />} />
           <Route path="/documents" element={<Documents />} />
           <Route path="/settings" element={<Settings />} />
-          <Route path="/admin/settings" element={<AdminSettings />} />
-          <Route path="/admin/verification" element={<AdminVerification />} />
+
+          <Route element={<AdminOutlet />}>
+            <Route path="/admin/settings" element={<AdminSettings />} />
+            <Route path="/admin/verification" element={<AdminVerification />} />
+          </Route>
           <Route path="/telemedicine/:id" element={<TelemedicineRoom />} />
           <Route path="/dashboard/social-ai" element={<SocialAI />} />
           <Route path="/dashboard/marketplace" element={<Marketplace />} />

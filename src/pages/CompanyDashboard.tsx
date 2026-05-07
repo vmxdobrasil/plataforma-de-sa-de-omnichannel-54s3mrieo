@@ -1,64 +1,26 @@
 import { useEffect, useState } from 'react'
-import {
-  getEmployees,
-  linkEmployee,
-  registerEmployee,
-  updateEmployeeBenefit,
-} from '@/services/companies'
+import { getEmployees, getCompanyTransactions } from '@/services/companies'
 import { useRealtime } from '@/hooks/use-realtime'
 import { useAuth } from '@/hooks/use-auth'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
-import { Badge } from '@/components/ui/badge'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Label } from '@/components/ui/label'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Switch } from '@/components/ui/switch'
 import {
   Building2,
   Users,
   DollarSign,
-  Search,
-  Plus,
-  Edit,
-  Download,
   Loader2,
   AlertCircle,
+  CreditCard,
+  Banknote,
 } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { toast } from 'sonner'
-import { updateUser } from '@/services/users'
 import { HRCharts } from '@/components/HRCharts'
+import { Link } from 'react-router-dom'
+import { Button } from '@/components/ui/button'
 
 export default function CompanyDashboard() {
   const { user } = useAuth()
   const [employees, setEmployees] = useState<any[]>([])
-  const [searchQuery, setSearchQuery] = useState('')
-  const [isAddOpen, setIsAddOpen] = useState(false)
-  const [isEditOpen, setIsEditOpen] = useState(false)
-  const [selectedEmployee, setSelectedEmployee] = useState<any>(null)
-
-  const [name, setName] = useState('')
-  const [email, setEmail] = useState('')
-  const [allowance, setAllowance] = useState('0')
-  const [medicationAllowance, setMedicationAllowance] = useState('0')
-  const [type, setType] = useState('benefit')
+  const [transactions, setTransactions] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -66,12 +28,16 @@ export default function CompanyDashboard() {
     if (user?.id) {
       if (isInitial) setLoading(true)
       try {
-        const data = await getEmployees(user.id)
-        setEmployees(data)
+        const [emps, trans] = await Promise.all([
+          getEmployees(user.id),
+          getCompanyTransactions(user.id),
+        ])
+        setEmployees(emps)
+        setTransactions(trans)
         setError(null)
       } catch (e: any) {
         console.error(e)
-        setError('Não foi possível carregar os dados dos colaboradores.')
+        setError('Não foi possível carregar os dados do painel.')
       } finally {
         if (isInitial) setLoading(false)
       }
@@ -105,156 +71,62 @@ export default function CompanyDashboard() {
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="flex flex-col items-center gap-4">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p className="text-muted-foreground animate-pulse">Carregando painel...</p>
+          <p className="text-muted-foreground animate-pulse">Carregando painel corporativo...</p>
         </div>
       </div>
     )
   }
 
-  const totalBudget = employees.reduce((acc, emp) => acc + (emp.health_allowance || 0), 0)
-  const totalMedicationBudget = employees.reduce(
-    (acc, emp) => acc + (emp.medication_allowance || 0),
-    0,
+  const totalBudgetHealth = employees.reduce((acc, emp) => acc + (emp.health_allowance || 0), 0)
+  const totalBudgetMeds = employees.reduce((acc, emp) => acc + (emp.medication_allowance || 0), 0)
+  const totalBudget = totalBudgetHealth + totalBudgetMeds
+
+  const currentMonthTransactions = transactions.filter(
+    (t) => new Date(t.created).getMonth() === new Date().getMonth() && t.type === 'debit',
   )
 
-  const filteredEmployees = employees.filter(
-    (e) =>
-      e.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      e.email.toLowerCase().includes(searchQuery.toLowerCase()),
-  )
+  const spentHealth = currentMonthTransactions
+    .filter((t) => t.category === 'health_service')
+    .reduce((acc, t) => acc + t.amount, 0)
 
-  const handleLink = async () => {
-    try {
-      await linkEmployee(email, parseFloat(allowance), type, parseFloat(medicationAllowance))
-      toast.success('Funcionário vinculado com sucesso!')
-      setIsAddOpen(false)
-      resetForm()
-      loadData()
-    } catch (e: any) {
-      toast.error(e?.data?.message || 'Erro ao vincular funcionário. Verifique o email.')
-    }
-  }
+  const spentMeds = currentMonthTransactions
+    .filter((t) => t.category === 'medication')
+    .reduce((acc, t) => acc + t.amount, 0)
 
-  const handleRegister = async () => {
-    try {
-      await registerEmployee(
-        user.id,
-        name,
-        email,
-        parseFloat(allowance),
-        type,
-        parseFloat(medicationAllowance),
-      )
-      toast.success('Funcionário cadastrado com sucesso!')
-      setIsAddOpen(false)
-      resetForm()
-      loadData()
-    } catch (e: any) {
-      toast.error(e?.data?.message || 'Erro ao cadastrar funcionário.')
-    }
-  }
-
-  const handleUpdate = async () => {
-    if (!selectedEmployee) return
-    try {
-      await updateEmployeeBenefit(
-        selectedEmployee.id,
-        parseFloat(allowance),
-        type,
-        parseFloat(medicationAllowance),
-      )
-      toast.success('Benefício atualizado com sucesso!')
-      setIsEditOpen(false)
-      setSelectedEmployee(null)
-      loadData()
-    } catch (e) {
-      toast.error('Erro ao atualizar benefício.')
-    }
-  }
-
-  const openEdit = (emp: any) => {
-    setSelectedEmployee(emp)
-    setAllowance((emp.health_allowance || 0).toString())
-    setMedicationAllowance((emp.medication_allowance || 0).toString())
-    setType(emp.allowance_type || 'benefit')
-    setIsEditOpen(true)
-  }
-
-  const resetForm = () => {
-    setName('')
-    setEmail('')
-    setAllowance('0')
-    setMedicationAllowance('0')
-    setType('benefit')
-  }
-
-  const handleToggleAutoRenew = async (empId: string, currentValue: boolean) => {
-    try {
-      await updateUser(empId, { auto_renew_benefits: !currentValue })
-      if (!currentValue) {
-        toast.success('Renovação automática ativada!')
-      } else {
-        toast.success('Renovação automática cancelada com sucesso.')
-      }
-      loadData()
-    } catch (e) {
-      toast.error('Erro ao atualizar renovação automática.')
-    }
-  }
+  const totalSpent = spentHealth + spentMeds
+  const remainingHealth = totalBudgetHealth - spentHealth
+  const remainingMeds = totalBudgetMeds - spentMeds
 
   return (
     <div className="space-y-8 pb-10 animate-fade-in-up">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
         <div>
           <h1 className="text-3xl font-bold flex items-center gap-3">
-            <Building2 className="h-8 w-8 text-primary" /> Painel Corporativo
+            <Building2 className="h-8 w-8 text-primary" /> Painel da Empresa
           </h1>
           <p className="text-muted-foreground mt-2">
-            Gerencie os benefícios de saúde dos seus colaboradores.
+            Visão geral dos benefícios e uso pelos colaboradores.
           </p>
         </div>
         <div className="flex gap-2">
-          <Button
-            variant="outline"
-            onClick={() => {
-              const exportData = employees.map((emp) => ({
-                id: emp.id,
-                role: emp.role,
-                health_allowance: emp.health_allowance || 0,
-                medication_allowance: emp.medication_allowance || 0,
-                allowance_type: emp.allowance_type || 'benefit',
-                auto_renew: emp.auto_renew_benefits || false,
-              }))
-              const csv = [
-                'ID,Role,Health Allowance,Medication Allowance,Allowance Type,Auto Renew',
-                ...exportData.map(
-                  (e) =>
-                    `${e.id},${e.role},${e.health_allowance},${e.medication_allowance},${e.allowance_type},${e.auto_renew}`,
-                ),
-              ].join('\n')
-              const blob = new Blob([csv], { type: 'text/csv' })
-              const url = window.URL.createObjectURL(blob)
-              const a = document.createElement('a')
-              a.href = url
-              a.download = 'hr_analytics_anonymized.csv'
-              a.click()
-              window.URL.revokeObjectURL(url)
-            }}
-          >
-            <Download className="mr-2 h-4 w-4" /> Exportar Dados
+          <Button variant="outline" asChild>
+            <Link to="/company/transactions">Ver Transações</Link>
           </Button>
-          <Button
-            onClick={() => {
-              resetForm()
-              setIsAddOpen(true)
-            }}
-          >
-            <Plus className="mr-2 h-4 w-4" /> Adicionar Colaborador
+          <Button asChild>
+            <Link to="/company/employees">Gerenciar Colaboradores</Link>
           </Button>
         </div>
       </div>
 
-      <div className="grid md:grid-cols-3 gap-6">
+      {error && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Erro</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+
+      <div className="grid md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -270,283 +142,69 @@ export default function CompanyDashboard() {
             </div>
           </CardContent>
         </Card>
+
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Orçamento Saúde
+              Orçamento Total Mensal
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-4">
-              <div className="bg-emerald-100 p-3 rounded-full">
-                <DollarSign className="h-6 w-6 text-emerald-600" />
+              <div className="bg-blue-100 p-3 rounded-full">
+                <CreditCard className="h-6 w-6 text-blue-600" />
               </div>
-              <div className="text-3xl font-bold text-emerald-700">R$ {totalBudget.toFixed(2)}</div>
+              <div className="text-2xl font-bold text-blue-700">R$ {totalBudget.toFixed(2)}</div>
             </div>
           </CardContent>
         </Card>
+
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Orçamento Farmácia
+              Gasto Saúde (Mês Atual)
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-4">
+              <div className="bg-purple-100 p-3 rounded-full">
+                <DollarSign className="h-6 w-6 text-purple-600" />
+              </div>
+              <div className="flex flex-col">
+                <div className="text-2xl font-bold text-purple-700">
+                  R$ {spentHealth.toFixed(2)}
+                </div>
+                <span className="text-xs text-muted-foreground">
+                  Restante: R$ {Math.max(remainingHealth, 0).toFixed(2)}
+                </span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Gasto Farmácia (Mês Atual)
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-4">
               <div className="bg-teal-100 p-3 rounded-full">
-                <DollarSign className="h-6 w-6 text-teal-600" />
+                <Banknote className="h-6 w-6 text-teal-600" />
               </div>
-              <div className="text-3xl font-bold text-teal-700">
-                R$ {totalMedicationBudget.toFixed(2)}
+              <div className="flex flex-col">
+                <div className="text-2xl font-bold text-teal-700">R$ {spentMeds.toFixed(2)}</div>
+                <span className="text-xs text-muted-foreground">
+                  Restante: R$ {Math.max(remainingMeds, 0).toFixed(2)}
+                </span>
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {error && (
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Erro</AlertTitle>
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
-
       <HRCharts companyId={user?.id} />
-
-      <Card>
-        <CardHeader>
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <CardTitle>Colaboradores</CardTitle>
-            <div className="relative w-full sm:w-64">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Buscar por nome ou email..."
-                className="pl-9"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Nome</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Crédito Saúde</TableHead>
-                  <TableHead>Crédito Farmácia</TableHead>
-                  <TableHead>Tipo de Repasse</TableHead>
-                  <TableHead>Renovação</TableHead>
-                  <TableHead className="text-right">Ações</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredEmployees.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
-                      Nenhum colaborador encontrado.
-                    </TableCell>
-                  </TableRow>
-                )}
-                {filteredEmployees.map((emp) => (
-                  <TableRow key={emp.id}>
-                    <TableCell className="font-medium">{emp.name}</TableCell>
-                    <TableCell>{emp.email}</TableCell>
-                    <TableCell>R$ {(emp.health_allowance || 0).toFixed(2)}</TableCell>
-                    <TableCell>R$ {(emp.medication_allowance || 0).toFixed(2)}</TableCell>
-                    <TableCell>
-                      <Badge
-                        variant="secondary"
-                        className={
-                          emp.allowance_type === 'benefit'
-                            ? 'bg-purple-100 text-purple-800 border-purple-200'
-                            : 'bg-blue-100 text-blue-800 border-blue-200'
-                        }
-                      >
-                        {emp.allowance_type === 'benefit'
-                          ? 'Benefício Direto'
-                          : 'Desconto em Folha'}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Switch
-                          checked={!!emp.auto_renew_benefits}
-                          onCheckedChange={() =>
-                            handleToggleAutoRenew(emp.id, !!emp.auto_renew_benefits)
-                          }
-                        />
-                        <span className="text-sm text-muted-foreground whitespace-nowrap">
-                          {emp.auto_renew_benefits ? 'Auto' : 'Manual'}
-                        </span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button variant="ghost" size="sm" onClick={() => openEdit(emp)}>
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Adicionar Colaborador</DialogTitle>
-          </DialogHeader>
-          <Tabs defaultValue="link" className="mt-4">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="link">Vincular Existente</TabsTrigger>
-              <TabsTrigger value="new">Novo Cadastro</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="link" className="space-y-4 mt-4">
-              <div className="space-y-2">
-                <Label>Email do Colaborador</Label>
-                <Input
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="email@exemplo.com"
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Crédito Saúde (R$)</Label>
-                  <Input
-                    type="number"
-                    value={allowance}
-                    onChange={(e) => setAllowance(e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Crédito Farmácia (R$)</Label>
-                  <Input
-                    type="number"
-                    value={medicationAllowance}
-                    onChange={(e) => setMedicationAllowance(e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2 col-span-2">
-                  <Label>Tipo</Label>
-                  <Select value={type} onValueChange={setType}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="benefit">Benefício Direto</SelectItem>
-                      <SelectItem value="payroll_deduction">Desconto em Folha</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <Button className="w-full mt-4" onClick={handleLink}>
-                Vincular Conta
-              </Button>
-            </TabsContent>
-
-            <TabsContent value="new" className="space-y-4 mt-4">
-              <div className="space-y-2">
-                <Label>Nome Completo</Label>
-                <Input
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="João Silva"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Email Corporativo</Label>
-                <Input
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="joao@empresa.com"
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Crédito Saúde (R$)</Label>
-                  <Input
-                    type="number"
-                    value={allowance}
-                    onChange={(e) => setAllowance(e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Crédito Farmácia (R$)</Label>
-                  <Input
-                    type="number"
-                    value={medicationAllowance}
-                    onChange={(e) => setMedicationAllowance(e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2 col-span-2">
-                  <Label>Tipo</Label>
-                  <Select value={type} onValueChange={setType}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="benefit">Benefício Direto</SelectItem>
-                      <SelectItem value="payroll_deduction">Desconto em Folha</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <Button className="w-full mt-4" onClick={handleRegister}>
-                Cadastrar Colaborador
-              </Button>
-            </TabsContent>
-          </Tabs>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Editar Benefício: {selectedEmployee?.name}</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 mt-4">
-            <div className="space-y-2">
-              <Label>Crédito Saúde (R$)</Label>
-              <Input
-                type="number"
-                value={allowance}
-                onChange={(e) => setAllowance(e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Crédito Farmácia Mensal (R$)</Label>
-              <Input
-                type="number"
-                value={medicationAllowance}
-                onChange={(e) => setMedicationAllowance(e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Tipo de Repasse</Label>
-              <Select value={type} onValueChange={setType}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="benefit">Benefício Direto</SelectItem>
-                  <SelectItem value="payroll_deduction">Desconto em Folha</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <Button className="w-full mt-4" onClick={handleUpdate}>
-              Salvar Alterações
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   )
 }
