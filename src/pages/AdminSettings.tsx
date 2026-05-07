@@ -41,16 +41,30 @@ export default function AdminSettings() {
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
 
   useEffect(() => {
-    pb.collection('system_settings')
-      .getFirstListItem('')
-      .then((record) => {
+    const loadSettings = async () => {
+      try {
+        const record = await pb.collection('system_settings').getFirstListItem('')
         setSettingsId(record.id)
         if (record.logo) {
           setLogoPreview(pb.files.getURL(record, record.logo))
         }
-      })
-      .catch(() => {})
-  }, [])
+      } catch (err) {
+        if (user?.role === 'company') {
+          try {
+            const newRecord = await pb.collection('system_settings').create({
+              company_name: 'Vmx do Brasil',
+              primary_color: '#2563eb',
+            })
+            setSettingsId(newRecord.id)
+          } catch (createErr) {
+            console.error('Could not create system settings', createErr)
+          }
+        }
+      }
+    }
+
+    loadSettings()
+  }, [user])
 
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]

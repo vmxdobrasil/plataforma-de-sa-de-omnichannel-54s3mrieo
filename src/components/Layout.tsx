@@ -66,7 +66,12 @@ const navItems = [
     url: '/company/dashboard',
     roles: ['company', 'medical_director'],
   },
-  { title: 'Buscar Especialistas', icon: Search, url: '/search', roles: ['patient'] },
+  {
+    title: 'Busca',
+    icon: Search,
+    url: '/search',
+    roles: ['patient', 'company', 'medical_director', 'professional'],
+  },
   { title: 'Meu Perfil de Saúde', icon: HeartPulse, url: '/health-profile', roles: ['patient'] },
   {
     title: 'Documentos',
@@ -197,7 +202,7 @@ export default function Layout() {
               <Link
                 to="/"
                 className="flex items-center gap-3 w-full hover:opacity-80 transition-opacity"
-                aria-label="MED Logo"
+                aria-label="Vmx do Brasil Logo"
               >
                 {brandLogoUrl ? (
                   <img
@@ -208,7 +213,7 @@ export default function Layout() {
                 ) : (
                   <img
                     src={logoUrl}
-                    alt="MED Logo"
+                    alt="Vmx do Brasil Logo"
                     className="w-full h-16 sm:h-20 object-contain object-left mix-blend-multiply dark:mix-blend-normal dark:bg-white dark:p-1.5 dark:rounded-md"
                   />
                 )}
@@ -248,7 +253,7 @@ export default function Layout() {
               <Link
                 to="/"
                 className="flex items-center gap-2 md:hidden hover:opacity-80 transition-opacity"
-                aria-label="MED Logo"
+                aria-label="Vmx do Brasil Logo"
               >
                 {brandLogoUrl ? (
                   <img
@@ -259,7 +264,7 @@ export default function Layout() {
                 ) : (
                   <img
                     src={logoUrl}
-                    alt="MED Logo"
+                    alt="Vmx do Brasil Logo"
                     className="h-14 sm:h-16 w-auto max-w-[250px] object-contain mix-blend-multiply dark:mix-blend-normal dark:bg-white dark:p-1 dark:rounded-md"
                   />
                 )}
@@ -267,7 +272,7 @@ export default function Layout() {
               <div className="relative max-w-md w-full hidden md:block">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="MED AI: Como posso ajudar?"
+                  placeholder="Vmx AI: Como posso ajudar?"
                   className="pl-10 bg-muted/50 border-none rounded-full"
                 />
               </div>

@@ -45,7 +45,7 @@ export default function ProfessionalFeed() {
   }, [fetchPros])
 
   const getAvatarUrl = (pro: any) => {
-    if (pro.avatar) return pb.files.getUrl(pro, pro.avatar)
+    if (pro.avatar) return pb.files.getURL(pro, pro.avatar)
     return `https://api.dicebear.com/7.x/notionists/svg?seed=${encodeURIComponent(pro.name || pro.id)}`
   }
 

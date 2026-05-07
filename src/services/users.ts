@@ -2,7 +2,7 @@ import pb from '@/lib/pocketbase/client'
 
 export const getProfessionals = async () => {
   return pb.collection('users').getFullList({
-    filter: 'role = "professional"',
+    filter: 'role = "professional" || role = "medical_director"',
     sort: 'name',
   })
 }
