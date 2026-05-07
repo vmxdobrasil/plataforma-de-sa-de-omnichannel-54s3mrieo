@@ -66,7 +66,7 @@ const navItems = [
     roles: ['patient', 'professional'],
   },
   {
-    title: 'Painel Administrador',
+    title: 'V MED BRASIL ADMIN',
     icon: Shield,
     url: '/admin',
     roles: ['medical_director'],

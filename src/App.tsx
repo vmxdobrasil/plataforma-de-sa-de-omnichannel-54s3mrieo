@@ -64,6 +64,14 @@ const AdminOutlet = () => {
   return <Outlet />
 }
 
+const CompanyOutlet = () => {
+  const { user } = useAuth()
+  if (user?.role === 'medical_director' || user?.role === 'admin')
+    return <Navigate to="/admin" replace />
+  if (user?.role !== 'company') return <Navigate to="/" replace />
+  return <Outlet />
+}
+
 const AppRoutes = () => {
   return (
     <Routes>
@@ -80,9 +88,13 @@ const AppRoutes = () => {
           <Route path="/professional/schedule" element={<ProfessionalSchedule />} />
           <Route path="/health-profile" element={<HealthProfile />} />
           <Route path="/pharmacy" element={<Pharmacy />} />
-          <Route path="/company/dashboard" element={<CompanyDashboard />} />
-          <Route path="/company/employees" element={<CompanyEmployees />} />
-          <Route path="/company/transactions" element={<CompanyTransactions />} />
+
+          <Route element={<CompanyOutlet />}>
+            <Route path="/company/dashboard" element={<CompanyDashboard />} />
+            <Route path="/company/employees" element={<CompanyEmployees />} />
+            <Route path="/company/transactions" element={<CompanyTransactions />} />
+          </Route>
+
           <Route path="/benefits/statement" element={<BenefitStatement />} />
           <Route path="/hr/simulator" element={<HRSimulator />} />
           <Route path="/documents" element={<Documents />} />

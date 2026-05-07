@@ -239,6 +239,10 @@ export default function Index() {
     )
   }
 
+  if (user?.role === 'medical_director' || user?.role === 'admin') {
+    return <Navigate to="/admin" replace />
+  }
+
   if (user?.role === 'company') {
     return <Navigate to="/company/dashboard" replace />
   }
