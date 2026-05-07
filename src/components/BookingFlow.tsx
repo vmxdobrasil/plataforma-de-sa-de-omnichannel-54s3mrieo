@@ -95,26 +95,24 @@ export function BookingFlow({ open, onOpenChange, professional }: BookingFlowPro
     if (!date || !time || !user) return
 
     const appointmentCost = 150 // Mock cost
+    const healthBalance = employeeData?.health_allowance || 0
 
-    if (method === 'corporate' || method === 'payroll') {
+    if (method === 'corporate_full' || method === 'payroll') {
       if (!employeeData?.company_id) {
         toast.error('Vínculo corporativo não encontrado.')
         return
       }
-      if ((employeeData.health_allowance || 0) < appointmentCost) {
-        toast.error(
-          method === 'payroll'
-            ? 'Limite de desconto em folha insuficiente.'
-            : 'Saldo de benefício insuficiente.',
-        )
+      if (healthBalance < appointmentCost) {
+        toast.error('Saldo em Reais insuficiente para o valor total.')
         return
       }
     } else if (method === 'wallet') {
-      if ((employeeData.health_allowance || 0) < appointmentCost) {
-        toast.error('Saldo em carteira insuficiente.')
+      if (healthBalance < appointmentCost) {
+        toast.error('Saldo em Reais insuficiente.')
         return
       }
     }
+
     setIsSubmitting(true)
 
     try {
@@ -130,8 +128,8 @@ export function BookingFlow({ open, onOpenChange, professional }: BookingFlowPro
         status: 'scheduled',
       })
 
-      if (method === 'corporate' || method === 'payroll' || method === 'wallet') {
-        const newAllowance = (employeeData.health_allowance || 0) - appointmentCost
+      if (method === 'corporate_full' || method === 'payroll' || method === 'wallet') {
+        const newAllowance = healthBalance - appointmentCost
 
         await pb.collection('benefit_transactions').create({
           employee_id: employeeData.id,
@@ -140,7 +138,7 @@ export function BookingFlow({ open, onOpenChange, professional }: BookingFlowPro
           amount: appointmentCost,
           type: 'debit',
           category: 'health_service',
-          description: `Pagamento de consulta: ${mode} (${method === 'payroll' ? 'Desconto em Folha' : method === 'wallet' ? 'Carteira Asaas' : 'Benefício Corporativo'})`,
+          description: `Pagamento de consulta: ${mode} (${method === 'payroll' ? 'Desconto em Folha' : 'Benefício Corporativo'})`,
         })
 
         await pb.collection('users').update(employeeData.id, {
@@ -148,8 +146,36 @@ export function BookingFlow({ open, onOpenChange, professional }: BookingFlowPro
         })
 
         setPaymentDetails({ amount: appointmentCost, remaining: newAllowance, method })
+      } else if (method.startsWith('corporate_split')) {
+        const splitAmount = appointmentCost - healthBalance
+        const secMethod = method.split('_')[2]
+
+        await pb.collection('benefit_transactions').create({
+          employee_id: employeeData.id,
+          company_id: employeeData.company_id || employeeData.id,
+          appointment_id: appointment.id,
+          amount: healthBalance,
+          type: 'debit',
+          category: 'health_service',
+          description: `Pagamento de consulta (Parte Corporativa): ${mode}`,
+        })
+
+        await pb.collection('benefit_transactions').create({
+          employee_id: employeeData.id,
+          company_id: employeeData.company_id || employeeData.id,
+          appointment_id: appointment.id,
+          amount: splitAmount,
+          type: 'debit',
+          category: 'health_service',
+          description: `Pagamento Direto (${secMethod.toUpperCase()}) - Complemento`,
+        })
+
+        await pb.collection('users').update(employeeData.id, {
+          health_allowance: 0,
+        })
+
+        setPaymentDetails({ amount: appointmentCost, remaining: 0, method: 'corporate_split' })
       } else if (method === 'pix' || method === 'credit') {
-        // Independent payment directly via Asaas Mock
         if (!employeeData.asaas_customer_id) {
           await pb.collection('users').update(employeeData.id, {
             asaas_customer_id: 'cus_mock_' + Math.random().toString(36).substr(2, 9),
@@ -164,9 +190,7 @@ export function BookingFlow({ open, onOpenChange, professional }: BookingFlowPro
           category: 'health_service',
           description: `Pagamento Direto: ${mode} (${method.toUpperCase()})`,
         })
-        setPaymentDetails({ amount: appointmentCost, remaining: 0, method })
-      } else {
-        setPaymentDetails({ amount: appointmentCost, remaining: 0, method })
+        setPaymentDetails({ amount: appointmentCost, remaining: healthBalance, method })
       }
 
       setStep(3)
@@ -181,7 +205,7 @@ export function BookingFlow({ open, onOpenChange, professional }: BookingFlowPro
             setPaymentDetails(null)
           }, 500)
         },
-        method === 'corporate' ? 4000 : 2000,
+        method.includes('corporate') ? 4000 : 2000,
       )
     } catch (error) {
       toast.error('Erro ao confirmar agendamento. Tente novamente.')
@@ -296,13 +320,13 @@ export function BookingFlow({ open, onOpenChange, professional }: BookingFlowPro
 
               {employeeData?.company_id ? (
                 <div className="space-y-4">
-                  <h3 className="font-semibold text-lg">Pagamento via Empresa</h3>
+                  <h3 className="font-semibold text-lg">Saldo em Reais</h3>
                   {employeeData.allowance_type === 'payroll_deduction' ? (
                     <Button
                       variant="outline"
                       className="w-full justify-start h-auto py-4 hover:border-primary"
                       onClick={() => handleSelectPayment('payroll')}
-                      disabled={isSubmitting}
+                      disabled={isSubmitting || (employeeData.health_allowance || 0) < 150}
                     >
                       <div className="mr-4 h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-sm shrink-0">
                         F
@@ -316,22 +340,80 @@ export function BookingFlow({ open, onOpenChange, professional }: BookingFlowPro
                       </div>
                     </Button>
                   ) : (
-                    <Button
-                      variant="outline"
-                      className="w-full justify-start h-16 hover:border-primary"
-                      onClick={() => handleSelectPayment('corporate')}
-                      disabled={isSubmitting}
-                    >
-                      <div className="mr-4 h-6 w-6 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 font-bold text-sm shrink-0">
-                        C
-                      </div>
-                      <div className="text-left">
-                        <p className="font-semibold">Crédito Corporativo</p>
-                        <p className="text-xs text-muted-foreground">
-                          Saldo: R$ {employeeData.health_allowance?.toFixed(2) || '0.00'}
-                        </p>
-                      </div>
-                    </Button>
+                    <div className="space-y-4">
+                      {(employeeData.health_allowance || 0) >= 150 ? (
+                        <Button
+                          variant="outline"
+                          className="w-full justify-start h-16 hover:border-primary bg-emerald-50 border-emerald-200"
+                          onClick={() => handleSelectPayment('corporate_full')}
+                          disabled={isSubmitting}
+                        >
+                          <div className="mr-4 h-6 w-6 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 font-bold text-sm shrink-0">
+                            $
+                          </div>
+                          <div className="text-left">
+                            <p className="font-semibold text-emerald-900">Usar Saldo em Reais</p>
+                            <p className="text-xs text-emerald-700">
+                              Disponível: R$ {employeeData.health_allowance?.toFixed(2) || '0.00'}
+                            </p>
+                          </div>
+                        </Button>
+                      ) : (employeeData.health_allowance || 0) > 0 ? (
+                        <div className="p-4 border rounded-lg bg-amber-50 border-amber-200">
+                          <p className="font-semibold text-amber-900 mb-1">
+                            Saldo Parcial Disponível
+                          </p>
+                          <p className="text-sm text-amber-800 mb-3">
+                            Você tem <strong>R$ {employeeData.health_allowance?.toFixed(2)}</strong>{' '}
+                            em saldo corporativo. Faltam{' '}
+                            <strong>R$ {(150 - employeeData.health_allowance).toFixed(2)}</strong>.
+                          </p>
+                          <p className="text-sm font-medium text-amber-900 mb-2">
+                            Pagar o restante com:
+                          </p>
+                          <div className="flex gap-2">
+                            <Button
+                              className="flex-1 bg-amber-600 hover:bg-amber-700"
+                              onClick={() => handleSelectPayment('corporate_split_pix')}
+                              disabled={isSubmitting}
+                            >
+                              PIX
+                            </Button>
+                            <Button
+                              className="flex-1 bg-amber-600 hover:bg-amber-700"
+                              onClick={() => handleSelectPayment('corporate_split_credit')}
+                              disabled={isSubmitting}
+                            >
+                              Cartão
+                            </Button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="p-4 border rounded-lg bg-muted/30">
+                          <p className="text-sm font-medium text-destructive mb-3">
+                            Saldo corporativo esgotado.
+                          </p>
+                          <div className="flex gap-2">
+                            <Button
+                              variant="outline"
+                              className="flex-1"
+                              onClick={() => handleSelectPayment('pix')}
+                              disabled={isSubmitting}
+                            >
+                              PIX
+                            </Button>
+                            <Button
+                              variant="outline"
+                              className="flex-1"
+                              onClick={() => handleSelectPayment('credit')}
+                              disabled={isSubmitting}
+                            >
+                              Cartão
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   )}
                 </div>
               ) : (
@@ -395,19 +477,23 @@ export function BookingFlow({ open, onOpenChange, professional }: BookingFlowPro
               <p className="text-sm text-muted-foreground">
                 Consulta {mode} agendada para {date?.toLocaleDateString()} às {time}.
               </p>
-              {paymentDetails?.method === 'corporate' && (
+              {(paymentDetails?.method === 'corporate_full' ||
+                paymentDetails?.method === 'corporate_split') && (
                 <div className="mt-4 p-4 bg-muted/50 rounded-lg text-left border">
                   <p className="font-semibold text-sm mb-2 border-b pb-2">
-                    Comprovante de Uso de Benefício
+                    Comprovante de Uso de Saldo
                   </p>
                   <div className="flex justify-between text-sm mb-1">
-                    <span className="text-muted-foreground">Valor deduzido:</span>
+                    <span className="text-muted-foreground">Valor deduzido do saldo:</span>
                     <span className="font-medium text-destructive">
-                      - R$ {paymentDetails.amount.toFixed(2)}
+                      - R${' '}
+                      {paymentDetails.method === 'corporate_split'
+                        ? employeeData?.health_allowance?.toFixed(2)
+                        : paymentDetails.amount.toFixed(2)}
                     </span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Saldo restante:</span>
+                    <span className="text-muted-foreground">Saldo Saúde restante:</span>
                     <span className="font-medium">R$ {paymentDetails.remaining.toFixed(2)}</span>
                   </div>
                 </div>

@@ -149,6 +149,12 @@ export default function Index() {
       color: 'bg-amber-100 text-amber-600',
       path: '/search',
     },
+    {
+      icon: Pill,
+      label: 'Farmácia V MED',
+      color: 'bg-teal-100 text-teal-600',
+      path: '/pharmacy',
+    },
   ]
 
   const upcomingAppt = appointments.find(
@@ -328,7 +334,7 @@ export default function Index() {
       </section>
 
       <section
-        className="grid grid-cols-2 md:grid-cols-4 gap-4 animate-fade-in-up"
+        className="grid grid-cols-2 md:grid-cols-5 gap-4 animate-fade-in-up"
         style={{ animationDelay: '0.1s' }}
       >
         {quickActions.map((action, i) => (
@@ -457,7 +463,7 @@ export default function Index() {
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2 text-purple-800">
                         <Briefcase className="h-4 w-4" />
-                        <span className="font-medium text-sm">Benefício Saúde</span>
+                        <span className="font-medium text-sm">Saldo para Saúde</span>
                       </div>
                       <Badge
                         variant="outline"
@@ -472,11 +478,8 @@ export default function Index() {
                       </span>
                     </div>
                     <p className="text-xs text-purple-700">
-                      Disponível para{' '}
-                      {employeeData?.allowance_type === 'benefit'
-                        ? 'uso imediato'
-                        : 'desconto em folha'}
-                      .{user?.parent_id && ' (Saldo do Titular)'}
+                      Disponível em Reais para consultas e exames
+                      {user?.parent_id && ' (Saldo do Titular)'}
                     </p>
                   </CardContent>
                 </Card>
@@ -506,7 +509,7 @@ export default function Index() {
                       </span>
                     </div>
                     <p className="text-xs text-teal-700">
-                      Crédito corporativo para compra de medicamentos.
+                      Disponível em Reais para produtos de farmácia
                       {user?.parent_id && ' (Saldo do Titular)'}
                     </p>
                   </CardContent>

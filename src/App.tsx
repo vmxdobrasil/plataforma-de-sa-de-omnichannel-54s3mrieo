@@ -33,6 +33,7 @@ import BrandKit from './pages/dashboard/BrandKit'
 import Academy from './pages/dashboard/Academy'
 import AgentsHub from './pages/dashboard/AgentsHub'
 import AgencyDashboard from './pages/dashboard/AgencyDashboard'
+import Pharmacy from './pages/Pharmacy'
 
 const ProtectedOutlet = () => {
   const { user, loading } = useAuth()
@@ -74,6 +75,7 @@ const AppRoutes = () => {
           <Route path="/professional" element={<ProfessionalDashboard />} />
           <Route path="/professional/schedule" element={<ProfessionalSchedule />} />
           <Route path="/health-profile" element={<HealthProfile />} />
+          <Route path="/pharmacy" element={<Pharmacy />} />
           <Route path="/company/dashboard" element={<CompanyDashboard />} />
           <Route path="/company/employees" element={<CompanyEmployees />} />
           <Route path="/company/transactions" element={<CompanyTransactions />} />

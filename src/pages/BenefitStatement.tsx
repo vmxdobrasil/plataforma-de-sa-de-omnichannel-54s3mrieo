@@ -118,7 +118,7 @@ export default function BenefitStatement() {
         health_allowance: newBalance,
       })
 
-      toast.success('Crédito de R$ 200,00 adicionado com sucesso via Asaas!')
+      toast.success('Saldo de R$ 200,00 adicionado com sucesso!')
     } catch (e) {
       console.error(e)
       toast.error('Erro ao adicionar crédito.')
@@ -150,7 +150,7 @@ export default function BenefitStatement() {
           {isIndependent && (
             <Button onClick={handleAddCredit} className="w-full md:w-auto shrink-0">
               <PlusCircle className="mr-2 h-4 w-4" />
-              Adicionar Crédito (Asaas)
+              Adicionar Saldo
             </Button>
           )}
         </div>
@@ -163,7 +163,7 @@ export default function BenefitStatement() {
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2 text-purple-800">
                   <Briefcase className="h-5 w-5" />
-                  <span className="font-semibold">Benefício Saúde</span>
+                  <span className="font-semibold">Saldo para Saúde</span>
                 </div>
               </div>
               <div className="flex items-end gap-2 mb-1">
@@ -172,7 +172,7 @@ export default function BenefitStatement() {
                 </span>
               </div>
               <p className="text-sm text-purple-700">
-                Saldo atual disponível
+                Disponível em Reais para consultas e exames
                 {user?.parent_id && ' (Saldo do Titular)'}
               </p>
             </CardContent>
@@ -192,7 +192,7 @@ export default function BenefitStatement() {
                 </span>
               </div>
               <p className="text-sm text-teal-700">
-                Saldo atual disponível
+                Disponível em Reais para compra de medicamentos
                 {user?.parent_id && ' (Saldo do Titular)'}
               </p>
             </CardContent>
@@ -206,7 +206,7 @@ export default function BenefitStatement() {
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2 text-amber-800">
                     <CreditCard className="h-5 w-5" />
-                    <span className="font-semibold">Saldo Asaas</span>
+                    <span className="font-semibold">Saldo em Reais</span>
                   </div>
                 </div>
                 <div className="flex items-end gap-2 mb-1">

@@ -55,6 +55,29 @@ export default function ProfessionalSchedule() {
     if (!user?.id) return
     try {
       const data = await getProfessionalAppointments(user.id)
+
+      if (data.length > 0) {
+        const apptIds = data.map((a: any) => `appointment_id="${a.id}"`).join(' || ')
+        try {
+          const txs = await pb.collection('benefit_transactions').getFullList({
+            filter: apptIds,
+          })
+          const enriched = data.map((app: any) => {
+            const appTxs = txs.filter((t) => t.appointment_id === app.id)
+            const paidWithCorporate = appTxs.some(
+              (t) =>
+                t.description.includes('Benefício Corporativo') ||
+                t.description.includes('Parte Corporativa') ||
+                t.description.includes('Desconto em Folha'),
+            )
+            return { ...app, paidWithCorporate }
+          })
+          setAppointments(enriched)
+          return
+        } catch (err) {
+          console.error(err)
+        }
+      }
       setAppointments(data)
     } catch (e) {
       console.error(e)
@@ -255,7 +278,7 @@ export default function ProfessionalSchedule() {
                         {isCorporate ? 'Corporativo' : 'Particular'}
                       </Badge>
                     </div>
-                    <div className="text-sm flex gap-2">
+                    <div className="text-sm flex gap-2 flex-wrap">
                       <Badge variant="outline">{app.type}</Badge>
                       <Badge
                         variant="outline"
@@ -267,6 +290,14 @@ export default function ProfessionalSchedule() {
                       >
                         {app.status === 'scheduled' ? 'Agendado' : app.status}
                       </Badge>
+                      {app.paidWithCorporate && (
+                        <Badge
+                          variant="secondary"
+                          className="bg-emerald-50 text-emerald-700 border-emerald-200"
+                        >
+                          Pago via Saldo Corporativo
+                        </Badge>
+                      )}
                     </div>
                   </div>
                 )
