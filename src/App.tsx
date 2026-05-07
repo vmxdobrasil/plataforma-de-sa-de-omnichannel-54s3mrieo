@@ -1,4 +1,13 @@
-import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom'
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Navigate,
+  Outlet,
+  useLocation,
+  useNavigate,
+} from 'react-router-dom'
+import { useEffect } from 'react'
 import { Toaster } from '@/components/ui/toaster'
 import { Toaster as Sonner } from '@/components/ui/sonner'
 import { TooltipProvider } from '@/components/ui/tooltip'
@@ -94,6 +103,18 @@ const CompanyOutlet = () => {
 }
 
 const AppRoutes = () => {
+  const { user } = useAuth()
+  const location = useLocation()
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    if (user?.role === 'medical_director') {
+      if (location.pathname === '/company/dashboard' || location.pathname.startsWith('/company')) {
+        navigate('/admin', { replace: true })
+      }
+    }
+  }, [user, location.pathname, navigate])
+
   return (
     <Routes>
       <Route path="/login" element={<Login />} />

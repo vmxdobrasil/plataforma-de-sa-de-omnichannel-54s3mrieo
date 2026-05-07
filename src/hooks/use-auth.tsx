@@ -46,8 +46,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         'navigation_state',
         'redirect_url',
         'returnTo',
+        'last_path',
+        'redirect_to',
       ]
       keysToClear.forEach((key) => {
+        const localVal = localStorage.getItem(key)
+        const sessionVal = sessionStorage.getItem(key)
+        if (localVal?.includes('/company') || sessionVal?.includes('/company')) {
+          localStorage.removeItem(key)
+          sessionStorage.removeItem(key)
+        }
         localStorage.removeItem(key)
         sessionStorage.removeItem(key)
       })
@@ -109,6 +117,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       'navigation_state',
       'redirect_url',
       'returnTo',
+      'last_path',
+      'redirect_to',
     ]
     keysToClear.forEach((key) => {
       localStorage.removeItem(key)
