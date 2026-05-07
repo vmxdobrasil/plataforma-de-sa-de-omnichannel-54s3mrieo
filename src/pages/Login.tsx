@@ -50,7 +50,7 @@ export default function Login() {
     setIsLoading(false)
 
     if (error) {
-      toast.error('Erro no login. Verifique suas credenciais.')
+      toast.error(error.message || 'Erro no login. Verifique suas credenciais.')
     } else {
       toast.success('Bem-vindo de volta!')
     }

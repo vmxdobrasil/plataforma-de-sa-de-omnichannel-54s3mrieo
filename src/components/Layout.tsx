@@ -17,6 +17,7 @@ import {
   Bot,
   TrendingUp,
   Users,
+  UserX,
   ReceiptText,
   Shield,
 } from 'lucide-react'
@@ -66,6 +67,12 @@ const navItems = [
     title: 'Painel Administrador',
     icon: Shield,
     url: '/admin',
+    roles: ['medical_director'],
+  },
+  {
+    title: 'Fiscalização de Profissionais',
+    icon: UserX,
+    url: '/admin/supervision',
     roles: ['medical_director'],
   },
   {

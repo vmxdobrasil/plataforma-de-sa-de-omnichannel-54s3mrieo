@@ -69,7 +69,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signIn = async (email: string, password: string) => {
     try {
-      await pb.collection('users').authWithPassword(email, password)
+      const authData = await pb.collection('users').authWithPassword(email, password)
+      if (authData.record.is_blocked) {
+        pb.authStore.clear()
+        return {
+          error: {
+            message:
+              'Sua conta está bloqueada por irregularidades. Entre em contato com a administração.',
+          },
+        }
+      }
       return { error: null }
     } catch (error) {
       return { error }

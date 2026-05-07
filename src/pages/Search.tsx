@@ -26,13 +26,16 @@ export default function Search() {
 
         if (user?.role === 'company') {
           // Company can only search its employees
-          filter = `(${filter}) && company_id = "${user.id}"`
+          filter = `(${filter}) && company_id = "${user.id}" && is_blocked != true`
         } else if (user?.role === 'patient') {
           // Patient can search professionals
-          filter = `(${filter}) && role = "professional"`
+          filter = `(${filter}) && role = "professional" && is_blocked != true`
         } else if (user?.role === 'medical_director') {
           // Medical director can search anyone
           // no additional role restrictions, keep it broad
+        } else {
+          // Fallback for others
+          filter = `(${filter}) && is_blocked != true`
         }
 
         const res = await pb.collection('users').getList(1, 20, {

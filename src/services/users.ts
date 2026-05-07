@@ -3,7 +3,7 @@ import pb from '@/lib/pocketbase/client'
 export const getProfessionals = async () => {
   try {
     return await pb.collection('users').getFullList({
-      filter: 'role = "professional"',
+      filter: 'role = "professional" && is_blocked != true',
       sort: 'name',
     })
   } catch (err) {

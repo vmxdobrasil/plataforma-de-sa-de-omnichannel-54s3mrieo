@@ -26,6 +26,7 @@ import AdminDashboard from './pages/AdminDashboard'
 import AdminSettings from './pages/AdminSettings'
 import TelemedicineRoom from './pages/TelemedicineRoom'
 import AdminVerification from './pages/AdminVerification'
+import AdminSupervision from './pages/AdminSupervision'
 import SocialAI from './pages/SocialAI'
 import Marketplace from './pages/dashboard/Marketplace'
 import BrandKit from './pages/dashboard/BrandKit'
@@ -85,6 +86,7 @@ const AppRoutes = () => {
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/admin/settings" element={<AdminSettings />} />
             <Route path="/admin/verification" element={<AdminVerification />} />
+            <Route path="/admin/supervision" element={<AdminSupervision />} />
           </Route>
           <Route path="/telemedicine/:id" element={<TelemedicineRoom />} />
           <Route path="/dashboard/social-ai" element={<SocialAI />} />
