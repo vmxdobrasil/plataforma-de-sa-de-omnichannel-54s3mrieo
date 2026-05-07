@@ -115,10 +115,6 @@ export default function AdminSettings() {
       if (documentExpiry) formData.append('expiry_date', new Date(documentExpiry).toISOString())
       formData.append('patient_id', user.id)
 
-      if (user.role === 'professional') {
-        formData.append('professional_id', user.id)
-      }
-
       await pb.collection('documents').create(formData)
       toast.success('Documento enviado com sucesso!')
       setIsDialogOpen(false)
@@ -135,11 +131,7 @@ export default function AdminSettings() {
     }
   }
 
-  if (
-    user?.role !== 'company' &&
-    user?.role !== 'professional' &&
-    user?.role !== 'medical_director'
-  ) {
+  if (user?.role !== 'company' && user?.role !== 'medical_director') {
     return (
       <div className="flex items-center justify-center h-full min-h-[50vh]">
         <p className="text-muted-foreground text-lg">

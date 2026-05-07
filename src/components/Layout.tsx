@@ -109,13 +109,13 @@ const navItems = [
     title: 'Configurações',
     icon: Settings,
     url: '/settings',
-    roles: ['company', 'medical_director'],
+    roles: ['patient', 'professional', 'company', 'medical_director'],
   },
   {
-    title: 'Admin Settings',
+    title: 'Branding & Arquivos',
     icon: Sliders,
     url: '/admin/settings',
-    roles: ['company', 'professional', 'medical_director'],
+    roles: ['company', 'medical_director'],
   },
 ]
 
@@ -223,7 +223,9 @@ export default function Layout() {
               <SidebarGroupContent>
                 <SidebarMenu className="mt-4 gap-2 px-2">
                   {visibleNavItems.map((item) => {
-                    const isActive = location.pathname === item.url
+                    const isActive =
+                      location.pathname === item.url ||
+                      (item.url !== '/' && location.pathname.startsWith(item.url))
                     return (
                       <SidebarMenuItem key={item.title}>
                         <SidebarMenuButton

@@ -56,10 +56,11 @@ const AppRoutes = () => {
       <Route element={<Layout />}>
         {/* Public Routes */}
         <Route path="/" element={<Index />} />
-        <Route path="/search" element={<Search />} />
 
         {/* Protected Routes */}
         <Route element={<ProtectedOutlet />}>
+          <Route path="/search" element={<Search />} />
+          <Route path="/admin" element={<Navigate to="/company/dashboard" replace />} />
           <Route path="/professional" element={<ProfessionalDashboard />} />
           <Route path="/professional/schedule" element={<ProfessionalSchedule />} />
           <Route path="/health-profile" element={<HealthProfile />} />
