@@ -261,7 +261,7 @@ export default function Layout() {
               <Link
                 to="/"
                 className="flex items-center gap-3 w-full hover:opacity-80 transition-opacity"
-                aria-label="Vmx do Brasil Logo"
+                aria-label="V MED BRASIL Logo"
               >
                 {brandLogoUrl ? (
                   <img
@@ -272,7 +272,7 @@ export default function Layout() {
                 ) : (
                   <img
                     src={logoUrl}
-                    alt="Vmx do Brasil Logo"
+                    alt="V MED BRASIL Logo"
                     className="w-full h-16 sm:h-20 object-contain object-left mix-blend-multiply dark:mix-blend-normal dark:bg-white dark:p-1.5 dark:rounded-md"
                   />
                 )}
@@ -314,7 +314,7 @@ export default function Layout() {
               <Link
                 to="/"
                 className="flex items-center gap-2 md:hidden hover:opacity-80 transition-opacity"
-                aria-label="Vmx do Brasil Logo"
+                aria-label="V MED BRASIL Logo"
               >
                 {brandLogoUrl ? (
                   <img
@@ -325,7 +325,7 @@ export default function Layout() {
                 ) : (
                   <img
                     src={logoUrl}
-                    alt="Vmx do Brasil Logo"
+                    alt="V MED BRASIL Logo"
                     className="h-14 sm:h-16 w-auto max-w-[250px] object-contain mix-blend-multiply dark:mix-blend-normal dark:bg-white dark:p-1 dark:rounded-md"
                   />
                 )}
@@ -333,7 +333,7 @@ export default function Layout() {
               <div className="relative max-w-md w-full hidden md:block">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Vmx AI: Como posso ajudar?"
+                  placeholder="V MED BRASIL AI: Como posso ajudar?"
                   className="pl-10 bg-muted/50 border-none rounded-full"
                 />
               </div>

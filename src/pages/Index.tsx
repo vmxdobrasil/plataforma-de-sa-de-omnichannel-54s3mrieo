@@ -151,7 +151,7 @@ export default function Index() {
     },
     {
       icon: Pill,
-      label: 'Farmácia V MED',
+      label: 'Farmácia V MED BRASIL',
       color: 'bg-teal-100 text-teal-600',
       path: '/pharmacy',
     },
@@ -185,7 +185,7 @@ export default function Index() {
         </h1>
         <p className="text-xl text-muted-foreground max-w-2xl mb-10 leading-relaxed">
           Conecte-se com os melhores profissionais de saúde, gerencie seus exames e tenha acesso a
-          telemedicina de onde estiver com a Plataforma V MED.
+          telemedicina de onde estiver com a Plataforma V MED BRASIL.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
           <Button
@@ -286,7 +286,7 @@ export default function Index() {
                   <div className="bg-white/60 p-4 rounded-lg border border-blue-100 flex items-start gap-3 text-sm text-blue-900">
                     <Sparkles className="h-5 w-5 text-blue-500 shrink-0 mt-0.5" />
                     <div>
-                      <span className="font-semibold block mb-1">Dica de Saúde V MED:</span>
+                      <span className="font-semibold block mb-1">Dica de Saúde V MED BRASIL:</span>
                       Respire fundo. A ansiedade antes de consultas é normal. Tente focar na sua
                       respiração enquanto aguarda.
                     </div>

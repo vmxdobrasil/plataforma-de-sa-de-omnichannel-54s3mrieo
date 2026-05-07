@@ -102,7 +102,7 @@ export default function CompanyDashboard() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
         <div>
           <h1 className="text-3xl font-bold flex items-center gap-3">
-            <Building2 className="h-8 w-8 text-primary" /> Painel da Empresa
+            <Building2 className="h-8 w-8 text-primary" /> Painel V MED Brasil
           </h1>
           <p className="text-muted-foreground mt-2">
             Visão geral dos benefícios e uso pelos colaboradores.

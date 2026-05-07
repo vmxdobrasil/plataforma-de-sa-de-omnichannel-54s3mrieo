@@ -88,12 +88,12 @@ export default function Login() {
         <div className="bg-white p-4 sm:p-6 rounded-3xl shadow-sm mb-6 border border-primary/10">
           <img
             src={logoUrl}
-            alt="V MED Logo"
+            alt="V MED BRASIL Logo"
             className="w-auto h-20 sm:h-24 object-contain transition-transform duration-500 hover:scale-105"
           />
         </div>
         <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground mb-3">
-          Boas-vindas à <span className="text-primary">V MED</span>
+          Boas-vindas à <span className="text-primary">V MED BRASIL</span>
         </h1>
         <p className="text-muted-foreground text-sm sm:text-base max-w-sm">
           Sua plataforma integrada de saúde, cuidado contínuo e gestão de tratamentos.
