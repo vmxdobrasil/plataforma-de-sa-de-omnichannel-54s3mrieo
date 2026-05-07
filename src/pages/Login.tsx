@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Navigate } from 'react-router-dom'
 import { HeartPulse, Stethoscope, ArrowRight } from 'lucide-react'
 import logoUrl from '@/assets/image-editing3-e6f7b.png'
 import { useAuth } from '@/hooks/use-auth'
@@ -33,16 +33,15 @@ export default function Login() {
   const navigate = useNavigate()
 
   if (user) {
-    if (user.role === 'medical_director') {
-      navigate('/admin')
+    if (user.role === 'medical_director' || user.role === 'admin') {
+      return <Navigate to="/admin" replace />
     } else if (user.role === 'company') {
-      navigate('/company/dashboard')
+      return <Navigate to="/company/dashboard" replace />
     } else if (user.role === 'professional') {
-      navigate('/professional')
+      return <Navigate to="/professional" replace />
     } else {
-      navigate('/')
+      return <Navigate to="/" replace />
     }
-    return null
   }
 
   const handleLogin = async (e: React.FormEvent) => {

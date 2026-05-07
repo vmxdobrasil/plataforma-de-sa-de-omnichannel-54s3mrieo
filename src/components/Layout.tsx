@@ -279,7 +279,9 @@ export default function Layout() {
                   )}
                 </Link>
                 {location.pathname.startsWith('/admin') && (
-                  <div className="text-xs font-bold text-primary tracking-widest mt-1">ADMIN</div>
+                  <div className="text-xs font-bold text-primary tracking-widest mt-1">
+                    V MED BRASIL ADMIN
+                  </div>
                 )}
               </div>
             </div>
@@ -338,7 +340,7 @@ export default function Layout() {
                 </Link>
                 {location.pathname.startsWith('/admin') && (
                   <div className="text-[10px] font-bold text-primary tracking-widest leading-none ml-1 mt-1">
-                    ADMIN
+                    V MED BRASIL ADMIN
                   </div>
                 )}
               </div>
