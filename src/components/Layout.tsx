@@ -1,6 +1,5 @@
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import {
-  Bell,
   HeartPulse,
   Home,
   Search,
@@ -19,6 +18,7 @@ import {
   TrendingUp,
   Users,
   ReceiptText,
+  Shield,
 } from 'lucide-react'
 import {
   Sidebar,
@@ -60,28 +60,34 @@ const navItems = [
     title: 'Início',
     icon: Home,
     url: '/',
-    roles: ['patient', 'professional', 'medical_director'],
+    roles: ['patient', 'professional'],
+  },
+  {
+    title: 'Painel Administrador',
+    icon: Shield,
+    url: '/admin',
+    roles: ['medical_director'],
   },
   {
     title: 'Painel da Empresa',
     icon: Activity,
     url: '/company/dashboard',
-    roles: ['company', 'medical_director'],
+    roles: ['company'],
   },
   {
     title: 'Gestão de Funcionários',
     icon: Users,
     url: '/company/employees',
-    roles: ['company', 'medical_director'],
+    roles: ['company'],
   },
   {
     title: 'Transações de Benefícios',
     icon: ReceiptText,
     url: '/company/transactions',
-    roles: ['company', 'medical_director'],
+    roles: ['company'],
   },
   {
-    title: 'Busca',
+    title: 'Busca Global',
     icon: Search,
     url: '/search',
     roles: ['patient', 'company', 'medical_director', 'professional'],

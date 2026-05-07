@@ -50,7 +50,7 @@ export default function CompanyTransactions() {
     loadData()
   })
 
-  if (user?.role !== 'company' && user?.role !== 'medical_director') {
+  if (user?.role !== 'company') {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <p className="text-muted-foreground text-lg">Acesso negado.</p>

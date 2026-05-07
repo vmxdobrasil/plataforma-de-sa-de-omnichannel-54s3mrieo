@@ -131,15 +131,15 @@ export default function AdminSettings() {
     }
   }
 
-  if (user?.role !== 'company' && user?.role !== 'medical_director') {
+  if (user?.role !== 'medical_director' && user?.role !== 'company') {
     return (
       <div className="flex items-center justify-center h-full min-h-[50vh]">
-        <p className="text-muted-foreground text-lg">
-          Acesso negado. Apenas administradores podem acessar esta página.
-        </p>
+        <p className="text-muted-foreground text-lg">Acesso negado.</p>
       </div>
     )
   }
+
+  const canManageBranding = user?.role === 'medical_director' || user?.role === 'company'
 
   return (
     <div className="max-w-5xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -151,7 +151,7 @@ export default function AdminSettings() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
-        {isCompany && (
+        {canManageBranding && (
           <Card>
             <CardHeader>
               <div className="flex items-center gap-2">

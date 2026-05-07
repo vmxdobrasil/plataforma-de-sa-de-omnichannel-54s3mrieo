@@ -56,11 +56,11 @@ export default function CompanyDashboard() {
     loadData(false)
   })
 
-  if (user?.role !== 'company' && user?.role !== 'medical_director') {
+  if (user?.role !== 'company') {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <p className="text-muted-foreground text-lg">
-          Acesso negado. Apenas administradores podem visualizar esta página.
+          Acesso negado. Apenas contas corporativas podem visualizar esta página.
         </p>
       </div>
     )

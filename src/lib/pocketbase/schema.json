@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-07T18:37:27.904Z",
+  "generatedAt": "2026-05-07T18:59:48.715Z",
   "collections": [
     {
       "name": "users",
@@ -768,8 +768,8 @@
       "apiRules": {
         "list": "@request.auth.id != ''",
         "view": "@request.auth.id != ''",
-        "create": "@request.auth.role = 'company'",
-        "update": "@request.auth.role = 'company'",
+        "create": "@request.auth.role = 'company' || @request.auth.role = 'medical_director'",
+        "update": "@request.auth.role = 'company' || @request.auth.role = 'medical_director'",
         "delete": null
       },
       "fields": [

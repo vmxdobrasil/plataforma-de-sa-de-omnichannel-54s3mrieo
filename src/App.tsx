@@ -22,6 +22,7 @@ import HRSimulator from './pages/HRSimulator'
 import Documents from './pages/Documents'
 import Settings from './pages/Settings'
 import ProfessionalSchedule from './pages/ProfessionalSchedule'
+import AdminDashboard from './pages/AdminDashboard'
 import AdminSettings from './pages/AdminSettings'
 import TelemedicineRoom from './pages/TelemedicineRoom'
 import AdminVerification from './pages/AdminVerification'
@@ -52,7 +53,6 @@ const ProtectedOutlet = () => {
 
 const AdminOutlet = () => {
   const { user } = useAuth()
-  if (user?.role === 'company') return <Navigate to="/company/dashboard" replace />
   if (user?.role !== 'medical_director' && user?.role !== 'admin')
     return <Navigate to="/" replace />
   return <Outlet />
@@ -70,7 +70,6 @@ const AppRoutes = () => {
         {/* Protected Routes */}
         <Route element={<ProtectedOutlet />}>
           <Route path="/search" element={<Search />} />
-          <Route path="/admin" element={<Navigate to="/company/dashboard" replace />} />
           <Route path="/professional" element={<ProfessionalDashboard />} />
           <Route path="/professional/schedule" element={<ProfessionalSchedule />} />
           <Route path="/health-profile" element={<HealthProfile />} />
@@ -83,6 +82,7 @@ const AppRoutes = () => {
           <Route path="/settings" element={<Settings />} />
 
           <Route element={<AdminOutlet />}>
+            <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/admin/settings" element={<AdminSettings />} />
             <Route path="/admin/verification" element={<AdminVerification />} />
           </Route>
