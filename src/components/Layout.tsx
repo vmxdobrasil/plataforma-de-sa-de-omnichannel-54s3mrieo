@@ -54,11 +54,26 @@ import { useRealtime } from '@/hooks/use-realtime'
 import logoUrl from '@/assets/image-editing3-e6f7b.png'
 
 const navItems = [
-  { title: 'Início', icon: Home, url: '/', roles: ['patient', 'professional'] },
-  { title: 'Painel da Empresa', icon: Activity, url: '/company/dashboard', roles: ['company'] },
+  {
+    title: 'Início',
+    icon: Home,
+    url: '/',
+    roles: ['patient', 'professional', 'company', 'medical_director'],
+  },
+  {
+    title: 'Painel da Empresa',
+    icon: Activity,
+    url: '/company/dashboard',
+    roles: ['company', 'medical_director'],
+  },
   { title: 'Buscar Especialistas', icon: Search, url: '/search', roles: ['patient'] },
   { title: 'Meu Perfil de Saúde', icon: HeartPulse, url: '/health-profile', roles: ['patient'] },
-  { title: 'Documentos', icon: Folder, url: '/documents', roles: ['patient', 'professional'] },
+  {
+    title: 'Documentos',
+    icon: Folder,
+    url: '/documents',
+    roles: ['patient', 'professional', 'company', 'medical_director'],
+  },
   {
     title: 'Painel do Profissional',
     icon: Stethoscope,
@@ -85,12 +100,17 @@ const navItems = [
     url: '/dashboard/agency',
     roles: ['professional'],
   },
-  { title: 'Configurações', icon: Settings, url: '/settings', roles: ['company'] },
+  {
+    title: 'Configurações',
+    icon: Settings,
+    url: '/settings',
+    roles: ['company', 'medical_director'],
+  },
   {
     title: 'Admin Settings',
     icon: Sliders,
     url: '/admin/settings',
-    roles: ['company', 'professional'],
+    roles: ['company', 'professional', 'medical_director'],
   },
 ]
 

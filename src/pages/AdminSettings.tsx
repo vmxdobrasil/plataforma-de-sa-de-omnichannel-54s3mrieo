@@ -121,10 +121,16 @@ export default function AdminSettings() {
     }
   }
 
-  if (user?.role !== 'company' && user?.role !== 'professional') {
+  if (
+    user?.role !== 'company' &&
+    user?.role !== 'professional' &&
+    user?.role !== 'medical_director'
+  ) {
     return (
-      <div className="flex items-center justify-center h-full">
-        <p className="text-muted-foreground">Acesso negado.</p>
+      <div className="flex items-center justify-center h-full min-h-[50vh]">
+        <p className="text-muted-foreground text-lg">
+          Acesso negado. Apenas administradores podem acessar esta página.
+        </p>
       </div>
     )
   }

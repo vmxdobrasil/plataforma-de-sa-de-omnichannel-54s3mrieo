@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { AlertCircle, Loader2 } from 'lucide-react'
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
 import {
   BarChart,
@@ -26,11 +28,15 @@ export function HRCharts({ companyId }: { companyId?: string }) {
   const [usageData, setUsageData] = useState<any[]>([])
   const [specialtyData, setSpecialtyData] = useState<any[]>([])
   const [analytics, setAnalytics] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     if (!companyId) return
 
     const loadCharts = async () => {
+      setLoading(true)
+      setError(null)
       try {
         const trans = await pb.collection('benefit_transactions').getFullList({
           filter: `company_id = "${companyId}"`,
@@ -63,12 +69,20 @@ export function HRCharts({ companyId }: { companyId?: string }) {
 
         setSpecialtyData(Object.entries(specCounts).map(([name, count]) => ({ name, count })))
 
-        const customAnalytics = await pb.send(`/backend/v1/company/${companyId}/analytics`, {
-          method: 'GET',
-        })
+        let customAnalytics = null
+        try {
+          customAnalytics = await pb.send(`/backend/v1/company/${companyId}/analytics`, {
+            method: 'GET',
+          })
+        } catch (err) {
+          console.warn('Analytics endpoint failed', err)
+        }
         setAnalytics(customAnalytics)
       } catch (e) {
         console.error('Failed to load chart data', e)
+        setError('Não foi possível carregar os gráficos.')
+      } finally {
+        setLoading(false)
       }
     }
 
@@ -76,6 +90,28 @@ export function HRCharts({ companyId }: { companyId?: string }) {
   }, [companyId])
 
   if (!companyId) return null
+
+  if (loading) {
+    return (
+      <div className="grid md:grid-cols-2 gap-6">
+        {[1, 2, 3, 4].map((i) => (
+          <Card key={i} className="h-[380px] flex items-center justify-center bg-muted/20">
+            <Loader2 className="h-8 w-8 animate-spin text-primary/50" />
+          </Card>
+        ))}
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <Alert variant="destructive" className="my-6">
+        <AlertCircle className="h-4 w-4" />
+        <AlertTitle>Erro</AlertTitle>
+        <AlertDescription>{error}</AlertDescription>
+      </Alert>
+    )
+  }
 
   const apptTypeData = analytics
     ? Object.entries(analytics.appointments).map(([name, count]) => ({ name, count }))

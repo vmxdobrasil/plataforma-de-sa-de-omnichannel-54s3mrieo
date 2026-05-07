@@ -30,7 +30,18 @@ import {
 } from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Switch } from '@/components/ui/switch'
-import { Building2, Users, DollarSign, Search, Plus, Edit, Download } from 'lucide-react'
+import {
+  Building2,
+  Users,
+  DollarSign,
+  Search,
+  Plus,
+  Edit,
+  Download,
+  Loader2,
+  AlertCircle,
+} from 'lucide-react'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { toast } from 'sonner'
 import { updateUser } from '@/services/users'
 import { HRCharts } from '@/components/HRCharts'
@@ -48,29 +59,57 @@ export default function CompanyDashboard() {
   const [allowance, setAllowance] = useState('0')
   const [medicationAllowance, setMedicationAllowance] = useState('0')
   const [type, setType] = useState('benefit')
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  const loadData = async () => {
+  const loadData = async (isInitial = false) => {
     if (user?.id) {
+      if (isInitial) setLoading(true)
       try {
         const data = await getEmployees(user.id)
         setEmployees(data)
-      } catch (e) {
+        setError(null)
+      } catch (e: any) {
         console.error(e)
+        setError('Não foi possível carregar os dados dos colaboradores.')
+      } finally {
+        if (isInitial) setLoading(false)
       }
     }
   }
 
   useEffect(() => {
-    loadData()
+    loadData(true)
   }, [user?.id])
 
   useRealtime('users', () => {
-    loadData()
+    loadData(false)
   })
 
   useRealtime('benefit_transactions', () => {
-    loadData()
+    loadData(false)
   })
+
+  if (user?.role !== 'company' && user?.role !== 'medical_director') {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <p className="text-muted-foreground text-lg">
+          Acesso negado. Apenas administradores podem visualizar esta página.
+        </p>
+      </div>
+    )
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-muted-foreground animate-pulse">Carregando painel...</p>
+        </div>
+      </div>
+    )
+  }
 
   const totalBudget = employees.reduce((acc, emp) => acc + (emp.health_allowance || 0), 0)
   const totalMedicationBudget = employees.reduce(
@@ -264,6 +303,14 @@ export default function CompanyDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {error && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Erro</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
 
       <HRCharts companyId={user?.id} />
 
