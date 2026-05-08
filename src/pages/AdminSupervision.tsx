@@ -752,4 +752,10 @@ function AdminSupervisionContent() {
   )
 }
 
-export default AdminSupervisionPage
+export default function AdminSupervisionPage() {
+  return (
+    <ErrorBoundary>
+      <AdminSupervisionContent />
+    </ErrorBoundary>
+  )
+}
