@@ -19,8 +19,16 @@ import pb from '@/lib/pocketbase/client'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { useAuth } from '@/hooks/use-auth'
 
 export default function AdminDashboard() {
+  const { user } = useAuth()
+  const isMasterAdmin =
+    user?.role === 'medical_director' &&
+    (user?.email === 'valterpmendonca@gmail.com' ||
+      user?.name?.toLowerCase().includes('valter') ||
+      user?.name?.toLowerCase().includes('victor'))
+
   const [stats, setStats] = useState({
     patients: 0,
     professionals: 0,
@@ -32,6 +40,11 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     const fetchStats = async () => {
+      if (!isMasterAdmin) {
+        setLoading(false)
+        return
+      }
+
       try {
         const [patients, professionals, companies, appointments] = await Promise.all([
           pb.collection('users').getList(1, 1, { filter: 'role="patient"' }),
@@ -54,7 +67,7 @@ export default function AdminDashboard() {
     }
 
     fetchStats()
-  }, [])
+  }, [isMasterAdmin])
 
   return (
     <div className="space-y-8 animate-fade-in-up pb-10">
@@ -90,47 +103,49 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="border-border/50 bg-card/50">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total de Pacientes</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{loading ? '...' : stats.patients}</div>
-          </CardContent>
-        </Card>
+      {isMasterAdmin && (
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <Card className="border-border/50 bg-card/50">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total de Pacientes</CardTitle>
+              <Users className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{loading ? '...' : stats.patients}</div>
+            </CardContent>
+          </Card>
 
-        <Card className="border-border/50 bg-card/50">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Profissionais (Médicos)</CardTitle>
-            <Stethoscope className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{loading ? '...' : stats.professionals}</div>
-          </CardContent>
-        </Card>
+          <Card className="border-border/50 bg-card/50">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Profissionais (Médicos)</CardTitle>
+              <Stethoscope className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{loading ? '...' : stats.professionals}</div>
+            </CardContent>
+          </Card>
 
-        <Card className="border-border/50 bg-card/50">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Empresas Parceiras</CardTitle>
-            <Building2 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{loading ? '...' : stats.companies}</div>
-          </CardContent>
-        </Card>
+          <Card className="border-border/50 bg-card/50">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Empresas Parceiras</CardTitle>
+              <Building2 className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{loading ? '...' : stats.companies}</div>
+            </CardContent>
+          </Card>
 
-        <Card className="border-border/50 bg-card/50">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Consultas Realizadas</CardTitle>
-            <ActivitySquare className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{loading ? '...' : stats.appointments}</div>
-          </CardContent>
-        </Card>
-      </div>
+          <Card className="border-border/50 bg-card/50">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Consultas Realizadas</CardTitle>
+              <ActivitySquare className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{loading ? '...' : stats.appointments}</div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       <div>
         <h2 className="text-xl font-bold tracking-tight mb-4 flex items-center gap-2">
@@ -156,65 +171,6 @@ export default function AdminDashboard() {
             </CardHeader>
           </Card>
 
-          {/* CRM */}
-          <Card
-            className="group hover:border-primary/50 transition-all cursor-pointer hover:shadow-md"
-            onClick={() => navigate('/admin/users')}
-          >
-            <CardHeader>
-              <div className="flex items-center justify-between mb-2">
-                <div className="p-2.5 bg-purple-500/10 rounded-xl text-purple-600 group-hover:bg-purple-500 group-hover:text-white transition-colors">
-                  <Users className="h-6 w-6" />
-                </div>
-                <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0" />
-              </div>
-              <CardTitle className="text-lg">CRM & Dados</CardTitle>
-              <CardDescription className="text-sm">
-                Acesso aos registros de todos os usuários, pacientes e parceiros da plataforma.
-              </CardDescription>
-            </CardHeader>
-          </Card>
-
-          {/* Empresas Corporativas */}
-          <Card
-            className="group hover:border-primary/50 transition-all cursor-pointer hover:shadow-md border-primary/20 bg-primary/5"
-            onClick={() => navigate('/company/employees')}
-          >
-            <CardHeader>
-              <div className="flex items-center justify-between mb-2">
-                <div className="p-2.5 bg-primary/20 rounded-xl text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
-                  <Building2 className="h-6 w-6" />
-                </div>
-                <ArrowRight className="h-5 w-5 text-primary transition-colors opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0" />
-              </div>
-              <CardTitle className="text-lg text-primary">Gestão Corporativa (Empresas)</CardTitle>
-              <CardDescription className="text-sm text-foreground/70">
-                Acesse a visão de RH para gerenciar os benefícios, saldos e lista de funcionários
-                corporativos.
-              </CardDescription>
-            </CardHeader>
-          </Card>
-
-          {/* Farmácias & Laboratórios */}
-          <Card
-            className="group hover:border-primary/50 transition-all cursor-pointer hover:shadow-md"
-            onClick={() => navigate('/admin/users')}
-          >
-            <CardHeader>
-              <div className="flex items-center justify-between mb-2">
-                <div className="p-2.5 bg-teal-500/10 rounded-xl text-teal-600 group-hover:bg-teal-500 group-hover:text-white transition-colors">
-                  <Store className="h-6 w-6" />
-                </div>
-                <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0" />
-              </div>
-              <CardTitle className="text-lg">Farmácias & Drogarias</CardTitle>
-              <CardDescription className="text-sm">
-                Gestão de parceiros farmacêuticos, laboratórios e controle de catálogos/IA (via
-                CRM).
-              </CardDescription>
-            </CardHeader>
-          </Card>
-
           {/* Verificação de Cadastros */}
           <Card
             className="group hover:border-primary/50 transition-all cursor-pointer hover:shadow-md"
@@ -234,65 +190,127 @@ export default function AdminDashboard() {
             </CardHeader>
           </Card>
 
-          {/* Especialidades */}
-          <Card
-            className="group hover:border-primary/50 transition-all cursor-pointer hover:shadow-md"
-            onClick={() => navigate('/admin/specialties')}
-          >
-            <CardHeader>
-              <div className="flex items-center justify-between mb-2">
-                <div className="p-2.5 bg-amber-500/10 rounded-xl text-amber-600 group-hover:bg-amber-500 group-hover:text-white transition-colors">
-                  <FileText className="h-6 w-6" />
-                </div>
-                <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0" />
-              </div>
-              <CardTitle className="text-lg">Especialidades & IA</CardTitle>
-              <CardDescription className="text-sm">
-                Gerencie a base de dados de especialidades e vetores sintomáticos para a IA de
-                Triagem.
-              </CardDescription>
-            </CardHeader>
-          </Card>
+          {isMasterAdmin && (
+            <>
+              {/* CRM */}
+              <Card
+                className="group hover:border-primary/50 transition-all cursor-pointer hover:shadow-md"
+                onClick={() => navigate('/admin/users')}
+              >
+                <CardHeader>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="p-2.5 bg-purple-500/10 rounded-xl text-purple-600 group-hover:bg-purple-500 group-hover:text-white transition-colors">
+                      <Users className="h-6 w-6" />
+                    </div>
+                    <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0" />
+                  </div>
+                  <CardTitle className="text-lg">CRM & Dados</CardTitle>
+                  <CardDescription className="text-sm">
+                    Acesso aos registros de todos os usuários, pacientes e parceiros da plataforma.
+                  </CardDescription>
+                </CardHeader>
+              </Card>
+
+              {/* Empresas Corporativas */}
+              <Card
+                className="group hover:border-primary/50 transition-all cursor-pointer hover:shadow-md border-primary/20 bg-primary/5"
+                onClick={() => navigate('/company/employees')}
+              >
+                <CardHeader>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="p-2.5 bg-primary/20 rounded-xl text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                      <Building2 className="h-6 w-6" />
+                    </div>
+                    <ArrowRight className="h-5 w-5 text-primary transition-colors opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0" />
+                  </div>
+                  <CardTitle className="text-lg text-primary">
+                    Gestão Corporativa (Empresas)
+                  </CardTitle>
+                  <CardDescription className="text-sm text-foreground/70">
+                    Acesse a visão de RH para gerenciar os benefícios, saldos e lista de
+                    funcionários corporativos.
+                  </CardDescription>
+                </CardHeader>
+              </Card>
+
+              {/* Farmácias & Laboratórios */}
+              <Card
+                className="group hover:border-primary/50 transition-all cursor-pointer hover:shadow-md"
+                onClick={() => navigate('/admin/pharmacy')}
+              >
+                <CardHeader>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="p-2.5 bg-teal-500/10 rounded-xl text-teal-600 group-hover:bg-teal-500 group-hover:text-white transition-colors">
+                      <Store className="h-6 w-6" />
+                    </div>
+                    <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0" />
+                  </div>
+                  <CardTitle className="text-lg">Farmácias & Drogarias</CardTitle>
+                  <CardDescription className="text-sm">
+                    Gestão de parceiros farmacêuticos, laboratórios e controle de catálogos/IA.
+                  </CardDescription>
+                </CardHeader>
+              </Card>
+
+              {/* Especialidades */}
+              <Card
+                className="group hover:border-primary/50 transition-all cursor-pointer hover:shadow-md"
+                onClick={() => navigate('/admin/specialties')}
+              >
+                <CardHeader>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="p-2.5 bg-amber-500/10 rounded-xl text-amber-600 group-hover:bg-amber-500 group-hover:text-white transition-colors">
+                      <FileText className="h-6 w-6" />
+                    </div>
+                    <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0" />
+                  </div>
+                  <CardTitle className="text-lg">Especialidades & IA</CardTitle>
+                  <CardDescription className="text-sm">
+                    Gerencie a base de dados de especialidades e vetores sintomáticos para a IA de
+                    Triagem.
+                  </CardDescription>
+                </CardHeader>
+              </Card>
+            </>
+          )}
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Card className="bg-muted/30 border-dashed">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <ClipboardList className="h-5 w-5" /> Logs de Auditoria
-            </CardTitle>
-            <CardDescription>
-              Rastreabilidade de todas as ações sensíveis no sistema.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button variant="outline" className="w-full" onClick={() => navigate('/admin/audit')}>
-              Acessar Auditoria <ArrowRight className="h-4 w-4 ml-2" />
-            </Button>
-          </CardContent>
-        </Card>
+      {isMasterAdmin && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
+          <Card className="bg-muted/30 border-dashed">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-base">
+                <ClipboardList className="h-5 w-5" /> Logs de Auditoria
+              </CardTitle>
+              <CardDescription>
+                Rastreabilidade de todas as ações sensíveis no sistema.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button variant="outline" className="w-full" onClick={() => navigate('/admin/audit')}>
+                Acessar Auditoria <ArrowRight className="h-4 w-4 ml-2" />
+              </Button>
+            </CardContent>
+          </Card>
 
-        <Card className="bg-muted/30 border-dashed">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <Bot className="h-5 w-5" /> Hub de Agentes IA
-            </CardTitle>
-            <CardDescription>
-              Visão geral dos agentes de inteligência artificial da plataforma.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button
-              variant="outline"
-              className="w-full"
-              onClick={() => navigate('/dashboard/agents')}
-            >
-              Acessar Agentes IA <ArrowRight className="h-4 w-4 ml-2" />
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
+          <Card className="bg-muted/30 border-dashed">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Bot className="h-5 w-5" /> Hub de Agentes IA
+              </CardTitle>
+              <CardDescription>
+                Visão geral dos agentes de inteligência artificial da plataforma.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button variant="outline" className="w-full" onClick={() => navigate('/admin/ai')}>
+                Acessar Agentes IA <ArrowRight className="h-4 w-4 ml-2" />
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   )
 }

@@ -39,6 +39,9 @@ import AdminUsers from './pages/AdminUsers'
 import AdminInsurance from './pages/AdminInsurance'
 import AdminSpecialties from './pages/AdminSpecialties'
 import AdminAudit from './pages/AdminAudit'
+import AdminPharmacy from './pages/AdminPharmacy'
+import AdminAI from './pages/AdminAI'
+import AdminTransactions from './pages/AdminTransactions'
 import SocialAI from './pages/SocialAI'
 import Marketplace from './pages/dashboard/Marketplace'
 import BrandKit from './pages/dashboard/BrandKit'
@@ -162,6 +165,9 @@ const AppRoutes = () => {
             <Route path="/admin/insurance" element={<AdminInsurance />} />
             <Route path="/admin/specialties" element={<AdminSpecialties />} />
             <Route path="/admin/audit" element={<AdminAudit />} />
+            <Route path="/admin/pharmacy" element={<AdminPharmacy />} />
+            <Route path="/admin/ai" element={<AdminAI />} />
+            <Route path="/admin/transactions" element={<AdminTransactions />} />
           </Route>
           <Route path="/telemedicine/:id" element={<TelemedicineRoom />} />
           <Route path="/dashboard/social-ai" element={<SocialAI />} />

@@ -20,8 +20,10 @@ import {
   UserX,
   ReceiptText,
   Shield,
+  ShieldCheck,
   Building2,
   ClipboardList,
+  Pill,
 } from 'lucide-react'
 import {
   Sidebar,
@@ -59,28 +61,18 @@ import { useRealtime } from '@/hooks/use-realtime'
 import logoUrl from '@/assets/image-editing3-e6f7b.png'
 
 const navItems = [
+  { title: 'Início', icon: Home, url: '/', roles: ['patient', 'professional'] },
+  { title: 'V MED BRASIL ADMIN', icon: Shield, url: '/admin', roles: ['medical_director'] },
   {
-    title: 'Início',
-    icon: Home,
-    url: '/',
-    roles: ['patient', 'professional'],
-  },
-  {
-    title: 'V MED BRASIL ADMIN',
-    icon: Shield,
-    url: '/admin',
+    title: 'Guia Saúde / Médicos',
+    icon: Stethoscope,
+    url: '/admin/supervision',
     roles: ['medical_director'],
   },
   {
-    title: 'Gestão de Usuários',
-    icon: Users,
-    url: '/admin/users',
-    roles: ['medical_director'],
-  },
-  {
-    title: 'Parceiros de Seguro',
-    icon: Building2,
-    url: '/admin/insurance',
+    title: 'Verificação CFM',
+    icon: ShieldCheck,
+    url: '/admin/verification',
     roles: ['medical_director'],
   },
   {
@@ -88,31 +80,66 @@ const navItems = [
     icon: Stethoscope,
     url: '/admin/specialties',
     roles: ['medical_director'],
+    masterOnly: true,
+  },
+  {
+    title: 'CRM & Usuários',
+    icon: Users,
+    url: '/admin/users',
+    roles: ['medical_director'],
+    masterOnly: true,
+  },
+  {
+    title: 'Empresas Corporativas',
+    icon: Building2,
+    url: '/company/employees',
+    roles: ['company', 'medical_director'],
+    masterOnly: true,
+  },
+  {
+    title: 'Farmácias & Produtos',
+    icon: Pill,
+    url: '/admin/pharmacy',
+    roles: ['medical_director'],
+    masterOnly: true,
+  },
+  {
+    title: 'Agentes IA & Logs',
+    icon: Bot,
+    url: '/admin/ai',
+    roles: ['medical_director'],
+    masterOnly: true,
+  },
+  {
+    title: 'Transações (Master)',
+    icon: ReceiptText,
+    url: '/admin/transactions',
+    roles: ['medical_director'],
+    masterOnly: true,
+  },
+  {
+    title: 'Parceiros de Seguro',
+    icon: Building2,
+    url: '/admin/insurance',
+    roles: ['medical_director'],
+    masterOnly: true,
   },
   {
     title: 'Logs de Auditoria',
     icon: ClipboardList,
     url: '/admin/audit',
     roles: ['medical_director'],
+    masterOnly: true,
   },
   {
-    title: 'Fiscalização de Profissionais',
-    icon: UserX,
-    url: '/admin/supervision',
+    title: 'Branding & Arquivos',
+    icon: Sliders,
+    url: '/admin/settings',
     roles: ['medical_director'],
+    masterOnly: true,
   },
-  {
-    title: 'Painel da Empresa',
-    icon: Activity,
-    url: '/company/dashboard',
-    roles: ['company'],
-  },
-  {
-    title: 'Gestão de Funcionários',
-    icon: Users,
-    url: '/company/employees',
-    roles: ['company', 'medical_director'],
-  },
+  { title: 'Painel da Empresa', icon: Activity, url: '/company/dashboard', roles: ['company'] },
+  { title: 'Gestão de Funcionários', icon: Users, url: '/company/employees', roles: ['company'] },
   {
     title: 'Transações de Benefícios',
     icon: ReceiptText,
@@ -132,12 +159,7 @@ const navItems = [
     url: '/documents',
     roles: ['company', 'medical_director'],
   },
-  {
-    title: 'Documentos',
-    icon: Folder,
-    url: '/documents',
-    roles: ['patient', 'professional'],
-  },
+  { title: 'Documentos', icon: Folder, url: '/documents', roles: ['patient', 'professional'] },
   {
     title: 'Painel do Profissional',
     icon: Stethoscope,
@@ -151,12 +173,7 @@ const navItems = [
     roles: ['professional'],
   },
   { title: 'Brand Kit', icon: Palette, url: '/dashboard/brand-kit', roles: ['professional'] },
-  {
-    title: 'MED Academy',
-    icon: GraduationCap,
-    url: '/dashboard/academy',
-    roles: ['professional'],
-  },
+  { title: 'MED Academy', icon: GraduationCap, url: '/dashboard/academy', roles: ['professional'] },
   { title: 'Hub de Agentes IA', icon: Bot, url: '/dashboard/agents', roles: ['professional'] },
   {
     title: 'Dashboard de Agência',
@@ -170,12 +187,6 @@ const navItems = [
     url: '/settings',
     roles: ['patient', 'professional', 'company', 'medical_director'],
   },
-  {
-    title: 'Branding & Arquivos',
-    icon: Sliders,
-    url: '/admin/settings',
-    roles: ['medical_director'],
-  },
 ]
 
 export default function Layout() {
@@ -188,7 +199,16 @@ export default function Layout() {
     navigate('/login')
   }
 
-  const visibleNavItems = navItems.filter((item) => item.roles.includes(user?.role || 'patient'))
+  const isMasterAdmin =
+    user?.role === 'medical_director' &&
+    (user?.email === 'valterpmendonca@gmail.com' ||
+      user?.name?.toLowerCase().includes('valter') ||
+      user?.name?.toLowerCase().includes('victor'))
+
+  const visibleNavItems = navItems.filter((item) => {
+    if ((item as any).masterOnly && !isMasterAdmin) return false
+    return item.roles.includes(user?.role || 'patient')
+  })
 
   const avatarUrl = user?.avatar
     ? pb.files.getURL({ id: user.id, collectionId: 'users' }, user.avatar)

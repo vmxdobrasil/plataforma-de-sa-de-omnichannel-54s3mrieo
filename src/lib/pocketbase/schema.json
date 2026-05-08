@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-08T15:49:39.743Z",
+  "generatedAt": "2026-05-08T16:14:23.877Z",
   "collections": [
     {
       "name": "users",
@@ -605,8 +605,8 @@
       "name": "benefit_transactions",
       "type": "base",
       "apiRules": {
-        "list": "@request.auth.id != '' && (employee_id = @request.auth.id || company_id = @request.auth.id)",
-        "view": "@request.auth.id != '' && (employee_id = @request.auth.id || company_id = @request.auth.id)",
+        "list": "@request.auth.id != '' && (employee_id = @request.auth.id || company_id = @request.auth.id || @request.auth.role = 'medical_director')",
+        "view": "@request.auth.id != '' && (employee_id = @request.auth.id || company_id = @request.auth.id || @request.auth.role = 'medical_director')",
         "create": "@request.auth.id != ''",
         "update": null,
         "delete": null
@@ -951,11 +951,11 @@
       "name": "generated_content",
       "type": "base",
       "apiRules": {
-        "list": "@request.auth.id != '' && professional_id = @request.auth.id",
-        "view": "@request.auth.id != '' && professional_id = @request.auth.id",
+        "list": "@request.auth.id != '' && (professional_id = @request.auth.id || @request.auth.role = 'medical_director')",
+        "view": "@request.auth.id != '' && (professional_id = @request.auth.id || @request.auth.role = 'medical_director')",
         "create": "@request.auth.id != '' && professional_id = @request.auth.id",
         "update": "@request.auth.id != '' && professional_id = @request.auth.id",
-        "delete": "@request.auth.id != '' && professional_id = @request.auth.id"
+        "delete": "@request.auth.id != '' && (professional_id = @request.auth.id || @request.auth.role = 'medical_director')"
       },
       "fields": [
         {
@@ -1375,8 +1375,8 @@
         "list": "",
         "view": "",
         "create": "@request.auth.id != ''",
-        "update": "@request.auth.id != '' && pharmacy_id = @request.auth.id",
-        "delete": "@request.auth.id != '' && pharmacy_id = @request.auth.id"
+        "update": "@request.auth.id != '' && (pharmacy_id = @request.auth.id || @request.auth.role = 'medical_director')",
+        "delete": "@request.auth.id != '' && (pharmacy_id = @request.auth.id || @request.auth.role = 'medical_director')"
       },
       "fields": [
         {
