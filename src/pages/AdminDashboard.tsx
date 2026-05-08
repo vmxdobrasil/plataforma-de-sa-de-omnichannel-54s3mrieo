@@ -18,6 +18,23 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     document.title = 'V MED BRASIL ADMIN'
+
+    // Clear persistent state on load to avoid routing loops
+    const keysToClear = [
+      'lastVisitedPath',
+      'last_visited_route',
+      'navigation_state',
+      'redirect_url',
+      'returnTo',
+      'last_path',
+      'redirect_to',
+      'currentRoute',
+      'current_route',
+    ]
+    keysToClear.forEach((key) => {
+      localStorage.removeItem(key)
+      sessionStorage.removeItem(key)
+    })
   }, [])
 
   const [stats, setStats] = useState({

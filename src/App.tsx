@@ -117,28 +117,25 @@ const AppRoutes = () => {
 
   useEffect(() => {
     if (user?.role === 'medical_director') {
-      if (
-        location.pathname.includes('/company/dashboard') ||
-        location.pathname.startsWith('/company')
-      ) {
+      if (location.pathname.startsWith('/company')) {
         navigate('/admin', { replace: true })
       }
 
-      const storedRouteLocal = localStorage.getItem('currentRoute')
-      const storedRouteSession = sessionStorage.getItem('currentRoute')
-
-      if (
-        storedRouteLocal?.includes('/company/dashboard') ||
-        storedRouteLocal?.startsWith('/company')
-      ) {
-        localStorage.setItem('currentRoute', '/admin')
-      }
-      if (
-        storedRouteSession?.includes('/company/dashboard') ||
-        storedRouteSession?.startsWith('/company')
-      ) {
-        sessionStorage.setItem('currentRoute', '/admin')
-      }
+      const keysToClear = [
+        'lastVisitedPath',
+        'last_visited_route',
+        'navigation_state',
+        'redirect_url',
+        'returnTo',
+        'last_path',
+        'redirect_to',
+        'currentRoute',
+        'current_route',
+      ]
+      keysToClear.forEach((key) => {
+        localStorage.removeItem(key)
+        sessionStorage.removeItem(key)
+      })
     }
   }, [user, location.pathname, navigate])
 
@@ -191,10 +188,6 @@ const AppRoutes = () => {
       <Route path="*" element={<NotFound />} />
     </Routes>
   )
-}
-
-if (typeof window !== 'undefined' && window.location.pathname.includes('/company/dashboard')) {
-  window.location.replace('/admin')
 }
 
 const App = () => {
