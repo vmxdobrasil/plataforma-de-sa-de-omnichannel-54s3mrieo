@@ -42,6 +42,7 @@ import AdminAudit from './pages/AdminAudit'
 import AdminPharmacy from './pages/AdminPharmacy'
 import AdminAI from './pages/AdminAI'
 import AdminTransactions from './pages/AdminTransactions'
+import AdminProfessionals from './pages/AdminProfessionals'
 import SocialAI from './pages/SocialAI'
 import Marketplace from './pages/dashboard/Marketplace'
 import BrandKit from './pages/dashboard/BrandKit'
@@ -148,6 +149,7 @@ const AppRoutes = () => {
             <Route path="/admin/pharmacy" element={<AdminPharmacy />} />
             <Route path="/admin/ai" element={<AdminAI />} />
             <Route path="/admin/transactions" element={<AdminTransactions />} />
+            <Route path="/admin/professionals" element={<AdminProfessionals />} />
           </Route>
           <Route path="/telemedicine/:id" element={<TelemedicineRoom />} />
           <Route path="/dashboard/social-ai" element={<SocialAI />} />

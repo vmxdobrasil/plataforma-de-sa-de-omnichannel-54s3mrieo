@@ -12,6 +12,18 @@ export const getProfessionals = async () => {
   }
 }
 
+export const getAdminProfessionals = async () => {
+  try {
+    return await pb.collection('users').getFullList({
+      filter: 'role = "professional"',
+      sort: '-created',
+    })
+  } catch (err) {
+    console.error('Error fetching admin professionals:', err)
+    return []
+  }
+}
+
 export const updateUser = async (id: string, data: any) => {
   return await pb.collection('users').update(id, data)
 }
