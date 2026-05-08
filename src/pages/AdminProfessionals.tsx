@@ -74,7 +74,7 @@ export default function AdminProfessionals() {
       </div>
 
       <Card>
-        <CardHeader>
+        <CardHeader className="bg-primary/20 rounded-t-xl border-b border-primary/10">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
               <CardTitle>Profissionais de Saúde</CardTitle>
@@ -106,8 +106,8 @@ export default function AdminProfessionals() {
           ) : (
             <div className="rounded-md border">
               <Table>
-                <TableHeader>
-                  <TableRow>
+                <TableHeader className="bg-primary/20 [&_th]:text-foreground">
+                  <TableRow className="hover:bg-transparent">
                     <TableHead>Profissional</TableHead>
                     <TableHead>CRM</TableHead>
                     <TableHead>Especialidade</TableHead>

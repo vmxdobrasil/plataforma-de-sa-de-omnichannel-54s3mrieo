@@ -76,8 +76,8 @@ export default function AdminVerification() {
 
       <div className="border rounded-lg bg-card">
         <Table>
-          <TableHeader>
-            <TableRow>
+          <TableHeader className="bg-primary/20 [&_th]:text-foreground">
+            <TableRow className="hover:bg-transparent">
               <TableHead>Profissional</TableHead>
               <TableHead>CRM</TableHead>
               <TableHead>Estado (UF)</TableHead>

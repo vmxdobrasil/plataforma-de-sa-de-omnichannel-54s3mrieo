@@ -72,7 +72,7 @@ export default function AdminDashboard() {
 
   return (
     <div className="space-y-8 animate-fade-in-up pb-10">
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-primary/5 p-6 rounded-2xl border border-primary/10 relative overflow-hidden">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-primary/20 p-6 rounded-2xl border border-primary/30 relative overflow-hidden">
         <div className="absolute right-0 top-0 opacity-5 pointer-events-none translate-x-1/4 -translate-y-1/4">
           <Shield className="w-64 h-64" />
         </div>
@@ -106,40 +106,40 @@ export default function AdminDashboard() {
 
       {isMasterAdmin && (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <Card className="border-border/50 bg-card/50">
+          <Card className="border-primary/20 bg-primary/20 shadow-sm">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total de Pacientes</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
+              <Users className="h-4 w-4 text-foreground/70" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{loading ? '...' : stats.patients}</div>
             </CardContent>
           </Card>
 
-          <Card className="border-border/50 bg-card/50">
+          <Card className="border-primary/20 bg-primary/20 shadow-sm">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Profissionais (Médicos)</CardTitle>
-              <Stethoscope className="h-4 w-4 text-muted-foreground" />
+              <Stethoscope className="h-4 w-4 text-foreground/70" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{loading ? '...' : stats.professionals}</div>
             </CardContent>
           </Card>
 
-          <Card className="border-border/50 bg-card/50">
+          <Card className="border-primary/20 bg-primary/20 shadow-sm">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Empresas Parceiras</CardTitle>
-              <Building2 className="h-4 w-4 text-muted-foreground" />
+              <Building2 className="h-4 w-4 text-foreground/70" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{loading ? '...' : stats.companies}</div>
             </CardContent>
           </Card>
 
-          <Card className="border-border/50 bg-card/50">
+          <Card className="border-primary/20 bg-primary/20 shadow-sm">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Consultas Realizadas</CardTitle>
-              <ActivitySquare className="h-4 w-4 text-muted-foreground" />
+              <ActivitySquare className="h-4 w-4 text-foreground/70" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{loading ? '...' : stats.appointments}</div>

@@ -152,8 +152,8 @@ export default function AdminSettings() {
 
       <div className="grid gap-6 md:grid-cols-2">
         {canManageBranding && (
-          <Card>
-            <CardHeader>
+          <Card className="overflow-hidden border-primary/10 shadow-sm">
+            <CardHeader className="bg-primary/20 border-b border-primary/10">
               <div className="flex items-center gap-2">
                 <div className="p-2 bg-primary/10 text-primary rounded-lg">
                   <ImageIcon className="h-5 w-5" />
@@ -200,8 +200,8 @@ export default function AdminSettings() {
           </Card>
         )}
 
-        <Card>
-          <CardHeader>
+        <Card className="overflow-hidden border-primary/10 shadow-sm">
+          <CardHeader className="bg-primary/20 border-b border-primary/10">
             <div className="flex items-center gap-2">
               <div className="p-2 bg-primary/10 text-primary rounded-lg">
                 <Upload className="h-5 w-5" />

@@ -129,8 +129,8 @@ export default function AdminInsurance() {
 
       <div className="bg-card border rounded-xl shadow-sm overflow-hidden">
         <Table>
-          <TableHeader>
-            <TableRow>
+          <TableHeader className="bg-primary/20 [&_th]:text-foreground">
+            <TableRow className="hover:bg-transparent">
               <TableHead>Nome</TableHead>
               <TableHead>Código</TableHead>
               <TableHead>Status</TableHead>

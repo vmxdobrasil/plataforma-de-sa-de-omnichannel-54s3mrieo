@@ -66,7 +66,7 @@ export default function AdminPharmacy() {
         </div>
       </div>
 
-      <div className="flex items-center gap-4 bg-card p-4 rounded-xl border shadow-sm">
+      <div className="flex items-center gap-4 bg-primary/20 p-4 rounded-xl border border-primary/20 shadow-sm">
         <div className="relative flex-1 w-full max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
@@ -80,8 +80,8 @@ export default function AdminPharmacy() {
 
       <div className="bg-card border rounded-xl shadow-sm overflow-hidden">
         <Table>
-          <TableHeader>
-            <TableRow>
+          <TableHeader className="bg-primary/20 [&_th]:text-foreground">
+            <TableRow className="hover:bg-transparent">
               <TableHead>Produto</TableHead>
               <TableHead>Farmácia / Parceiro</TableHead>
               <TableHead>Preço</TableHead>

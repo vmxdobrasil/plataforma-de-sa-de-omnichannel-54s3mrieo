@@ -120,7 +120,7 @@ export default function AdminSupervision() {
         </p>
       </div>
 
-      <div className="flex items-center gap-4 bg-card p-4 rounded-xl border shadow-sm">
+      <div className="flex items-center gap-4 bg-primary/20 p-4 rounded-xl border border-primary/20 shadow-sm">
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
@@ -134,8 +134,8 @@ export default function AdminSupervision() {
 
       <div className="bg-card border rounded-xl shadow-sm overflow-hidden">
         <Table>
-          <TableHeader>
-            <TableRow>
+          <TableHeader className="bg-primary/20 [&_th]:text-foreground">
+            <TableRow className="hover:bg-transparent">
               <TableHead>Profissional</TableHead>
               <TableHead>E-mail</TableHead>
               <TableHead>CRM / UF</TableHead>

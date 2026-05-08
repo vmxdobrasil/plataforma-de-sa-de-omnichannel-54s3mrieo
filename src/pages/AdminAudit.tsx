@@ -45,8 +45,8 @@ export default function AdminAudit() {
 
       <div className="bg-card border rounded-xl shadow-sm overflow-hidden">
         <Table>
-          <TableHeader>
-            <TableRow>
+          <TableHeader className="bg-primary/20 [&_th]:text-foreground">
+            <TableRow className="hover:bg-transparent">
               <TableHead>Data / Hora</TableHead>
               <TableHead>Usuário</TableHead>
               <TableHead>Ação</TableHead>
