@@ -16,6 +16,7 @@ import { Loader2 } from 'lucide-react'
 import { AuthProvider, useAuth } from './hooks/use-auth'
 import { ThemeProvider } from './components/ThemeProvider'
 import { DynamicBranding } from './components/DynamicBranding'
+import { ErrorBoundary } from './components/ErrorBoundary'
 import Layout from './components/Layout'
 import Index from './pages/Index'
 import Search from './pages/Search'
@@ -68,8 +69,8 @@ const EntryPoint = () => {
 
   if (!user) return <Index />
 
-  if (user.role === 'medical_director' || user.role === 'admin')
-    return <Navigate to="/admin" replace />
+  if (user.role === 'admin') return <Navigate to="/admin/supervision" replace />
+  if (user.role === 'medical_director') return <Navigate to="/admin" replace />
   if (user.role === 'company') return <Navigate to="/company/employees" replace />
   if (user.role === 'professional') return <Navigate to="/professional" replace />
 
@@ -171,18 +172,20 @@ const AppRoutes = () => {
 
 const App = () => {
   return (
-    <BrowserRouter future={{ v7_startTransition: false, v7_relativeSplatPath: false }}>
-      <ThemeProvider defaultTheme="system" storageKey="vmed-theme">
-        <TooltipProvider>
-          <AuthProvider>
-            <DynamicBranding />
-            <Toaster />
-            <Sonner />
-            <AppRoutes />
-          </AuthProvider>
-        </TooltipProvider>
-      </ThemeProvider>
-    </BrowserRouter>
+    <ErrorBoundary>
+      <BrowserRouter future={{ v7_startTransition: false, v7_relativeSplatPath: false }}>
+        <ThemeProvider defaultTheme="system" storageKey="vmed-theme">
+          <TooltipProvider>
+            <AuthProvider>
+              <DynamicBranding />
+              <Toaster />
+              <Sonner />
+              <AppRoutes />
+            </AuthProvider>
+          </TooltipProvider>
+        </ThemeProvider>
+      </BrowserRouter>
+    </ErrorBoundary>
   )
 }
 
