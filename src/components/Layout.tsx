@@ -62,87 +62,92 @@ import logoUrl from '@/assets/image-editing3-e6f7b.png'
 
 const navItems = [
   { title: 'Início', icon: Home, url: '/', roles: ['patient', 'professional'] },
-  { title: 'Dashboard Principal', icon: Shield, url: '/admin', roles: ['medical_director'] },
+  {
+    title: 'Dashboard Principal',
+    icon: Shield,
+    url: '/admin',
+    roles: ['medical_director', 'admin'],
+  },
   {
     title: 'Supervisão Clínica',
     icon: Stethoscope,
     url: '/admin/supervision',
-    roles: ['medical_director'],
+    roles: ['medical_director', 'admin'],
   },
   {
     title: 'Verificação CFM',
     icon: ShieldCheck,
     url: '/admin/verification',
-    roles: ['medical_director'],
+    roles: ['medical_director', 'admin'],
   },
   {
     title: 'Especialidades Médicas',
     icon: Stethoscope,
     url: '/admin/specialties',
-    roles: ['medical_director'],
+    roles: ['medical_director', 'admin'],
     masterOnly: true,
   },
   {
     title: 'CRM',
     icon: Users,
     url: '/admin/users',
-    roles: ['medical_director'],
+    roles: ['medical_director', 'admin'],
     masterOnly: true,
   },
   {
     title: 'Gestão de Empresas',
     icon: Building2,
     url: '/company/employees',
-    roles: ['medical_director'],
+    roles: ['medical_director', 'admin'],
     masterOnly: true,
   },
   {
     title: 'Farmácias e Laboratórios',
     icon: Pill,
     url: '/admin/pharmacy',
-    roles: ['medical_director'],
+    roles: ['medical_director', 'admin'],
     masterOnly: true,
   },
   {
     title: 'Agentes de IA',
     icon: Bot,
     url: '/admin/ai',
-    roles: ['medical_director'],
+    roles: ['medical_director', 'admin'],
     masterOnly: true,
   },
   {
     title: 'Transações e Financeiro',
     icon: ReceiptText,
     url: '/admin/transactions',
-    roles: ['medical_director'],
+    roles: ['medical_director', 'admin'],
     masterOnly: true,
   },
   {
     title: 'Parceiros de Seguro',
     icon: Building2,
     url: '/admin/insurance',
-    roles: ['medical_director'],
+    roles: ['medical_director', 'admin'],
     masterOnly: true,
   },
   {
     title: 'Logs de Auditoria',
     icon: ClipboardList,
     url: '/admin/audit',
-    roles: ['medical_director'],
+    roles: ['medical_director', 'admin'],
     masterOnly: true,
   },
   {
     title: 'Documentos Corporativos',
     icon: Folder,
     url: '/documents',
-    roles: ['company', 'medical_director'],
+    roles: ['company', 'medical_director', 'admin'],
     masterOnly: true,
   },
   {
     title: 'Configurações do Sistema',
     icon: Sliders,
     url: '/admin/settings',
-    roles: ['medical_director'],
+    roles: ['medical_director', 'admin'],
     masterOnly: true,
   },
   { title: 'Gestão de Funcionários', icon: Users, url: '/company/employees', roles: ['company'] },
@@ -162,7 +167,7 @@ const navItems = [
     title: 'Guia Saúde',
     icon: Search,
     url: '/admin/professionals',
-    roles: ['medical_director'],
+    roles: ['medical_director', 'admin'],
   },
   { title: 'Meu Perfil de Saúde', icon: HeartPulse, url: '/health-profile', roles: ['patient'] },
   { title: 'Documentos', icon: Folder, url: '/documents', roles: ['patient', 'professional'] },
@@ -191,7 +196,7 @@ const navItems = [
     title: 'Configurações',
     icon: Settings,
     url: '/settings',
-    roles: ['patient', 'professional', 'company', 'medical_director'],
+    roles: ['patient', 'professional', 'company', 'medical_director', 'admin'],
   },
 ]
 
@@ -206,7 +211,7 @@ export default function Layout() {
   }
 
   const isMasterAdmin =
-    user?.role === 'medical_director' &&
+    (user?.role === 'medical_director' || user?.role === 'admin') &&
     (user?.email === 'valterpmendonca@gmail.com' ||
       user?.email === 'victorhugotmendonca@gmail.com' ||
       user?.name?.toLowerCase().includes('valter') ||
@@ -443,10 +448,16 @@ export default function Layout() {
                       <div className="flex flex-col space-y-1">
                         <p className="text-sm font-medium leading-none">{user?.name}</p>
                         <p className="text-xs leading-none text-muted-foreground">{user?.email}</p>
-                        {user?.role === 'medical_director' && (
+                        {user?.role === 'admin' ? (
                           <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary w-fit mt-1">
-                            Administrador da Plataforma
+                            Administrador Master
                           </span>
+                        ) : (
+                          user?.role === 'medical_director' && (
+                            <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary w-fit mt-1">
+                              Administrador da Plataforma
+                            </span>
+                          )
                         )}
                       </div>
                     </DropdownMenuLabel>

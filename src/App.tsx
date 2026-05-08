@@ -67,7 +67,8 @@ const EntryPoint = () => {
 
   if (!user) return <Index />
 
-  if (user.role === 'medical_director') return <Navigate to="/admin" replace />
+  if (user.role === 'medical_director' || user.role === 'admin')
+    return <Navigate to="/admin" replace />
   if (user.role === 'company') return <Navigate to="/company/employees" replace />
   if (user.role === 'professional') return <Navigate to="/professional" replace />
 
@@ -94,13 +95,14 @@ const ProtectedOutlet = () => {
 
 const AdminOutlet = () => {
   const { user } = useAuth()
-  if (user?.role !== 'medical_director') return <Navigate to="/" replace />
+  if (user?.role !== 'medical_director' && user?.role !== 'admin')
+    return <Navigate to="/" replace />
   return <Outlet />
 }
 
 const CompanyOutlet = () => {
   const { user } = useAuth()
-  if (user?.role === 'medical_director') return <Outlet />
+  if (user?.role === 'medical_director' || user?.role === 'admin') return <Outlet />
   if (user?.role !== 'company') return <Navigate to="/" replace />
   return <Outlet />
 }

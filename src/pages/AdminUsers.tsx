@@ -136,6 +136,7 @@ export default function AdminUsers() {
             <SelectItem value="pharmacy">Farmácia</SelectItem>
             <SelectItem value="laboratory">Laboratório</SelectItem>
             <SelectItem value="medical_director">Diretor Médico</SelectItem>
+            <SelectItem value="admin">Administrador Master</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -171,7 +172,11 @@ export default function AdminUsers() {
                   <TableCell>{u.email}</TableCell>
                   <TableCell>
                     <Badge variant="outline" className="capitalize">
-                      {u.role.replace('_', ' ')}
+                      {u.role === 'admin'
+                        ? 'Admin Master'
+                        : u.role === 'medical_director'
+                          ? 'Diretor Médico'
+                          : u.role.replace('_', ' ')}
                     </Badge>
                   </TableCell>
                   <TableCell>
@@ -247,6 +252,7 @@ export default function AdminUsers() {
                   <SelectItem value="patient">Paciente</SelectItem>
                   <SelectItem value="pharmacy">Farmácia</SelectItem>
                   <SelectItem value="laboratory">Laboratório</SelectItem>
+                  <SelectItem value="admin">Administrador Master</SelectItem>
                 </SelectContent>
               </Select>
             </div>
