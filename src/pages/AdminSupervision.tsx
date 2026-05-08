@@ -1,6 +1,7 @@
-import { Component, ErrorInfo, ReactNode, useEffect, useState, useMemo } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { useAuth } from '@/hooks/use-auth'
 import pb from '@/lib/pocketbase/client'
+import { ErrorBoundary } from '@/components/ErrorBoundary'
 import {
   Table,
   TableBody,
@@ -40,50 +41,6 @@ import { toast } from 'sonner'
 import { format, isAfter, subDays } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { Skeleton } from '@/components/ui/skeleton'
-
-class ErrorBoundary extends Component<
-  { children: ReactNode },
-  { hasError: boolean; error: Error | null }
-> {
-  constructor(props: { children: ReactNode }) {
-    super(props)
-    this.state = { hasError: false, error: null }
-  }
-
-  static getDerivedStateFromError(error: Error) {
-    return { hasError: true, error }
-  }
-
-  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('Supervision UI Error:', error, errorInfo)
-  }
-
-  render() {
-    if (this.state.hasError) {
-      return (
-        <div className="flex min-h-[60vh] w-full flex-col items-center justify-center gap-4 rounded-xl border border-destructive/20 bg-destructive/5 p-6 text-center">
-          <ShieldAlert className="h-12 w-12 text-destructive" />
-          <h2 className="text-2xl font-bold text-destructive">Algo deu errado</h2>
-          <p className="text-muted-foreground max-w-md">
-            Ocorreu um erro inesperado ao carregar a página de supervisão. Por favor, tente
-            novamente.
-          </p>
-          <div className="mt-4 flex gap-4">
-            <Button
-              onClick={() => {
-                this.setState({ hasError: false, error: null })
-                window.location.reload()
-              }}
-            >
-              Tentar Novamente
-            </Button>
-          </div>
-        </div>
-      )
-    }
-    return this.props.children
-  }
-}
 
 function AdminSupervisionContent() {
   const { user } = useAuth()
