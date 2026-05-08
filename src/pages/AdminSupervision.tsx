@@ -55,6 +55,8 @@ function AdminSupervisionContent() {
   const [loadingRecords, setLoadingRecords] = useState(true)
   const [loadingPrescriptions, setLoadingPrescriptions] = useState(true)
 
+  const [medicalDirector, setMedicalDirector] = useState<any>(null)
+
   const [searchTermProf, setSearchTermProf] = useState('')
   const [searchTermApp, setSearchTermApp] = useState('')
   const [searchTermRec, setSearchTermRec] = useState('')
@@ -154,6 +156,20 @@ function AdminSupervisionContent() {
       setPrescriptions,
     )
   }, [searchTermPresc, user])
+
+  useEffect(() => {
+    const fetchMedicalDirector = async () => {
+      try {
+        const res = await pb.collection('users').getFirstListItem('role = "medical_director"')
+        setMedicalDirector(res)
+      } catch (err: any) {
+        if (!err?.isAbort) {
+          console.error('Medical director not found')
+        }
+      }
+    }
+    fetchMedicalDirector()
+  }, [])
 
   const handleOpenBlockDialog = (prof: any) => {
     setSelectedProf(prof)
@@ -255,31 +271,25 @@ function AdminSupervisionContent() {
             <Avatar className="h-12 w-12 border-2 border-primary/30">
               <AvatarImage
                 src={
-                  user?.avatar
-                    ? pb.files.getURL(user, user.avatar)
-                    : `https://api.dicebear.com/7.x/notionists/svg?seed=${user?.name || 'User'}`
+                  medicalDirector?.avatar
+                    ? pb.files.getURL(medicalDirector, medicalDirector.avatar)
+                    : `https://api.dicebear.com/7.x/notionists/svg?seed=${medicalDirector?.name || 'DrFauzer'}`
                 }
               />
               <AvatarFallback>
-                {user?.role === 'medical_director' ? (
-                  <Stethoscope className="h-5 w-5" />
-                ) : (
-                  <ShieldCheck className="h-5 w-5" />
-                )}
+                <Stethoscope className="h-5 w-5" />
               </AvatarFallback>
             </Avatar>
             <div>
               <p className="font-bold text-foreground leading-tight">
-                {user?.role === 'medical_director'
-                  ? `Diretor Médico: ${user?.name || 'Não informado'}`
-                  : `Administrador Master: ${user?.name || 'Sistema'}`}
+                Diretor Médico:{' '}
+                {medicalDirector?.name || 'Dr. Fauzer Andrigo Mendonça Simões Rangel'}{' '}
+                {medicalDirector?.crm_state && medicalDirector?.crm_number
+                  ? `CRM-${medicalDirector.crm_state} ${medicalDirector.crm_number}`
+                  : 'CRM-GO 29015'}
               </p>
               <p className="text-sm text-primary font-semibold tracking-wide">
-                {user?.role === 'medical_director'
-                  ? user?.crm_number
-                    ? `CRM: ${user.crm_number} ${user.crm_state || ''}`
-                    : 'CRM não cadastrado'
-                  : 'Visão Global de Supervisão'}
+                Responsabilidade Técnica e Clínica
               </p>
             </div>
           </div>
