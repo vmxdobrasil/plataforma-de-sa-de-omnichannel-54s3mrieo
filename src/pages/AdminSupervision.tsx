@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react'
+import { Component, ErrorInfo, ReactNode, useEffect, useState, useMemo } from 'react'
 import { useAuth } from '@/hooks/use-auth'
 import pb from '@/lib/pocketbase/client'
 import {
@@ -41,7 +41,51 @@ import { format, isAfter, subDays } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { Skeleton } from '@/components/ui/skeleton'
 
-export default function AdminSupervision() {
+class ErrorBoundary extends Component<
+  { children: ReactNode },
+  { hasError: boolean; error: Error | null }
+> {
+  constructor(props: { children: ReactNode }) {
+    super(props)
+    this.state = { hasError: false, error: null }
+  }
+
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error }
+  }
+
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    console.error('Supervision UI Error:', error, errorInfo)
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="flex min-h-[60vh] w-full flex-col items-center justify-center gap-4 rounded-xl border border-destructive/20 bg-destructive/5 p-6 text-center">
+          <ShieldAlert className="h-12 w-12 text-destructive" />
+          <h2 className="text-2xl font-bold text-destructive">Algo deu errado</h2>
+          <p className="text-muted-foreground max-w-md">
+            Ocorreu um erro inesperado ao carregar a página de supervisão. Por favor, tente
+            novamente.
+          </p>
+          <div className="mt-4 flex gap-4">
+            <Button
+              onClick={() => {
+                this.setState({ hasError: false, error: null })
+                window.location.reload()
+              }}
+            >
+              Tentar Novamente
+            </Button>
+          </div>
+        </div>
+      )
+    }
+    return this.props.children
+  }
+}
+
+function AdminSupervisionContent() {
   const { user } = useAuth()
 
   const [professionals, setProfessionals] = useState<any[]>([])
@@ -79,9 +123,11 @@ export default function AdminSupervision() {
         expand,
       })
       setData(res)
-    } catch (error) {
-      console.error(error)
+    } catch (error: any) {
+      console.error(`Error loading ${collection}:`, error)
+      if (error?.isAbort) return
       toast.error(`Erro ao carregar dados de ${collection}.`)
+      setData([])
     } finally {
       setLoading(false)
     }
@@ -196,12 +242,18 @@ export default function AdminSupervision() {
     </TableRow>
   )
 
-  const TableEmpty = ({ colSpan = 5 }: { colSpan?: number }) => (
+  const TableEmpty = ({
+    colSpan = 5,
+    message = 'Nenhuma atividade clínica encontrada para supervisão neste momento.',
+  }: {
+    colSpan?: number
+    message?: string
+  }) => (
     <TableRow>
       <TableCell colSpan={colSpan} className="text-center py-12 text-muted-foreground">
         <div className="flex flex-col items-center justify-center gap-2">
           <Activity className="h-8 w-8 text-muted-foreground/50" />
-          <p>Nenhum dado de supervisão encontrado para os filtros aplicados</p>
+          <p>{message}</p>
         </div>
       </TableCell>
     </TableRow>
@@ -209,14 +261,24 @@ export default function AdminSupervision() {
 
   const recentRecordsCount = useMemo(() => {
     const thirtyDaysAgo = subDays(new Date(), 30)
-    return healthRecords.filter((r) => r.created && isAfter(new Date(r.created), thirtyDaysAgo))
-      .length
+    return healthRecords.filter((r) => {
+      try {
+        if (!r.created) return false
+        const d = new Date(r.created)
+        if (isNaN(d.getTime())) return false
+        return isAfter(d, thirtyDaysAgo)
+      } catch {
+        return false
+      }
+    }).length
   }, [healthRecords])
 
   const safeFormatDate = (dateString: string) => {
     try {
       if (!dateString) return 'N/A'
-      return format(new Date(dateString), 'dd/MM/yyyy HH:mm', { locale: ptBR })
+      const d = new Date(dateString)
+      if (isNaN(d.getTime())) return 'Data inválida'
+      return format(d, 'dd/MM/yyyy HH:mm', { locale: ptBR })
     } catch {
       return 'Data inválida'
     }
@@ -224,7 +286,8 @@ export default function AdminSupervision() {
 
   return (
     <div className="relative min-h-[80vh] rounded-xl p-4 sm:p-6 overflow-hidden">
-      <div className="absolute inset-0 bg-primary/20 bg-grid-pattern opacity-20 pointer-events-none" />
+      {/* Visual Consistency Grid Pattern */}
+      <div className="absolute inset-0 pointer-events-none opacity-[0.15] bg-[linear-gradient(to_right,hsl(var(--primary)/0.2)_1px,transparent_1px),linear-gradient(to_bottom,hsl(var(--primary)/0.2)_1px,transparent_1px)] bg-[size:40px_40px] z-0" />
       <div className="relative z-10 space-y-6">
         <div className="bg-background/90 backdrop-blur-md border border-primary/20 rounded-xl p-6 shadow-sm">
           <h1 className="text-3xl font-bold tracking-tight text-primary">Supervisão Clínica</h1>
@@ -266,8 +329,9 @@ export default function AdminSupervision() {
         </div>
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <Card className="bg-grid-pattern relative overflow-hidden border-primary/20 bg-primary/5">
-            <div className="absolute inset-0 bg-background/80 backdrop-blur-[1px]"></div>
+          <Card className="bg-primary/5 relative overflow-hidden border-primary/20">
+            <div className="absolute inset-0 pointer-events-none opacity-10 bg-[linear-gradient(to_right,hsl(var(--primary)/0.2)_1px,transparent_1px),linear-gradient(to_bottom,hsl(var(--primary)/0.2)_1px,transparent_1px)] bg-[size:10px_10px]" />
+            <div className="absolute inset-0 bg-background/60 backdrop-blur-[1px]"></div>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
               <CardTitle className="text-sm font-medium">Total de Agendamentos</CardTitle>
               <Calendar className="h-4 w-4 text-blue-500" />
@@ -280,8 +344,9 @@ export default function AdminSupervision() {
             </CardContent>
           </Card>
 
-          <Card className="bg-grid-pattern relative overflow-hidden border-primary/20 bg-primary/5">
-            <div className="absolute inset-0 bg-background/80 backdrop-blur-[1px]"></div>
+          <Card className="bg-primary/5 relative overflow-hidden border-primary/20">
+            <div className="absolute inset-0 pointer-events-none opacity-10 bg-[linear-gradient(to_right,hsl(var(--primary)/0.2)_1px,transparent_1px),linear-gradient(to_bottom,hsl(var(--primary)/0.2)_1px,transparent_1px)] bg-[size:10px_10px]" />
+            <div className="absolute inset-0 bg-background/60 backdrop-blur-[1px]"></div>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
               <CardTitle className="text-sm font-medium">Prontuários Recentes</CardTitle>
               <FileText className="h-4 w-4 text-green-500" />
@@ -294,8 +359,9 @@ export default function AdminSupervision() {
             </CardContent>
           </Card>
 
-          <Card className="bg-grid-pattern relative overflow-hidden border-primary/20 bg-primary/5">
-            <div className="absolute inset-0 bg-background/80 backdrop-blur-[1px]"></div>
+          <Card className="bg-primary/5 relative overflow-hidden border-primary/20">
+            <div className="absolute inset-0 pointer-events-none opacity-10 bg-[linear-gradient(to_right,hsl(var(--primary)/0.2)_1px,transparent_1px),linear-gradient(to_bottom,hsl(var(--primary)/0.2)_1px,transparent_1px)] bg-[size:10px_10px]" />
+            <div className="absolute inset-0 bg-background/60 backdrop-blur-[1px]"></div>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
               <CardTitle className="text-sm font-medium">Profissionais Registrados</CardTitle>
               <Users className="h-4 w-4 text-primary" />
@@ -308,8 +374,9 @@ export default function AdminSupervision() {
             </CardContent>
           </Card>
 
-          <Card className="bg-grid-pattern relative overflow-hidden border-primary/20 bg-primary/5">
-            <div className="absolute inset-0 bg-background/80 backdrop-blur-[1px]"></div>
+          <Card className="bg-primary/5 relative overflow-hidden border-primary/20">
+            <div className="absolute inset-0 pointer-events-none opacity-10 bg-[linear-gradient(to_right,hsl(var(--primary)/0.2)_1px,transparent_1px),linear-gradient(to_bottom,hsl(var(--primary)/0.2)_1px,transparent_1px)] bg-[size:10px_10px]" />
+            <div className="absolute inset-0 bg-background/60 backdrop-blur-[1px]"></div>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
               <CardTitle className="text-sm font-medium">Receitas Prescritas</CardTitle>
               <Pill className="h-4 w-4 text-orange-500" />
@@ -352,12 +419,15 @@ export default function AdminSupervision() {
           </TabsList>
 
           <TabsContent value="records" className="mt-4">
-            <Card className="border shadow-sm">
-              <CardHeader className="bg-primary/20 bg-grid-pattern border-b pb-4">
-                <CardTitle>Prontuários de Saúde (Feed de Atividades)</CardTitle>
-                <CardDescription>Acesso aos registros clínicos de pacientes.</CardDescription>
+            <Card className="border shadow-sm relative overflow-hidden">
+              <CardHeader className="bg-primary/5 border-b pb-4 relative">
+                <div className="absolute inset-0 pointer-events-none opacity-5 bg-[linear-gradient(to_right,hsl(var(--primary)/0.2)_1px,transparent_1px),linear-gradient(to_bottom,hsl(var(--primary)/0.2)_1px,transparent_1px)] bg-[size:20px_20px]" />
+                <CardTitle className="relative z-10">Prontuários de Saúde</CardTitle>
+                <CardDescription className="relative z-10">
+                  Acesso aos registros clínicos de pacientes.
+                </CardDescription>
               </CardHeader>
-              <CardContent className="p-0">
+              <CardContent className="p-0 relative z-10 bg-card">
                 <div className="p-4 border-b">
                   <div className="relative max-w-md">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -369,64 +439,69 @@ export default function AdminSupervision() {
                     />
                   </div>
                 </div>
-                <Table>
-                  <TableHeader className="bg-muted/50">
-                    <TableRow>
-                      <TableHead>Data</TableHead>
-                      <TableHead>Paciente</TableHead>
-                      <TableHead>Profissional</TableHead>
-                      <TableHead>Tipo de Registro</TableHead>
-                      <TableHead>Conteúdo Resumido</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {loadingRecords ? (
-                      <TableLoading />
-                    ) : healthRecords.length === 0 ? (
-                      <TableEmpty />
-                    ) : (
-                      healthRecords.map((rec) => (
-                        <TableRow key={rec.id}>
-                          <TableCell className="font-medium whitespace-nowrap">
-                            {safeFormatDate(rec.created)}
-                          </TableCell>
-                          <TableCell>{rec.expand?.patient_id?.name || 'N/A'}</TableCell>
-                          <TableCell>{rec.expand?.professional_id?.name || 'N/A'}</TableCell>
-                          <TableCell>
-                            <Badge variant="secondary" className="capitalize">
-                              {rec.type === 'clinical'
-                                ? 'Clínico'
-                                : rec.type === 'dental'
-                                  ? 'Odontológico'
-                                  : rec.type === 'aesthetic'
-                                    ? 'Estético'
-                                    : rec.type}
-                            </Badge>
-                          </TableCell>
-                          <TableCell
-                            className="max-w-[200px] truncate"
-                            title={rec.content || 'Sem conteúdo'}
-                          >
-                            {rec.content || (
-                              <span className="text-muted-foreground italic">Sem conteúdo</span>
-                            )}
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader className="bg-muted/50">
+                      <TableRow>
+                        <TableHead>Data</TableHead>
+                        <TableHead>Paciente</TableHead>
+                        <TableHead>Profissional</TableHead>
+                        <TableHead>Tipo de Registro</TableHead>
+                        <TableHead>Conteúdo Resumido</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {loadingRecords ? (
+                        <TableLoading />
+                      ) : healthRecords.length === 0 ? (
+                        <TableEmpty />
+                      ) : (
+                        healthRecords.map((rec) => (
+                          <TableRow key={rec.id}>
+                            <TableCell className="font-medium whitespace-nowrap">
+                              {safeFormatDate(rec.created)}
+                            </TableCell>
+                            <TableCell>{rec.expand?.patient_id?.name || 'N/A'}</TableCell>
+                            <TableCell>{rec.expand?.professional_id?.name || 'N/A'}</TableCell>
+                            <TableCell>
+                              <Badge variant="secondary" className="capitalize">
+                                {rec.type === 'clinical'
+                                  ? 'Clínico'
+                                  : rec.type === 'dental'
+                                    ? 'Odontológico'
+                                    : rec.type === 'aesthetic'
+                                      ? 'Estético'
+                                      : rec.type}
+                              </Badge>
+                            </TableCell>
+                            <TableCell
+                              className="max-w-[200px] truncate"
+                              title={rec.content || 'Sem conteúdo'}
+                            >
+                              {rec.content || (
+                                <span className="text-muted-foreground italic">Sem conteúdo</span>
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
 
           <TabsContent value="appointments" className="mt-4">
-            <Card className="border shadow-sm">
-              <CardHeader className="bg-primary/20 bg-grid-pattern border-b pb-4">
-                <CardTitle>Agendamentos Gerais</CardTitle>
-                <CardDescription>Auditoria de todas as consultas na plataforma.</CardDescription>
+            <Card className="border shadow-sm relative overflow-hidden">
+              <CardHeader className="bg-primary/5 border-b pb-4 relative">
+                <div className="absolute inset-0 pointer-events-none opacity-5 bg-[linear-gradient(to_right,hsl(var(--primary)/0.2)_1px,transparent_1px),linear-gradient(to_bottom,hsl(var(--primary)/0.2)_1px,transparent_1px)] bg-[size:20px_20px]" />
+                <CardTitle className="relative z-10">Agendamentos Gerais</CardTitle>
+                <CardDescription className="relative z-10">
+                  Auditoria de todas as consultas na plataforma.
+                </CardDescription>
               </CardHeader>
-              <CardContent className="p-0">
+              <CardContent className="p-0 relative z-10 bg-card">
                 <div className="p-4 border-b">
                   <div className="relative max-w-md">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -438,49 +513,54 @@ export default function AdminSupervision() {
                     />
                   </div>
                 </div>
-                <Table>
-                  <TableHeader className="bg-muted/50">
-                    <TableRow>
-                      <TableHead>Data</TableHead>
-                      <TableHead>Paciente</TableHead>
-                      <TableHead>Profissional</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Tipo</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {loadingApps ? (
-                      <TableLoading />
-                    ) : appointments.length === 0 ? (
-                      <TableEmpty />
-                    ) : (
-                      appointments.map((app) => (
-                        <TableRow key={app.id}>
-                          <TableCell className="font-medium whitespace-nowrap">
-                            {safeFormatDate(app.dateTime || app.created)}
-                          </TableCell>
-                          <TableCell>{app.expand?.patient_id?.name || 'N/A'}</TableCell>
-                          <TableCell>{app.expand?.professional_id?.name || 'N/A'}</TableCell>
-                          <TableCell>
-                            <Badge variant="outline">{app.status || 'N/A'}</Badge>
-                          </TableCell>
-                          <TableCell>{app.type || 'N/A'}</TableCell>
-                        </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader className="bg-muted/50">
+                      <TableRow>
+                        <TableHead>Data</TableHead>
+                        <TableHead>Paciente</TableHead>
+                        <TableHead>Profissional</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Tipo</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {loadingApps ? (
+                        <TableLoading />
+                      ) : appointments.length === 0 ? (
+                        <TableEmpty />
+                      ) : (
+                        appointments.map((app) => (
+                          <TableRow key={app.id}>
+                            <TableCell className="font-medium whitespace-nowrap">
+                              {safeFormatDate(app.dateTime || app.created)}
+                            </TableCell>
+                            <TableCell>{app.expand?.patient_id?.name || 'N/A'}</TableCell>
+                            <TableCell>{app.expand?.professional_id?.name || 'N/A'}</TableCell>
+                            <TableCell>
+                              <Badge variant="outline">{app.status || 'N/A'}</Badge>
+                            </TableCell>
+                            <TableCell>{app.type || 'N/A'}</TableCell>
+                          </TableRow>
+                        ))
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
 
           <TabsContent value="prescriptions" className="mt-4">
-            <Card className="border shadow-sm">
-              <CardHeader className="bg-primary/20 bg-grid-pattern border-b pb-4">
-                <CardTitle>Receitas Prescritas</CardTitle>
-                <CardDescription>Auditoria de prescrições médicas na plataforma.</CardDescription>
+            <Card className="border shadow-sm relative overflow-hidden">
+              <CardHeader className="bg-primary/5 border-b pb-4 relative">
+                <div className="absolute inset-0 pointer-events-none opacity-5 bg-[linear-gradient(to_right,hsl(var(--primary)/0.2)_1px,transparent_1px),linear-gradient(to_bottom,hsl(var(--primary)/0.2)_1px,transparent_1px)] bg-[size:20px_20px]" />
+                <CardTitle className="relative z-10">Receitas Prescritas</CardTitle>
+                <CardDescription className="relative z-10">
+                  Auditoria de prescrições médicas na plataforma.
+                </CardDescription>
               </CardHeader>
-              <CardContent className="p-0">
+              <CardContent className="p-0 relative z-10 bg-card">
                 <div className="p-4 border-b">
                   <div className="relative max-w-md">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -492,52 +572,57 @@ export default function AdminSupervision() {
                     />
                   </div>
                 </div>
-                <Table>
-                  <TableHeader className="bg-muted/50">
-                    <TableRow>
-                      <TableHead>Data</TableHead>
-                      <TableHead>Paciente</TableHead>
-                      <TableHead>Profissional</TableHead>
-                      <TableHead>Medicamentos</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {loadingPrescriptions ? (
-                      <TableLoading colSpan={4} />
-                    ) : prescriptions.length === 0 ? (
-                      <TableEmpty colSpan={4} />
-                    ) : (
-                      prescriptions.map((presc) => (
-                        <TableRow key={presc.id}>
-                          <TableCell className="font-medium whitespace-nowrap">
-                            {safeFormatDate(presc.created)}
-                          </TableCell>
-                          <TableCell>{presc.expand?.patient_id?.name || 'N/A'}</TableCell>
-                          <TableCell>{presc.expand?.professional_id?.name || 'N/A'}</TableCell>
-                          <TableCell
-                            className="max-w-[250px] truncate"
-                            title={presc.medications || 'Nenhum medicamento listado'}
-                          >
-                            {presc.medications || (
-                              <span className="text-muted-foreground italic">Não listado</span>
-                            )}
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader className="bg-muted/50">
+                      <TableRow>
+                        <TableHead>Data</TableHead>
+                        <TableHead>Paciente</TableHead>
+                        <TableHead>Profissional</TableHead>
+                        <TableHead>Medicamentos</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {loadingPrescriptions ? (
+                        <TableLoading colSpan={4} />
+                      ) : prescriptions.length === 0 ? (
+                        <TableEmpty colSpan={4} />
+                      ) : (
+                        prescriptions.map((presc) => (
+                          <TableRow key={presc.id}>
+                            <TableCell className="font-medium whitespace-nowrap">
+                              {safeFormatDate(presc.created)}
+                            </TableCell>
+                            <TableCell>{presc.expand?.patient_id?.name || 'N/A'}</TableCell>
+                            <TableCell>{presc.expand?.professional_id?.name || 'N/A'}</TableCell>
+                            <TableCell
+                              className="max-w-[250px] truncate"
+                              title={presc.medications || 'Nenhum medicamento listado'}
+                            >
+                              {presc.medications || (
+                                <span className="text-muted-foreground italic">Não listado</span>
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
 
           <TabsContent value="professionals" className="mt-4">
-            <Card className="border shadow-sm">
-              <CardHeader className="bg-primary/20 bg-grid-pattern border-b pb-4">
-                <CardTitle>Verificação de Profissionais</CardTitle>
-                <CardDescription>Gerencie acesso e verifique o CRM dos médicos.</CardDescription>
+            <Card className="border shadow-sm relative overflow-hidden">
+              <CardHeader className="bg-primary/5 border-b pb-4 relative">
+                <div className="absolute inset-0 pointer-events-none opacity-5 bg-[linear-gradient(to_right,hsl(var(--primary)/0.2)_1px,transparent_1px),linear-gradient(to_bottom,hsl(var(--primary)/0.2)_1px,transparent_1px)] bg-[size:20px_20px]" />
+                <CardTitle className="relative z-10">Verificação de Profissionais</CardTitle>
+                <CardDescription className="relative z-10">
+                  Gerencie acesso e verifique o CRM dos médicos.
+                </CardDescription>
               </CardHeader>
-              <CardContent className="p-0">
+              <CardContent className="p-0 relative z-10 bg-card">
                 <div className="p-4 border-b">
                   <div className="relative max-w-md">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -549,60 +634,62 @@ export default function AdminSupervision() {
                     />
                   </div>
                 </div>
-                <Table>
-                  <TableHeader className="bg-muted/50">
-                    <TableRow>
-                      <TableHead>Profissional</TableHead>
-                      <TableHead>E-mail</TableHead>
-                      <TableHead>CRM / UF</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead className="text-right">Ações</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {loadingProfs ? (
-                      <TableLoading />
-                    ) : professionals.length === 0 ? (
-                      <TableEmpty />
-                    ) : (
-                      professionals.map((prof) => (
-                        <TableRow key={prof.id}>
-                          <TableCell className="font-medium">{prof.name || 'Sem nome'}</TableCell>
-                          <TableCell>{prof.email}</TableCell>
-                          <TableCell>
-                            {prof.crm_number ? `${prof.crm_number} - ${prof.crm_state}` : 'N/A'}
-                          </TableCell>
-                          <TableCell>
-                            {prof.is_blocked ? (
-                              <Badge
-                                variant="destructive"
-                                className="flex w-fit items-center gap-1"
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader className="bg-muted/50">
+                      <TableRow>
+                        <TableHead>Profissional</TableHead>
+                        <TableHead>E-mail</TableHead>
+                        <TableHead>CRM / UF</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead className="text-right">Ações</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {loadingProfs ? (
+                        <TableLoading />
+                      ) : professionals.length === 0 ? (
+                        <TableEmpty message="Nenhum profissional encontrado com os filtros aplicados." />
+                      ) : (
+                        professionals.map((prof) => (
+                          <TableRow key={prof.id}>
+                            <TableCell className="font-medium">{prof.name || 'Sem nome'}</TableCell>
+                            <TableCell>{prof.email}</TableCell>
+                            <TableCell>
+                              {prof.crm_number ? `${prof.crm_number} - ${prof.crm_state}` : 'N/A'}
+                            </TableCell>
+                            <TableCell>
+                              {prof.is_blocked ? (
+                                <Badge
+                                  variant="destructive"
+                                  className="flex w-fit items-center gap-1"
+                                >
+                                  <ShieldAlert className="h-3 w-3" /> Bloqueado
+                                </Badge>
+                              ) : (
+                                <Badge
+                                  variant="default"
+                                  className="flex w-fit items-center gap-1 bg-green-600 hover:bg-green-700"
+                                >
+                                  <ShieldCheck className="h-3 w-3" /> Ativo
+                                </Badge>
+                              )}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <Button
+                                variant={prof.is_blocked ? 'outline' : 'destructive'}
+                                size="sm"
+                                onClick={() => handleOpenBlockDialog(prof)}
                               >
-                                <ShieldAlert className="h-3 w-3" /> Bloqueado
-                              </Badge>
-                            ) : (
-                              <Badge
-                                variant="default"
-                                className="flex w-fit items-center gap-1 bg-green-600 hover:bg-green-700"
-                              >
-                                <ShieldCheck className="h-3 w-3" /> Ativo
-                              </Badge>
-                            )}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <Button
-                              variant={prof.is_blocked ? 'outline' : 'destructive'}
-                              size="sm"
-                              onClick={() => handleOpenBlockDialog(prof)}
-                            >
-                              {prof.is_blocked ? 'Desbloquear' : 'Bloquear'}
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
+                                {prof.is_blocked ? 'Desbloquear' : 'Bloquear'}
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
@@ -664,3 +751,5 @@ export default function AdminSupervision() {
     </div>
   )
 }
+
+export default AdminSupervisionPage
