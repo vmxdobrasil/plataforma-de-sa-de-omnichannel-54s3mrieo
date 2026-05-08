@@ -97,7 +97,7 @@ const navItems = [
   {
     title: 'Gestão de Empresas',
     icon: Building2,
-    url: '/company/employees',
+    url: '/admin/companies',
     roles: ['medical_director', 'admin'],
     masterOnly: true,
   },
