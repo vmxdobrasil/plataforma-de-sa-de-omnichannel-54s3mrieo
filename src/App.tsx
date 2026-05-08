@@ -23,6 +23,7 @@ import ProfessionalDashboard from './pages/ProfessionalDashboard'
 import HealthProfile from './pages/HealthProfile'
 import NotFound from './pages/NotFound'
 import Login from './pages/Login'
+import Signup from './pages/Signup'
 import CompanyEmployees from './pages/CompanyEmployees'
 import CompanyTransactions from './pages/CompanyTransactions'
 import BenefitStatement from './pages/BenefitStatement'
@@ -115,6 +116,7 @@ const AppRoutes = () => {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
+      <Route path="/signup" element={<Signup />} />
 
       <Route element={<Layout />}>
         {/* Entry Point / Public / Patient Dashboard */}
