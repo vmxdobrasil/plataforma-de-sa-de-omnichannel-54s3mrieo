@@ -114,9 +114,9 @@ export default function AdminSupervision() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Fiscalização de Profissionais</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Guia Saúde (Gestão)</h1>
         <p className="text-muted-foreground mt-1">
-          Supervisione e gerencie o acesso dos profissionais de saúde na plataforma.
+          Gestão completa de médicos e profissionais de saúde, incluindo verificação e bloqueios.
         </p>
       </div>
 

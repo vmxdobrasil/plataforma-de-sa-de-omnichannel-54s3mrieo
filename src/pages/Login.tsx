@@ -36,7 +36,7 @@ export default function Login() {
     if (user.role === 'medical_director') {
       return <Navigate to="/admin" replace />
     } else if (user.role === 'company') {
-      return <Navigate to="/company/dashboard" replace />
+      return <Navigate to="/company/employees" replace />
     } else if (user.role === 'professional') {
       return <Navigate to="/professional" replace />
     } else {
@@ -53,19 +53,6 @@ export default function Login() {
     if (error) {
       toast.error(error.message || 'Erro no login. Verifique suas credenciais.')
     } else {
-      const keysToClear = [
-        'lastVisitedPath',
-        'last_visited_route',
-        'navigation_state',
-        'redirect_url',
-        'returnTo',
-        'currentRoute',
-        'current_route',
-      ]
-      keysToClear.forEach((key) => {
-        localStorage.removeItem(key)
-        sessionStorage.removeItem(key)
-      })
       toast.success('Bem-vindo de volta!')
     }
   }
@@ -89,19 +76,6 @@ export default function Login() {
       const msg = Object.values(errs)[0] || 'Erro ao criar conta.'
       toast.error(msg)
     } else {
-      const keysToClear = [
-        'lastVisitedPath',
-        'last_visited_route',
-        'navigation_state',
-        'redirect_url',
-        'returnTo',
-        'currentRoute',
-        'current_route',
-      ]
-      keysToClear.forEach((key) => {
-        localStorage.removeItem(key)
-        sessionStorage.removeItem(key)
-      })
       toast.success('Conta criada com sucesso!')
     }
   }

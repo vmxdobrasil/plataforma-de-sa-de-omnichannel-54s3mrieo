@@ -48,7 +48,7 @@ export default function AdminAI() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
-            <Bot className="h-8 w-8 text-primary" /> Agentes IA & Logs
+            <Bot className="h-8 w-8 text-primary" /> Agentes de IA
           </h1>
           <p className="text-muted-foreground mt-1">
             Monitore o conteúdo gerado e as interações com os agentes de IA na plataforma.

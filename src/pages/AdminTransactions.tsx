@@ -77,7 +77,7 @@ export default function AdminTransactions() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
-            <ReceiptText className="h-8 w-8 text-primary" /> Transações (Master Admin)
+            <ReceiptText className="h-8 w-8 text-primary" /> Transações e Financeiro
           </h1>
           <p className="text-muted-foreground mt-1">
             Visão global de todas as transações de benefícios na plataforma.

@@ -109,26 +109,6 @@ const AppRoutes = () => {
   const location = useLocation()
   const navigate = useNavigate()
 
-  useEffect(() => {
-    if (user?.role === 'medical_director') {
-      const keysToClear = [
-        'lastVisitedPath',
-        'last_visited_route',
-        'navigation_state',
-        'redirect_url',
-        'returnTo',
-        'last_path',
-        'redirect_to',
-        'currentRoute',
-        'current_route',
-      ]
-      keysToClear.forEach((key) => {
-        localStorage.removeItem(key)
-        sessionStorage.removeItem(key)
-      })
-    }
-  }, [user])
-
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
@@ -184,36 +164,6 @@ const AppRoutes = () => {
 }
 
 const App = () => {
-  useEffect(() => {
-    const keysToRemove: string[] = []
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i)
-      if (
-        key &&
-        (key.toLowerCase().includes('company') ||
-          key.toLowerCase().includes('dashboard') ||
-          key.includes('currentRoute'))
-      ) {
-        keysToRemove.push(key)
-      }
-    }
-    keysToRemove.forEach((k) => localStorage.removeItem(k))
-
-    const sessionKeysToRemove: string[] = []
-    for (let i = 0; i < sessionStorage.length; i++) {
-      const key = sessionStorage.key(i)
-      if (
-        key &&
-        (key.toLowerCase().includes('company') ||
-          key.toLowerCase().includes('dashboard') ||
-          key.includes('currentRoute'))
-      ) {
-        sessionKeysToRemove.push(key)
-      }
-    }
-    sessionKeysToRemove.forEach((k) => sessionStorage.removeItem(k))
-  }, [])
-
   return (
     <BrowserRouter future={{ v7_startTransition: false, v7_relativeSplatPath: false }}>
       <ThemeProvider defaultTheme="system" storageKey="vmed-theme">

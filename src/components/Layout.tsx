@@ -62,9 +62,9 @@ import logoUrl from '@/assets/image-editing3-e6f7b.png'
 
 const navItems = [
   { title: 'Início', icon: Home, url: '/', roles: ['patient', 'professional'] },
-  { title: 'V MED BRASIL ADMIN', icon: Shield, url: '/admin', roles: ['medical_director'] },
+  { title: 'Dashboard Principal', icon: Shield, url: '/admin', roles: ['medical_director'] },
   {
-    title: 'Guia Saúde / Médicos',
+    title: 'Guia Saúde (Gestão)',
     icon: Stethoscope,
     url: '/admin/supervision',
     roles: ['medical_director'],
@@ -83,35 +83,35 @@ const navItems = [
     masterOnly: true,
   },
   {
-    title: 'CRM & Usuários',
+    title: 'CRM',
     icon: Users,
     url: '/admin/users',
     roles: ['medical_director'],
     masterOnly: true,
   },
   {
-    title: 'Empresas Corporativas',
+    title: 'Gestão de Empresas',
     icon: Building2,
     url: '/company/employees',
-    roles: ['company', 'medical_director'],
+    roles: ['medical_director'],
     masterOnly: true,
   },
   {
-    title: 'Farmácias & Produtos',
+    title: 'Farmácias e Laboratórios',
     icon: Pill,
     url: '/admin/pharmacy',
     roles: ['medical_director'],
     masterOnly: true,
   },
   {
-    title: 'Agentes IA & Logs',
+    title: 'Agentes de IA',
     icon: Bot,
     url: '/admin/ai',
     roles: ['medical_director'],
     masterOnly: true,
   },
   {
-    title: 'Transações (Master)',
+    title: 'Transações e Financeiro',
     icon: ReceiptText,
     url: '/admin/transactions',
     roles: ['medical_director'],
@@ -132,13 +132,19 @@ const navItems = [
     masterOnly: true,
   },
   {
-    title: 'Branding & Arquivos',
+    title: 'Documentos Corporativos',
+    icon: Folder,
+    url: '/documents',
+    roles: ['company', 'medical_director'],
+    masterOnly: true,
+  },
+  {
+    title: 'Configurações do Sistema',
     icon: Sliders,
     url: '/admin/settings',
     roles: ['medical_director'],
     masterOnly: true,
   },
-  { title: 'Painel da Empresa', icon: Activity, url: '/company/dashboard', roles: ['company'] },
   { title: 'Gestão de Funcionários', icon: Users, url: '/company/employees', roles: ['company'] },
   {
     title: 'Transações de Benefícios',
@@ -153,12 +159,6 @@ const navItems = [
     roles: ['patient', 'company', 'medical_director', 'professional'],
   },
   { title: 'Meu Perfil de Saúde', icon: HeartPulse, url: '/health-profile', roles: ['patient'] },
-  {
-    title: 'Documentos Corporativos',
-    icon: Folder,
-    url: '/documents',
-    roles: ['company', 'medical_director'],
-  },
   { title: 'Documentos', icon: Folder, url: '/documents', roles: ['patient', 'professional'] },
   {
     title: 'Painel do Profissional',
@@ -202,6 +202,7 @@ export default function Layout() {
   const isMasterAdmin =
     user?.role === 'medical_director' &&
     (user?.email === 'valterpmendonca@gmail.com' ||
+      user?.email === 'victorhugotmendonca@gmail.com' ||
       user?.name?.toLowerCase().includes('valter') ||
       user?.name?.toLowerCase().includes('victor'))
 

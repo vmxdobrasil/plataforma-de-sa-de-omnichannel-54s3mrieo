@@ -58,10 +58,10 @@ export default function AdminPharmacy() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
-            <Pill className="h-8 w-8 text-primary" /> Gestão de Farmácias
+            <Pill className="h-8 w-8 text-primary" /> Farmácias e Laboratórios
           </h1>
           <p className="text-muted-foreground mt-1">
-            Gerencie os produtos cadastrados pelas farmácias parceiras.
+            Painel de gestão para farmácias, drogarias e laboratórios parceiros.
           </p>
         </div>
       </div>

@@ -38,26 +38,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [])
 
-  useEffect(() => {
-    if (user?.role === 'medical_director') {
-      const keysToClear = [
-        'lastVisitedPath',
-        'last_visited_route',
-        'navigation_state',
-        'redirect_url',
-        'returnTo',
-        'last_path',
-        'redirect_to',
-        'currentRoute',
-        'current_route',
-      ]
-      keysToClear.forEach((key) => {
-        localStorage.removeItem(key)
-        sessionStorage.removeItem(key)
-      })
-    }
-  }, [user?.role])
-
   const signUp = async (
     email: string,
     password: string,

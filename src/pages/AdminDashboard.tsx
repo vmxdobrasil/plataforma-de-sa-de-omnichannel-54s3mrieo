@@ -26,6 +26,7 @@ export default function AdminDashboard() {
   const isMasterAdmin =
     user?.role === 'medical_director' &&
     (user?.email === 'valterpmendonca@gmail.com' ||
+      user?.email === 'victorhugotmendonca@gmail.com' ||
       user?.name?.toLowerCase().includes('valter') ||
       user?.name?.toLowerCase().includes('victor'))
 
@@ -204,7 +205,7 @@ export default function AdminDashboard() {
                     </div>
                     <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0" />
                   </div>
-                  <CardTitle className="text-lg">CRM & Dados</CardTitle>
+                  <CardTitle className="text-lg">CRM</CardTitle>
                   <CardDescription className="text-sm">
                     Acesso aos registros de todos os usuários, pacientes e parceiros da plataforma.
                   </CardDescription>
@@ -223,12 +224,9 @@ export default function AdminDashboard() {
                     </div>
                     <ArrowRight className="h-5 w-5 text-primary transition-colors opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0" />
                   </div>
-                  <CardTitle className="text-lg text-primary">
-                    Gestão Corporativa (Empresas)
-                  </CardTitle>
+                  <CardTitle className="text-lg text-primary">Gestão de Empresas</CardTitle>
                   <CardDescription className="text-sm text-foreground/70">
-                    Acesse a visão de RH para gerenciar os benefícios, saldos e lista de
-                    funcionários corporativos.
+                    Controle clientes corporativos e suas listas de funcionários.
                   </CardDescription>
                 </CardHeader>
               </Card>
@@ -245,10 +243,10 @@ export default function AdminDashboard() {
                     </div>
                     <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0" />
                   </div>
-                  <CardTitle className="text-lg">Farmácias & Drogarias</CardTitle>
+                  <CardTitle className="text-lg">Farmácias e Laboratórios</CardTitle>
                   <CardDescription className="text-sm">
-                    Gestão de parceiros farmacêuticos, laboratórios e controle de catálogos/IA.
-                  </CardDescription>
+                    Painel de gestão para farmácias, drogarias e laboratórios parceiros.
+                  </CardDescription>{' '}
                 </CardHeader>
               </Card>
 
@@ -297,15 +295,16 @@ export default function AdminDashboard() {
           <Card className="bg-muted/30 border-dashed">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-base">
-                <Bot className="h-5 w-5" /> Hub de Agentes IA
+                <Bot className="h-5 w-5" /> Agentes de IA
               </CardTitle>
               <CardDescription>
-                Visão geral dos agentes de inteligência artificial da plataforma.
+                Orquestração e configuração dos assistentes de inteligência artificial da
+                plataforma.
               </CardDescription>
             </CardHeader>
             <CardContent>
               <Button variant="outline" className="w-full" onClick={() => navigate('/admin/ai')}>
-                Acessar Agentes IA <ArrowRight className="h-4 w-4 ml-2" />
+                Acessar Agentes de IA <ArrowRight className="h-4 w-4 ml-2" />
               </Button>
             </CardContent>
           </Card>

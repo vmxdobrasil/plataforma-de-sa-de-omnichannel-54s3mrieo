@@ -144,9 +144,9 @@ export default function AdminSettings() {
   return (
     <div className="max-w-5xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Branding & Files</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Configurações do Sistema</h1>
         <p className="text-muted-foreground mt-1">
-          Centralize o gerenciamento de arquivos e a marca da plataforma.
+          Gerencie o Brand Kit, arquivos corporativos e configurações globais.
         </p>
       </div>
 
