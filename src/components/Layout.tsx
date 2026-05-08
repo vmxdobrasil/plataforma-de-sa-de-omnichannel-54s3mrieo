@@ -64,7 +64,7 @@ const navItems = [
   { title: 'Início', icon: Home, url: '/', roles: ['patient', 'professional'] },
   { title: 'Dashboard Principal', icon: Shield, url: '/admin', roles: ['medical_director'] },
   {
-    title: 'Guia Saúde (Gestão)',
+    title: 'Supervisão Clínica',
     icon: Stethoscope,
     url: '/admin/supervision',
     roles: ['medical_director'],
@@ -153,7 +153,7 @@ const navItems = [
     roles: ['company'],
   },
   {
-    title: 'Guia Saúde / Busca',
+    title: 'Guia Saúde',
     icon: Search,
     url: '/search',
     roles: ['patient', 'company', 'medical_director', 'professional'],
