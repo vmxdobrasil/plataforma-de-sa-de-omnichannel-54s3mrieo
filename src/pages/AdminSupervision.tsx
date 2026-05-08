@@ -660,8 +660,8 @@ function AdminSupervisionContent() {
               </DialogTitle>
               <DialogDescription>
                 {selectedProf?.is_blocked
-                  ? `Você está prestes a restaurar o acesso de ${selectedProf.name}.`
-                  : `Você está prestes a revogar o acesso de ${selectedProf.name}.`}
+                  ? `Você está prestes a restaurar o acesso de ${selectedProf?.name || 'este profissional'}.`
+                  : `Você está prestes a revogar o acesso de ${selectedProf?.name || 'este profissional'}.`}
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
