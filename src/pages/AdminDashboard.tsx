@@ -4,14 +4,21 @@ import {
   Users,
   Building2,
   Stethoscope,
-  FileText,
   ActivitySquare,
   Shield,
   ArrowRight,
+  ShieldCheck,
+  ClipboardList,
+  FileText,
+  Store,
+  HeartPulse,
+  BadgeAlert,
+  Bot,
 } from 'lucide-react'
 import pb from '@/lib/pocketbase/client'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState({
@@ -51,119 +58,237 @@ export default function AdminDashboard() {
 
   return (
     <div className="space-y-8 animate-fade-in-up pb-10">
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2 text-primary mb-1">
-            <Shield className="h-5 w-5" />
-            <span className="font-semibold uppercase tracking-wider text-sm">
-              V MED BRASIL ADMIN
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-primary/5 p-6 rounded-2xl border border-primary/10 relative overflow-hidden">
+        <div className="absolute right-0 top-0 opacity-5 pointer-events-none translate-x-1/4 -translate-y-1/4">
+          <Shield className="w-64 h-64" />
+        </div>
+        <div className="relative z-10">
+          <div className="flex items-center gap-2 text-primary mb-2">
+            <Shield className="h-6 w-6" />
+            <span className="font-bold uppercase tracking-wider text-sm">
+              HUB CENTRAL MASTER ADMIN
             </span>
           </div>
-          <h1 className="text-3xl font-bold tracking-tight">Painel de Administração</h1>
-          <p className="text-muted-foreground mt-1 max-w-2xl">
-            Bem-vindo ao centro de comando operado por{' '}
-            <strong>Vmx do Brasil Administradora de Cartoes e Beneficios Ltda</strong>.
+          <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground">
+            Painel de Controle <span className="text-primary">VMX</span>
+          </h1>
+          <p className="text-muted-foreground mt-2 max-w-2xl text-base">
+            Operado por <strong>VMX do Brasil Administradora de Cartões e Benefícios Ltda</strong>.
+            Controle 100% da plataforma V MED BRASIL a partir deste ponto único.
           </p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20">
+              Gestor Master: Valter Paula Mendonça
+            </Badge>
+            <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20">
+              Gestor Master: Victor Hugo Tavares Mendonça
+            </Badge>
+            <Badge variant="outline" className="border-amber-500/30 text-amber-700 bg-amber-500/10">
+              Dir. Técnico: Fauzer Andrigo Mendonça Simoes Rangel
+            </Badge>
+          </div>
         </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="border-border/50 hover:border-primary/20 transition-colors">
+        <Card className="border-border/50 bg-card/50">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total de Pacientes</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{loading ? '...' : stats.patients}</div>
-            <p className="text-xs text-muted-foreground mt-1">Usuários diretos e corporativos</p>
           </CardContent>
         </Card>
 
-        <Card className="border-border/50 hover:border-primary/20 transition-colors">
+        <Card className="border-border/50 bg-card/50">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Profissionais (Médicos)</CardTitle>
             <Stethoscope className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{loading ? '...' : stats.professionals}</div>
-            <p className="text-xs text-muted-foreground mt-1">Especialistas cadastrados</p>
           </CardContent>
         </Card>
 
-        <Card className="border-border/50 hover:border-primary/20 transition-colors">
+        <Card className="border-border/50 bg-card/50">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Empresas Parceiras</CardTitle>
             <Building2 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{loading ? '...' : stats.companies}</div>
-            <p className="text-xs text-muted-foreground mt-1">Clientes corporativos</p>
           </CardContent>
         </Card>
 
-        <Card className="border-border/50 hover:border-primary/20 transition-colors">
+        <Card className="border-border/50 bg-card/50">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Consultas Realizadas</CardTitle>
             <ActivitySquare className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{loading ? '...' : stats.appointments}</div>
-            <p className="text-xs text-muted-foreground mt-1">Atendimentos na plataforma</p>
           </CardContent>
         </Card>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-6 mt-8">
-        <Card>
+      <div>
+        <h2 className="text-xl font-bold tracking-tight mb-4 flex items-center gap-2">
+          <ActivitySquare className="h-5 w-5 text-primary" /> Módulos de Gestão da Plataforma
+        </h2>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {/* Guia Saúde & Profissionais */}
+          <Card
+            className="group hover:border-primary/50 transition-all cursor-pointer hover:shadow-md"
+            onClick={() => navigate('/admin/supervision')}
+          >
+            <CardHeader>
+              <div className="flex items-center justify-between mb-2">
+                <div className="p-2.5 bg-blue-500/10 rounded-xl text-blue-600 group-hover:bg-blue-500 group-hover:text-white transition-colors">
+                  <Stethoscope className="h-6 w-6" />
+                </div>
+                <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0" />
+              </div>
+              <CardTitle className="text-lg">Guia Saúde & Médicos</CardTitle>
+              <CardDescription className="text-sm">
+                Gestão de profissionais, bloqueios por irregularidades e portal do Diretor Técnico.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+
+          {/* CRM */}
+          <Card
+            className="group hover:border-primary/50 transition-all cursor-pointer hover:shadow-md"
+            onClick={() => navigate('/admin/users')}
+          >
+            <CardHeader>
+              <div className="flex items-center justify-between mb-2">
+                <div className="p-2.5 bg-purple-500/10 rounded-xl text-purple-600 group-hover:bg-purple-500 group-hover:text-white transition-colors">
+                  <Users className="h-6 w-6" />
+                </div>
+                <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0" />
+              </div>
+              <CardTitle className="text-lg">CRM & Dados</CardTitle>
+              <CardDescription className="text-sm">
+                Acesso aos registros de todos os usuários, pacientes e parceiros da plataforma.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+
+          {/* Empresas Corporativas */}
+          <Card
+            className="group hover:border-primary/50 transition-all cursor-pointer hover:shadow-md border-primary/20 bg-primary/5"
+            onClick={() => navigate('/company/employees')}
+          >
+            <CardHeader>
+              <div className="flex items-center justify-between mb-2">
+                <div className="p-2.5 bg-primary/20 rounded-xl text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                  <Building2 className="h-6 w-6" />
+                </div>
+                <ArrowRight className="h-5 w-5 text-primary transition-colors opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0" />
+              </div>
+              <CardTitle className="text-lg text-primary">Gestão Corporativa (Empresas)</CardTitle>
+              <CardDescription className="text-sm text-foreground/70">
+                Acesse a visão de RH para gerenciar os benefícios, saldos e lista de funcionários
+                corporativos.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+
+          {/* Farmácias & Laboratórios */}
+          <Card
+            className="group hover:border-primary/50 transition-all cursor-pointer hover:shadow-md"
+            onClick={() => navigate('/admin/users')}
+          >
+            <CardHeader>
+              <div className="flex items-center justify-between mb-2">
+                <div className="p-2.5 bg-teal-500/10 rounded-xl text-teal-600 group-hover:bg-teal-500 group-hover:text-white transition-colors">
+                  <Store className="h-6 w-6" />
+                </div>
+                <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0" />
+              </div>
+              <CardTitle className="text-lg">Farmácias & Drogarias</CardTitle>
+              <CardDescription className="text-sm">
+                Gestão de parceiros farmacêuticos, laboratórios e controle de catálogos/IA (via
+                CRM).
+              </CardDescription>
+            </CardHeader>
+          </Card>
+
+          {/* Verificação de Cadastros */}
+          <Card
+            className="group hover:border-primary/50 transition-all cursor-pointer hover:shadow-md"
+            onClick={() => navigate('/admin/verification')}
+          >
+            <CardHeader>
+              <div className="flex items-center justify-between mb-2">
+                <div className="p-2.5 bg-emerald-500/10 rounded-xl text-emerald-600 group-hover:bg-emerald-500 group-hover:text-white transition-colors">
+                  <ShieldCheck className="h-6 w-6" />
+                </div>
+                <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0" />
+              </div>
+              <CardTitle className="text-lg">Verificação CFM</CardTitle>
+              <CardDescription className="text-sm">
+                Aprovação e validação de documentos e registros médicos da rede credenciada.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+
+          {/* Especialidades */}
+          <Card
+            className="group hover:border-primary/50 transition-all cursor-pointer hover:shadow-md"
+            onClick={() => navigate('/admin/specialties')}
+          >
+            <CardHeader>
+              <div className="flex items-center justify-between mb-2">
+                <div className="p-2.5 bg-amber-500/10 rounded-xl text-amber-600 group-hover:bg-amber-500 group-hover:text-white transition-colors">
+                  <FileText className="h-6 w-6" />
+                </div>
+                <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0" />
+              </div>
+              <CardTitle className="text-lg">Especialidades & IA</CardTitle>
+              <CardDescription className="text-sm">
+                Gerencie a base de dados de especialidades e vetores sintomáticos para a IA de
+                Triagem.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Card className="bg-muted/30 border-dashed">
           <CardHeader>
-            <CardTitle>Comando do Diretor Médico</CardTitle>
-            <CardDescription>Ações de fiscalização e suporte técnico-médico.</CardDescription>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <ClipboardList className="h-5 w-5" /> Logs de Auditoria
+            </CardTitle>
+            <CardDescription>
+              Rastreabilidade de todas as ações sensíveis no sistema.
+            </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <p className="text-sm text-muted-foreground mb-4">
-              Responsável Técnico: <strong>Fauzer Andrigo Mendonça Simoes Rangel</strong>
-            </p>
-            <Button
-              className="w-full justify-between"
-              variant="outline"
-              onClick={() => navigate('/admin/supervision')}
-            >
-              <span className="flex items-center gap-2">
-                <Shield className="h-4 w-4 text-primary" /> Fiscalização de Profissionais
-              </span>
-              <ArrowRight className="h-4 w-4" />
-            </Button>
-            <Button
-              className="w-full justify-between"
-              variant="outline"
-              onClick={() => navigate('/admin/specialties')}
-            >
-              <span className="flex items-center gap-2">
-                <FileText className="h-4 w-4 text-primary" /> Gerir Especialidades e CFM
-              </span>
-              <ArrowRight className="h-4 w-4" />
+          <CardContent>
+            <Button variant="outline" className="w-full" onClick={() => navigate('/admin/audit')}>
+              Acessar Auditoria <ArrowRight className="h-4 w-4 ml-2" />
             </Button>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="bg-muted/30 border-dashed">
           <CardHeader>
-            <CardTitle>Acesso Corporativo</CardTitle>
-            <CardDescription>Acesse a visão de RH das empresas parceiras.</CardDescription>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Bot className="h-5 w-5" /> Hub de Agentes IA
+            </CardTitle>
+            <CardDescription>
+              Visão geral dos agentes de inteligência artificial da plataforma.
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-muted-foreground mb-4">
-              Como administrador, você pode visualizar e gerenciar o painel de funcionários de
-              qualquer empresa cadastrada na plataforma.
-            </p>
             <Button
-              className="w-full justify-between"
-              onClick={() => navigate('/company/employees')}
+              variant="outline"
+              className="w-full"
+              onClick={() => navigate('/dashboard/agents')}
             >
-              <span className="flex items-center gap-2">
-                <Users className="h-4 w-4" /> Acessar Gestão de Funcionários
-              </span>
-              <ArrowRight className="h-4 w-4" />
+              Acessar Agentes IA <ArrowRight className="h-4 w-4 ml-2" />
             </Button>
           </CardContent>
         </Card>

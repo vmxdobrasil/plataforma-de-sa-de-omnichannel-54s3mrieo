@@ -283,10 +283,15 @@ export default function CompanyEmployees() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
         <div>
           {user?.role === 'medical_director' && (
-            <Button variant="ghost" size="sm" asChild className="mb-2 -ml-3 text-muted-foreground">
+            <Button
+              variant="outline"
+              size="sm"
+              asChild
+              className="mb-4 bg-primary/5 hover:bg-primary/10 border-primary/20 text-primary transition-all"
+            >
               <Link to="/admin">
                 <ArrowLeft className="h-4 w-4 mr-2" />
-                Voltar para Painel Admin
+                Voltar para o Hub Central (Admin)
               </Link>
             </Button>
           )}

@@ -120,7 +120,7 @@ const navItems = [
     roles: ['company'],
   },
   {
-    title: 'Busca Global',
+    title: 'Guia Saúde / Busca',
     icon: Search,
     url: '/search',
     roles: ['patient', 'company', 'medical_director', 'professional'],
