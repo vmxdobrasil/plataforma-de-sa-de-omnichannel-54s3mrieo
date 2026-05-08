@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { useAuth } from '@/hooks/use-auth'
 import pb from '@/lib/pocketbase/client'
 import {
@@ -21,9 +21,8 @@ import {
   Calendar,
   Pill,
   Activity,
-  CheckCircle2,
-  XCircle,
-  Clock,
+  Users,
+  Loader2,
 } from 'lucide-react'
 import {
   Dialog,
@@ -38,8 +37,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { toast } from 'sonner'
-import { format } from 'date-fns'
+import { format, isAfter, subDays } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
+import { Skeleton } from '@/components/ui/skeleton'
 
 export default function AdminSupervision() {
   const { user } = useAuth()
@@ -160,23 +160,32 @@ export default function AdminSupervision() {
     }
   }
 
-  const TableLoading = () => (
+  const TableLoading = ({ colSpan = 5 }: { colSpan?: number }) => (
     <TableRow>
-      <TableCell colSpan={5} className="text-center py-6">
-        Carregando...
-      </TableCell>
-    </TableRow>
-  )
-  const TableEmpty = ({ msg, colSpan = 5 }: { msg: string; colSpan?: number }) => (
-    <TableRow>
-      <TableCell colSpan={colSpan} className="text-center py-12 text-muted-foreground">
-        <div className="flex flex-col items-center justify-center gap-2">
-          <Activity className="h-8 w-8 text-muted-foreground/50" />
-          <p>{msg}</p>
+      <TableCell colSpan={colSpan} className="text-center py-12">
+        <div className="flex flex-col items-center justify-center gap-4">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-muted-foreground">Carregando dados clínicos...</p>
         </div>
       </TableCell>
     </TableRow>
   )
+
+  const TableEmpty = ({ colSpan = 5 }: { colSpan?: number }) => (
+    <TableRow>
+      <TableCell colSpan={colSpan} className="text-center py-12 text-muted-foreground">
+        <div className="flex flex-col items-center justify-center gap-2">
+          <Activity className="h-8 w-8 text-muted-foreground/50" />
+          <p>Nenhum dado clínico encontrado para supervisão.</p>
+        </div>
+      </TableCell>
+    </TableRow>
+  )
+
+  const recentRecordsCount = useMemo(() => {
+    const thirtyDaysAgo = subDays(new Date(), 30)
+    return healthRecords.filter((r) => isAfter(new Date(r.created), thirtyDaysAgo)).length
+  }, [healthRecords])
 
   return (
     <div className="space-y-6">
@@ -216,71 +225,76 @@ export default function AdminSupervision() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="bg-grid-pattern relative overflow-hidden border-primary/20">
-          <div className="absolute inset-0 bg-background/90 backdrop-blur-[1px]"></div>
+        <Card className="bg-grid-pattern relative overflow-hidden border-primary/20 bg-primary/5">
+          <div className="absolute inset-0 bg-background/80 backdrop-blur-[1px]"></div>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
-            <CardTitle className="text-sm font-medium">Agendados</CardTitle>
-            <Clock className="h-4 w-4 text-blue-500" />
+            <CardTitle className="text-sm font-medium">Total de Agendamentos</CardTitle>
+            <Calendar className="h-4 w-4 text-blue-500" />
           </CardHeader>
           <CardContent className="relative z-10">
             <div className="text-2xl font-bold">
-              {appointments.filter((a) => a.status === 'scheduled').length}
+              {loadingApps ? <Skeleton className="h-8 w-16" /> : appointments.length}
             </div>
-            <p className="text-xs text-muted-foreground mt-1">Consultas pendentes</p>
+            <p className="text-xs text-muted-foreground mt-1">Consultas na plataforma</p>
           </CardContent>
         </Card>
-        <Card className="bg-grid-pattern relative overflow-hidden border-primary/20">
-          <div className="absolute inset-0 bg-background/90 backdrop-blur-[1px]"></div>
+
+        <Card className="bg-grid-pattern relative overflow-hidden border-primary/20 bg-primary/5">
+          <div className="absolute inset-0 bg-background/80 backdrop-blur-[1px]"></div>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
-            <CardTitle className="text-sm font-medium">Concluídos</CardTitle>
-            <CheckCircle2 className="h-4 w-4 text-green-500" />
+            <CardTitle className="text-sm font-medium">Prontuários Recentes</CardTitle>
+            <FileText className="h-4 w-4 text-green-500" />
           </CardHeader>
           <CardContent className="relative z-10">
             <div className="text-2xl font-bold">
-              {appointments.filter((a) => a.status === 'completed').length}
+              {loadingRecords ? <Skeleton className="h-8 w-16" /> : recentRecordsCount}
             </div>
-            <p className="text-xs text-muted-foreground mt-1">Atendimentos realizados</p>
+            <p className="text-xs text-muted-foreground mt-1">Criados nos últimos 30 dias</p>
           </CardContent>
         </Card>
-        <Card className="bg-grid-pattern relative overflow-hidden border-primary/20">
-          <div className="absolute inset-0 bg-background/90 backdrop-blur-[1px]"></div>
+
+        <Card className="bg-grid-pattern relative overflow-hidden border-primary/20 bg-primary/5">
+          <div className="absolute inset-0 bg-background/80 backdrop-blur-[1px]"></div>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
-            <CardTitle className="text-sm font-medium">Cancelados</CardTitle>
-            <XCircle className="h-4 w-4 text-destructive" />
+            <CardTitle className="text-sm font-medium">Profissionais Registrados</CardTitle>
+            <Users className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent className="relative z-10">
             <div className="text-2xl font-bold">
-              {appointments.filter((a) => a.status === 'cancelled').length}
+              {loadingProfs ? <Skeleton className="h-8 w-16" /> : professionals.length}
             </div>
-            <p className="text-xs text-muted-foreground mt-1">Consultas canceladas</p>
+            <p className="text-xs text-muted-foreground mt-1">Médicos e especialistas</p>
           </CardContent>
         </Card>
-        <Card className="bg-grid-pattern relative overflow-hidden border-primary/20">
-          <div className="absolute inset-0 bg-background/90 backdrop-blur-[1px]"></div>
+
+        <Card className="bg-grid-pattern relative overflow-hidden border-primary/20 bg-primary/5">
+          <div className="absolute inset-0 bg-background/80 backdrop-blur-[1px]"></div>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
-            <CardTitle className="text-sm font-medium">Registros & Receitas</CardTitle>
-            <Activity className="h-4 w-4 text-primary" />
+            <CardTitle className="text-sm font-medium">Receitas Prescritas</CardTitle>
+            <Pill className="h-4 w-4 text-orange-500" />
           </CardHeader>
           <CardContent className="relative z-10">
-            <div className="text-2xl font-bold">{healthRecords.length + prescriptions.length}</div>
-            <p className="text-xs text-muted-foreground mt-1">Atividade clínica recente</p>
+            <div className="text-2xl font-bold">
+              {loadingPrescriptions ? <Skeleton className="h-8 w-16" /> : prescriptions.length}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">Total de prescrições</p>
           </CardContent>
         </Card>
       </div>
 
-      <Tabs defaultValue="appointments" className="w-full">
+      <Tabs defaultValue="records" className="w-full">
         <TabsList className="grid grid-cols-2 md:grid-cols-4 w-full h-auto gap-2 bg-transparent p-0">
-          <TabsTrigger
-            value="appointments"
-            className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary border bg-card py-3"
-          >
-            <Calendar className="mr-2 h-4 w-4" /> Agendamentos
-          </TabsTrigger>
           <TabsTrigger
             value="records"
             className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary border bg-card py-3"
           >
             <FileText className="mr-2 h-4 w-4" /> Prontuários
+          </TabsTrigger>
+          <TabsTrigger
+            value="appointments"
+            className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary border bg-card py-3"
+          >
+            <Calendar className="mr-2 h-4 w-4" /> Agendamentos
           </TabsTrigger>
           <TabsTrigger
             value="prescriptions"
@@ -295,6 +309,70 @@ export default function AdminSupervision() {
             <Stethoscope className="mr-2 h-4 w-4" /> Profissionais
           </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="records" className="mt-4">
+          <Card className="border shadow-sm">
+            <CardHeader className="bg-primary/20 bg-grid-pattern border-b pb-4">
+              <CardTitle>Prontuários de Saúde (Feed de Atividades)</CardTitle>
+              <CardDescription>Acesso aos registros clínicos de pacientes.</CardDescription>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="p-4 border-b">
+                <div className="relative max-w-md">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Buscar paciente ou profissional..."
+                    className="pl-9"
+                    value={searchTermRec}
+                    onChange={(e) => setSearchTermRec(e.target.value)}
+                  />
+                </div>
+              </div>
+              <Table>
+                <TableHeader className="bg-muted/50">
+                  <TableRow>
+                    <TableHead>Data</TableHead>
+                    <TableHead>Paciente</TableHead>
+                    <TableHead>Profissional</TableHead>
+                    <TableHead>Tipo de Registro</TableHead>
+                    <TableHead>Conteúdo Resumido</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {loadingRecords ? (
+                    <TableLoading />
+                  ) : healthRecords.length === 0 ? (
+                    <TableEmpty />
+                  ) : (
+                    healthRecords.map((rec) => (
+                      <TableRow key={rec.id}>
+                        <TableCell className="font-medium whitespace-nowrap">
+                          {format(new Date(rec.created), 'dd/MM/yyyy HH:mm')}
+                        </TableCell>
+                        <TableCell>{rec.expand?.patient_id?.name || 'N/A'}</TableCell>
+                        <TableCell>{rec.expand?.professional_id?.name || 'N/A'}</TableCell>
+                        <TableCell>
+                          <Badge variant="secondary" className="capitalize">
+                            {rec.type === 'clinical'
+                              ? 'Clínico'
+                              : rec.type === 'dental'
+                                ? 'Odontológico'
+                                : rec.type === 'aesthetic'
+                                  ? 'Estético'
+                                  : rec.type}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="max-w-[200px] truncate" title={rec.content}>
+                          {rec.content}
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
         <TabsContent value="appointments" className="mt-4">
           <Card className="border shadow-sm">
@@ -328,7 +406,7 @@ export default function AdminSupervision() {
                   {loadingApps ? (
                     <TableLoading />
                   ) : appointments.length === 0 ? (
-                    <TableEmpty msg="Nenhuma atividade clínica registrada ainda (No clinical activity recorded yet)." />
+                    <TableEmpty />
                   ) : (
                     appointments.map((app) => (
                       <TableRow key={app.id}>
@@ -343,62 +421,6 @@ export default function AdminSupervision() {
                           <Badge variant="outline">{app.status}</Badge>
                         </TableCell>
                         <TableCell>{app.type}</TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="records" className="mt-4">
-          <Card className="border shadow-sm">
-            <CardHeader className="bg-primary/20 bg-grid-pattern border-b pb-4">
-              <CardTitle>Prontuários de Saúde</CardTitle>
-              <CardDescription>Acesso aos registros clínicos de pacientes.</CardDescription>
-            </CardHeader>
-            <CardContent className="p-0">
-              <div className="p-4 border-b">
-                <div className="relative max-w-md">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Buscar paciente ou profissional..."
-                    className="pl-9"
-                    value={searchTermRec}
-                    onChange={(e) => setSearchTermRec(e.target.value)}
-                  />
-                </div>
-              </div>
-              <Table>
-                <TableHeader className="bg-muted/50">
-                  <TableRow>
-                    <TableHead>Data</TableHead>
-                    <TableHead>Paciente</TableHead>
-                    <TableHead>Profissional</TableHead>
-                    <TableHead>Tipo</TableHead>
-                    <TableHead>Conteúdo Resumido</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {loadingRecords ? (
-                    <TableLoading />
-                  ) : healthRecords.length === 0 ? (
-                    <TableEmpty msg="Nenhuma atividade clínica registrada ainda (No clinical activity recorded yet)." />
-                  ) : (
-                    healthRecords.map((rec) => (
-                      <TableRow key={rec.id}>
-                        <TableCell className="font-medium whitespace-nowrap">
-                          {format(new Date(rec.created), 'dd/MM/yyyy HH:mm')}
-                        </TableCell>
-                        <TableCell>{rec.expand?.patient_id?.name || 'N/A'}</TableCell>
-                        <TableCell>{rec.expand?.professional_id?.name || 'N/A'}</TableCell>
-                        <TableCell>
-                          <Badge variant="secondary">{rec.type}</Badge>
-                        </TableCell>
-                        <TableCell className="max-w-[200px] truncate" title={rec.content}>
-                          {rec.content}
-                        </TableCell>
                       </TableRow>
                     ))
                   )}
@@ -437,12 +459,9 @@ export default function AdminSupervision() {
                 </TableHeader>
                 <TableBody>
                   {loadingPrescriptions ? (
-                    <TableLoading />
+                    <TableLoading colSpan={4} />
                   ) : prescriptions.length === 0 ? (
-                    <TableEmpty
-                      msg="Nenhuma atividade clínica registrada ainda (No clinical activity recorded yet)."
-                      colSpan={4}
-                    />
+                    <TableEmpty colSpan={4} />
                   ) : (
                     prescriptions.map((presc) => (
                       <TableRow key={presc.id}>
@@ -495,7 +514,7 @@ export default function AdminSupervision() {
                   {loadingProfs ? (
                     <TableLoading />
                   ) : professionals.length === 0 ? (
-                    <TableEmpty msg="Nenhuma atividade clínica registrada ainda (No clinical activity recorded yet)." />
+                    <TableEmpty />
                   ) : (
                     professionals.map((prof) => (
                       <TableRow key={prof.id}>
