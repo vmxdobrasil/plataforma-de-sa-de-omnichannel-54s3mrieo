@@ -20,6 +20,10 @@ import {
   FileText,
   Calendar,
   Pill,
+  Activity,
+  CheckCircle2,
+  XCircle,
+  Clock,
 } from 'lucide-react'
 import {
   Dialog,
@@ -135,12 +139,10 @@ export default function AdminSupervision() {
     if (isBlocking && !blockReason.trim()) return toast.error('O motivo do bloqueio é obrigatório.')
     try {
       setSubmitting(true)
-      await pb
-        .collection('users')
-        .update(selectedProf.id, {
-          is_blocked: isBlocking,
-          block_reason: isBlocking ? blockReason : '',
-        })
+      await pb.collection('users').update(selectedProf.id, {
+        is_blocked: isBlocking,
+        block_reason: isBlocking ? blockReason : '',
+      })
       await pb.collection('audit_logs').create({
         user_id: user?.id,
         action: 'update',
@@ -165,10 +167,13 @@ export default function AdminSupervision() {
       </TableCell>
     </TableRow>
   )
-  const TableEmpty = ({ msg }: { msg: string }) => (
+  const TableEmpty = ({ msg, colSpan = 5 }: { msg: string; colSpan?: number }) => (
     <TableRow>
-      <TableCell colSpan={5} className="text-center py-6 text-muted-foreground">
-        {msg}
+      <TableCell colSpan={colSpan} className="text-center py-12 text-muted-foreground">
+        <div className="flex flex-col items-center justify-center gap-2">
+          <Activity className="h-8 w-8 text-muted-foreground/50" />
+          <p>{msg}</p>
+        </div>
       </TableCell>
     </TableRow>
   )
@@ -187,7 +192,7 @@ export default function AdminSupervision() {
               src={
                 user?.avatar
                   ? pb.files.getURL(user, user.avatar)
-                  : `https://api.dicebear.com/7.x/notionists/svg?seed=${user?.name}`
+                  : `https://api.dicebear.com/7.x/notionists/svg?seed=Fauzer`
               }
             />
             <AvatarFallback>
@@ -196,13 +201,64 @@ export default function AdminSupervision() {
           </Avatar>
           <div>
             <p className="font-bold text-foreground leading-tight">
-              {user?.name || 'Diretor Médico'}
+              Diretor Médico: Dr. Fauzer Andrigo Mendonça Simões Rangel
             </p>
-            <p className="text-sm text-primary font-semibold tracking-wide">
-              CRM {user?.crm_number || 'N/A'} {user?.crm_state || ''}
-            </p>
+            <p className="text-sm text-primary font-semibold tracking-wide">CRM: 29015 GO</p>
           </div>
         </div>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Card className="bg-grid-pattern relative overflow-hidden border-primary/20">
+          <div className="absolute inset-0 bg-background/90 backdrop-blur-[1px]"></div>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
+            <CardTitle className="text-sm font-medium">Agendados</CardTitle>
+            <Clock className="h-4 w-4 text-blue-500" />
+          </CardHeader>
+          <CardContent className="relative z-10">
+            <div className="text-2xl font-bold">
+              {appointments.filter((a) => a.status === 'scheduled').length}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">Consultas pendentes</p>
+          </CardContent>
+        </Card>
+        <Card className="bg-grid-pattern relative overflow-hidden border-primary/20">
+          <div className="absolute inset-0 bg-background/90 backdrop-blur-[1px]"></div>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
+            <CardTitle className="text-sm font-medium">Concluídos</CardTitle>
+            <CheckCircle2 className="h-4 w-4 text-green-500" />
+          </CardHeader>
+          <CardContent className="relative z-10">
+            <div className="text-2xl font-bold">
+              {appointments.filter((a) => a.status === 'completed').length}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">Atendimentos realizados</p>
+          </CardContent>
+        </Card>
+        <Card className="bg-grid-pattern relative overflow-hidden border-primary/20">
+          <div className="absolute inset-0 bg-background/90 backdrop-blur-[1px]"></div>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
+            <CardTitle className="text-sm font-medium">Cancelados</CardTitle>
+            <XCircle className="h-4 w-4 text-destructive" />
+          </CardHeader>
+          <CardContent className="relative z-10">
+            <div className="text-2xl font-bold">
+              {appointments.filter((a) => a.status === 'cancelled').length}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">Consultas canceladas</p>
+          </CardContent>
+        </Card>
+        <Card className="bg-grid-pattern relative overflow-hidden border-primary/20">
+          <div className="absolute inset-0 bg-background/90 backdrop-blur-[1px]"></div>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
+            <CardTitle className="text-sm font-medium">Registros & Receitas</CardTitle>
+            <Activity className="h-4 w-4 text-primary" />
+          </CardHeader>
+          <CardContent className="relative z-10">
+            <div className="text-2xl font-bold">{healthRecords.length + prescriptions.length}</div>
+            <p className="text-xs text-muted-foreground mt-1">Atividade clínica recente</p>
+          </CardContent>
+        </Card>
       </div>
 
       <Tabs defaultValue="appointments" className="w-full">
@@ -265,7 +321,7 @@ export default function AdminSupervision() {
                   {loadingApps ? (
                     <TableLoading />
                   ) : appointments.length === 0 ? (
-                    <TableEmpty msg="Nenhum agendamento encontrado." />
+                    <TableEmpty msg="Nenhuma atividade clínica registrada ainda (No clinical activity recorded yet)." />
                   ) : (
                     appointments.map((app) => (
                       <TableRow key={app.id}>
@@ -321,7 +377,7 @@ export default function AdminSupervision() {
                   {loadingRecords ? (
                     <TableLoading />
                   ) : healthRecords.length === 0 ? (
-                    <TableEmpty msg="Nenhum prontuário encontrado." />
+                    <TableEmpty msg="Nenhuma atividade clínica registrada ainda (No clinical activity recorded yet)." />
                   ) : (
                     healthRecords.map((rec) => (
                       <TableRow key={rec.id}>
@@ -376,7 +432,10 @@ export default function AdminSupervision() {
                   {loadingPrescriptions ? (
                     <TableLoading />
                   ) : prescriptions.length === 0 ? (
-                    <TableEmpty msg="Nenhuma receita encontrada." />
+                    <TableEmpty
+                      msg="Nenhuma atividade clínica registrada ainda (No clinical activity recorded yet)."
+                      colSpan={4}
+                    />
                   ) : (
                     prescriptions.map((presc) => (
                       <TableRow key={presc.id}>
@@ -429,7 +488,7 @@ export default function AdminSupervision() {
                   {loadingProfs ? (
                     <TableLoading />
                   ) : professionals.length === 0 ? (
-                    <TableEmpty msg="Nenhum profissional encontrado." />
+                    <TableEmpty msg="Nenhuma atividade clínica registrada ainda (No clinical activity recorded yet)." />
                   ) : (
                     professionals.map((prof) => (
                       <TableRow key={prof.id}>
