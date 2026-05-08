@@ -180,11 +180,10 @@ export default function AdminSupervision() {
 
   return (
     <div className="space-y-6">
-      <div className="bg-primary/5 bg-grid-pattern border border-primary/20 rounded-xl p-6 shadow-sm">
+      <div className="bg-primary/20 bg-grid-pattern border border-primary/20 rounded-xl p-6 shadow-sm">
         <h1 className="text-3xl font-bold tracking-tight text-primary">Supervisão Clínica</h1>
         <p className="text-muted-foreground mt-2 max-w-2xl">
-          Painel do Diretor Médico para gestão de profissionais, auditoria de prontuários, receitas
-          e agendamentos.
+          Painel para gestão de profissionais, auditoria de prontuários, receitas e agendamentos.
         </p>
         <div className="mt-6 flex items-center gap-4 bg-background/80 backdrop-blur-sm w-fit px-4 py-3 rounded-lg border border-primary/10 shadow-sm">
           <Avatar className="h-12 w-12 border-2 border-primary/30">
@@ -192,18 +191,26 @@ export default function AdminSupervision() {
               src={
                 user?.avatar
                   ? pb.files.getURL(user, user.avatar)
-                  : `https://api.dicebear.com/7.x/notionists/svg?seed=Fauzer`
+                  : `https://api.dicebear.com/7.x/notionists/svg?seed=${user?.name || 'Fauzer'}`
               }
             />
             <AvatarFallback>
-              <Stethoscope className="h-5 w-5" />
+              {user?.role === 'medical_director' ? (
+                <Stethoscope className="h-5 w-5" />
+              ) : (
+                <ShieldCheck className="h-5 w-5" />
+              )}
             </AvatarFallback>
           </Avatar>
           <div>
             <p className="font-bold text-foreground leading-tight">
-              Diretor Médico: Dr. Fauzer Andrigo Mendonça Simões Rangel
+              {user?.role === 'medical_director'
+                ? 'Diretor Médico: Dr. Fauzer Andrigo Mendonça Simões Rangel'
+                : `Administrador Master: ${user?.name || 'Sistema'}`}
             </p>
-            <p className="text-sm text-primary font-semibold tracking-wide">CRM: 29015 GO</p>
+            <p className="text-sm text-primary font-semibold tracking-wide">
+              {user?.role === 'medical_director' ? 'CRM: 29015 GO' : 'Visão Global de Supervisão'}
+            </p>
           </div>
         </div>
       </div>
@@ -291,7 +298,7 @@ export default function AdminSupervision() {
 
         <TabsContent value="appointments" className="mt-4">
           <Card className="border shadow-sm">
-            <CardHeader className="bg-primary/5 bg-grid-pattern border-b pb-4">
+            <CardHeader className="bg-primary/20 bg-grid-pattern border-b pb-4">
               <CardTitle>Agendamentos Gerais</CardTitle>
               <CardDescription>Auditoria de todas as consultas na plataforma.</CardDescription>
             </CardHeader>
@@ -347,7 +354,7 @@ export default function AdminSupervision() {
 
         <TabsContent value="records" className="mt-4">
           <Card className="border shadow-sm">
-            <CardHeader className="bg-primary/5 bg-grid-pattern border-b pb-4">
+            <CardHeader className="bg-primary/20 bg-grid-pattern border-b pb-4">
               <CardTitle>Prontuários de Saúde</CardTitle>
               <CardDescription>Acesso aos registros clínicos de pacientes.</CardDescription>
             </CardHeader>
@@ -403,7 +410,7 @@ export default function AdminSupervision() {
 
         <TabsContent value="prescriptions" className="mt-4">
           <Card className="border shadow-sm">
-            <CardHeader className="bg-primary/5 bg-grid-pattern border-b pb-4">
+            <CardHeader className="bg-primary/20 bg-grid-pattern border-b pb-4">
               <CardTitle>Receitas Prescritas</CardTitle>
               <CardDescription>Auditoria de prescrições médicas na plataforma.</CardDescription>
             </CardHeader>
@@ -458,7 +465,7 @@ export default function AdminSupervision() {
 
         <TabsContent value="professionals" className="mt-4">
           <Card className="border shadow-sm">
-            <CardHeader className="bg-primary/5 bg-grid-pattern border-b pb-4">
+            <CardHeader className="bg-primary/20 bg-grid-pattern border-b pb-4">
               <CardTitle>Verificação de Profissionais</CardTitle>
               <CardDescription>Gerencie acesso e verifique o CRM dos médicos.</CardDescription>
             </CardHeader>
