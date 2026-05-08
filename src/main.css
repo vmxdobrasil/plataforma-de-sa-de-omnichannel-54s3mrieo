@@ -140,6 +140,14 @@
   .animate-pulse-glow {
     animation: pulse-glow 3s infinite;
   }
+  .bg-grid-pattern {
+    background-size: 20px 20px;
+    background-image: radial-gradient(
+      circle at 1px 1px,
+      hsl(var(--primary) / 0.2) 1px,
+      transparent 0
+    );
+  }
 }
 
 h1,
