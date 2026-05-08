@@ -1,199 +1,173 @@
 import { useEffect, useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Building2, Stethoscope, Users, Pill, Shield, CheckCircle2 } from 'lucide-react'
-import pb from '@/lib/pocketbase/client'
-import { useAuth } from '@/hooks/use-auth'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
-import { Badge } from '@/components/ui/badge'
+  Users,
+  Building2,
+  Stethoscope,
+  FileText,
+  ActivitySquare,
+  Shield,
+  ArrowRight,
+} from 'lucide-react'
+import pb from '@/lib/pocketbase/client'
+import { useNavigate } from 'react-router-dom'
+import { Button } from '@/components/ui/button'
 
 export default function AdminDashboard() {
-  const { user } = useAuth()
-
-  useEffect(() => {
-    document.title = 'V MED BRASIL ADMIN'
-
-    // Clear persistent state on load to avoid routing loops
-    const keysToClear = [
-      'lastVisitedPath',
-      'last_visited_route',
-      'navigation_state',
-      'redirect_url',
-      'returnTo',
-      'last_path',
-      'redirect_to',
-      'currentRoute',
-      'current_route',
-    ]
-    keysToClear.forEach((key) => {
-      localStorage.removeItem(key)
-      sessionStorage.removeItem(key)
-    })
-  }, [])
-
   const [stats, setStats] = useState({
-    companies: 0,
-    professionals: 0,
     patients: 0,
-    pharmacies: 0,
-    totalTransactions: 0,
+    professionals: 0,
+    companies: 0,
+    appointments: 0,
   })
-  const [recentTransactions, setRecentTransactions] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const navigate = useNavigate()
 
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const [users, transactions] = await Promise.all([
-          pb.collection('users').getFullList({ fields: 'role' }),
-          pb
-            .collection('benefit_transactions')
-            .getList(1, 10, { sort: '-created', expand: 'employee_id,company_id' }),
+        const [patients, professionals, companies, appointments] = await Promise.all([
+          pb.collection('users').getList(1, 1, { filter: 'role="patient"' }),
+          pb.collection('users').getList(1, 1, { filter: 'role="professional"' }),
+          pb.collection('users').getList(1, 1, { filter: 'role="company"' }),
+          pb.collection('appointments').getList(1, 1),
         ])
 
-        const counts = users.reduce((acc: any, u: any) => {
-          acc[u.role] = (acc[u.role] || 0) + 1
-          return acc
-        }, {})
-
         setStats({
-          companies: counts.company || 0,
-          professionals: counts.professional || 0,
-          patients: counts.patient || 0,
-          pharmacies: counts.pharmacy || 0,
-          totalTransactions: transactions.totalItems,
+          patients: patients.totalItems,
+          professionals: professionals.totalItems,
+          companies: companies.totalItems,
+          appointments: appointments.totalItems,
         })
-
-        setRecentTransactions(transactions.items)
-      } catch (err) {
-        console.error(err)
+      } catch (error) {
+        console.error('Error fetching stats:', error)
+      } finally {
+        setLoading(false)
       }
     }
 
-    if (user?.role === 'medical_director') {
-      fetchStats()
-    }
-  }, [user])
-
-  const isPartner = ['valterpmendonca@gmail.com', 'victor@vmx.com.br'].includes(user?.email || '')
+    fetchStats()
+  }, [])
 
   return (
-    <div className="space-y-6 pb-10 animate-fade-in-up">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+    <div className="space-y-8 animate-fade-in-up pb-10">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
-            <Shield className="h-8 w-8 text-primary" />V MED BRASIL ADMIN
-          </h1>
-          <p className="text-muted-foreground mt-2">Gestão global administrativa da plataforma.</p>
+          <div className="flex items-center gap-2 text-primary mb-1">
+            <Shield className="h-5 w-5" />
+            <span className="font-semibold uppercase tracking-wider text-sm">
+              V MED BRASIL ADMIN
+            </span>
+          </div>
+          <h1 className="text-3xl font-bold tracking-tight">Painel de Administração</h1>
+          <p className="text-muted-foreground mt-1 max-w-2xl">
+            Bem-vindo ao centro de comando operado por{' '}
+            <strong>Vmx do Brasil Administradora de Cartoes e Beneficios Ltda</strong>.
+          </p>
         </div>
-        {isPartner && (
-          <Badge
-            variant="secondary"
-            className="bg-primary/10 text-primary border-primary/20 px-4 py-1.5 text-sm"
-          >
-            <CheckCircle2 className="h-4 w-4 mr-2" />
-            Acesso Total Partner
-          </Badge>
-        )}
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="bg-blue-50/50 border-blue-100">
+        <Card className="border-border/50 hover:border-primary/20 transition-colors">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-blue-900">Empresas</CardTitle>
-            <Building2 className="h-4 w-4 text-blue-600" />
+            <CardTitle className="text-sm font-medium">Total de Pacientes</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-blue-700">{stats.companies}</div>
+            <div className="text-2xl font-bold">{loading ? '...' : stats.patients}</div>
+            <p className="text-xs text-muted-foreground mt-1">Usuários diretos e corporativos</p>
           </CardContent>
         </Card>
-        <Card className="bg-emerald-50/50 border-emerald-100">
+
+        <Card className="border-border/50 hover:border-primary/20 transition-colors">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-emerald-900">Profissionais</CardTitle>
-            <Stethoscope className="h-4 w-4 text-emerald-600" />
+            <CardTitle className="text-sm font-medium">Profissionais (Médicos)</CardTitle>
+            <Stethoscope className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-emerald-700">{stats.professionals}</div>
+            <div className="text-2xl font-bold">{loading ? '...' : stats.professionals}</div>
+            <p className="text-xs text-muted-foreground mt-1">Especialistas cadastrados</p>
           </CardContent>
         </Card>
-        <Card className="bg-purple-50/50 border-purple-100">
+
+        <Card className="border-border/50 hover:border-primary/20 transition-colors">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-purple-900">Pacientes</CardTitle>
-            <Users className="h-4 w-4 text-purple-600" />
+            <CardTitle className="text-sm font-medium">Empresas Parceiras</CardTitle>
+            <Building2 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-purple-700">{stats.patients}</div>
+            <div className="text-2xl font-bold">{loading ? '...' : stats.companies}</div>
+            <p className="text-xs text-muted-foreground mt-1">Clientes corporativos</p>
           </CardContent>
         </Card>
-        <Card className="bg-orange-50/50 border-orange-100">
+
+        <Card className="border-border/50 hover:border-primary/20 transition-colors">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-orange-900">Farmácias</CardTitle>
-            <Pill className="h-4 w-4 text-orange-600" />
+            <CardTitle className="text-sm font-medium">Consultas Realizadas</CardTitle>
+            <ActivitySquare className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-orange-700">{stats.pharmacies}</div>
+            <div className="text-2xl font-bold">{loading ? '...' : stats.appointments}</div>
+            <p className="text-xs text-muted-foreground mt-1">Atendimentos na plataforma</p>
           </CardContent>
         </Card>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Transações Recentes</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Data</TableHead>
-                  <TableHead>Empresa</TableHead>
-                  <TableHead>Colaborador</TableHead>
-                  <TableHead>Tipo</TableHead>
-                  <TableHead className="text-right">Valor</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {recentTransactions.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={5} className="text-center py-6 text-muted-foreground">
-                      Nenhuma transação encontrada.
-                    </TableCell>
-                  </TableRow>
-                )}
-                {recentTransactions.map((t) => (
-                  <TableRow key={t.id}>
-                    <TableCell className="whitespace-nowrap">
-                      {new Date(t.created).toLocaleString('pt-BR')}
-                    </TableCell>
-                    <TableCell>{t.expand?.company_id?.name || 'N/A'}</TableCell>
-                    <TableCell>{t.expand?.employee_id?.name || 'N/A'}</TableCell>
-                    <TableCell>
-                      <Badge
-                        variant="outline"
-                        className={
-                          t.type === 'credit'
-                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                            : 'bg-red-50 text-red-700 border-red-200'
-                        }
-                      >
-                        {t.type === 'credit' ? 'Crédito' : 'Débito'}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right font-medium">
-                      R$ {t.amount.toFixed(2)}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="grid md:grid-cols-2 gap-6 mt-8">
+        <Card>
+          <CardHeader>
+            <CardTitle>Comando do Diretor Médico</CardTitle>
+            <CardDescription>Ações de fiscalização e suporte técnico-médico.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-sm text-muted-foreground mb-4">
+              Responsável Técnico: <strong>Fauzer Andrigo Mendonça Simoes Rangel</strong>
+            </p>
+            <Button
+              className="w-full justify-between"
+              variant="outline"
+              onClick={() => navigate('/admin/supervision')}
+            >
+              <span className="flex items-center gap-2">
+                <Shield className="h-4 w-4 text-primary" /> Fiscalização de Profissionais
+              </span>
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+            <Button
+              className="w-full justify-between"
+              variant="outline"
+              onClick={() => navigate('/admin/specialties')}
+            >
+              <span className="flex items-center gap-2">
+                <FileText className="h-4 w-4 text-primary" /> Gerir Especialidades e CFM
+              </span>
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Acesso Corporativo</CardTitle>
+            <CardDescription>Acesse a visão de RH das empresas parceiras.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground mb-4">
+              Como administrador, você pode visualizar e gerenciar o painel de funcionários de
+              qualquer empresa cadastrada na plataforma.
+            </p>
+            <Button
+              className="w-full justify-between"
+              onClick={() => navigate('/company/employees')}
+            >
+              <span className="flex items-center gap-2">
+                <Users className="h-4 w-4" /> Acessar Gestão de Funcionários
+              </span>
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   )
 }

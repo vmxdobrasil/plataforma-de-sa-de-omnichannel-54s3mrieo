@@ -19,12 +19,60 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { Button } from '@/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { Label } from '@/components/ui/label'
+import { Plus } from 'lucide-react'
 
 export default function AdminUsers() {
   const [users, setUsers] = useState<any[]>([])
   const [searchTerm, setSearchTerm] = useState('')
   const [roleFilter, setRoleFilter] = useState('all')
   const [loading, setLoading] = useState(true)
+
+  const [isAddStaffOpen, setIsAddStaffOpen] = useState(false)
+  const [staffName, setStaffName] = useState('')
+  const [staffEmail, setStaffEmail] = useState('')
+  const [staffPassword, setStaffPassword] = useState('')
+  const [staffRole, setStaffRole] = useState('medical_director')
+  const [submitting, setSubmitting] = useState(false)
+
+  const handleAddStaff = async () => {
+    if (!staffName || !staffEmail || !staffPassword) {
+      toast.error('Preencha todos os campos.')
+      return
+    }
+    try {
+      setSubmitting(true)
+      await pb.collection('users').create({
+        name: staffName,
+        email: staffEmail,
+        password: staffPassword,
+        passwordConfirm: staffPassword,
+        role: staffRole,
+        emailVisibility: true,
+        verified: true,
+      })
+      toast.success('Usuário criado com sucesso!')
+      setIsAddStaffOpen(false)
+      setStaffName('')
+      setStaffEmail('')
+      setStaffPassword('')
+      loadUsers()
+    } catch (error) {
+      console.error(error)
+      toast.error('Erro ao criar usuário. Verifique se o e-mail já existe.')
+    } finally {
+      setSubmitting(false)
+    }
+  }
 
   const loadUsers = async () => {
     try {
@@ -54,11 +102,16 @@ export default function AdminUsers() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Gestão de Usuários</h1>
-        <p className="text-muted-foreground mt-1">
-          Gerencie Profissionais, Empresas e Pacientes da plataforma.
-        </p>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Gestão de Usuários</h1>
+          <p className="text-muted-foreground mt-1">
+            Gerencie Profissionais, Empresas, Pacientes e Equipe da plataforma.
+          </p>
+        </div>
+        <Button onClick={() => setIsAddStaffOpen(true)}>
+          <Plus className="mr-2 h-4 w-4" /> Adicionar Membro da Equipe
+        </Button>
       </div>
 
       <div className="flex flex-col sm:flex-row items-center gap-4 bg-card p-4 rounded-xl border shadow-sm">
@@ -144,6 +197,71 @@ export default function AdminUsers() {
           </TableBody>
         </Table>
       </div>
+
+      <Dialog open={isAddStaffOpen} onOpenChange={setIsAddStaffOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Adicionar Novo Membro</DialogTitle>
+            <DialogDescription>
+              Crie um novo acesso para a equipe de gestão da plataforma ou outros papéis.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Nome Completo</Label>
+              <Input
+                placeholder="Ex: João da Silva"
+                value={staffName}
+                onChange={(e) => setStaffName(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>E-mail</Label>
+              <Input
+                type="email"
+                placeholder="email@vmedbrasil.com.br"
+                value={staffEmail}
+                onChange={(e) => setStaffEmail(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Senha Temporária</Label>
+              <Input
+                type="password"
+                placeholder="Mínimo 8 caracteres"
+                value={staffPassword}
+                onChange={(e) => setStaffPassword(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Papel (Role)</Label>
+              <Select value={staffRole} onValueChange={setStaffRole}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="medical_director">Diretor Médico / Admin</SelectItem>
+                  <SelectItem value="company">Empresa (RH)</SelectItem>
+                  <SelectItem value="professional">Profissional (Médico)</SelectItem>
+                  <SelectItem value="patient">Paciente</SelectItem>
+                  <SelectItem value="pharmacy">Farmácia</SelectItem>
+                  <SelectItem value="laboratory">Laboratório</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setIsAddStaffOpen(false)} disabled={submitting}>
+              Cancelar
+            </Button>
+            <Button onClick={handleAddStaff} disabled={submitting}>
+              {submitting ? 'Criando...' : 'Criar Acesso'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

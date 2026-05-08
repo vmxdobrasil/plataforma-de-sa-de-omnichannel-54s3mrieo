@@ -7,7 +7,9 @@ import {
 } from '@/services/companies'
 import { useRealtime } from '@/hooks/use-realtime'
 import { useAuth } from '@/hooks/use-auth'
+import { useSearchParams, Link } from 'react-router-dom'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import pb from '@/lib/pocketbase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -46,6 +48,7 @@ import {
   Ban,
   CheckCircle,
   Upload,
+  ArrowLeft,
 } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { toast } from 'sonner'
@@ -53,7 +56,20 @@ import { updateUser } from '@/services/users'
 
 export default function CompanyEmployees() {
   const { user } = useAuth()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const targetCompanyId =
+    user?.role === 'medical_director' ? searchParams.get('companyId') : user?.id
+
   const [employees, setEmployees] = useState<any[]>([])
+  const [companies, setCompanies] = useState<any[]>([])
+
+  useEffect(() => {
+    if (user?.role === 'medical_director') {
+      pb.collection('users')
+        .getFullList({ filter: 'role="company"', sort: 'name' })
+        .then(setCompanies)
+    }
+  }, [user?.role])
   const [searchQuery, setSearchQuery] = useState('')
   const [isAddOpen, setIsAddOpen] = useState(false)
   const [isEditOpen, setIsEditOpen] = useState(false)
@@ -72,10 +88,10 @@ export default function CompanyEmployees() {
   const [isUploading, setIsUploading] = useState(false)
 
   const loadData = async (isInitial = false) => {
-    if (user?.id) {
+    if (targetCompanyId) {
       if (isInitial) setLoading(true)
       try {
-        const data = await getEmployees(user.id)
+        const data = await getEmployees(targetCompanyId)
         setEmployees(data)
         setError(null)
       } catch (e: any) {
@@ -84,22 +100,24 @@ export default function CompanyEmployees() {
       } finally {
         if (isInitial) setLoading(false)
       }
+    } else {
+      setEmployees([])
     }
   }
 
   useEffect(() => {
     loadData(true)
-  }, [user?.id])
+  }, [targetCompanyId])
 
   useRealtime('users', () => {
     loadData(false)
   })
 
-  if (user?.role !== 'company') {
+  if (user?.role !== 'company' && user?.role !== 'medical_director') {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <p className="text-muted-foreground text-lg">
-          Acesso negado. Apenas contas corporativas podem visualizar esta página.
+          Acesso negado. Apenas contas corporativas ou administradores podem visualizar esta página.
         </p>
       </div>
     )
@@ -141,7 +159,7 @@ export default function CompanyEmployees() {
     }
     try {
       await registerEmployee(
-        user.id,
+        targetCompanyId!,
         name,
         email,
         documentId,
@@ -234,7 +252,15 @@ export default function CompanyEmployees() {
         }
 
         try {
-          await registerEmployee(user.id, rowName, rowEmail, rowDoc, health, 'benefit', med)
+          await registerEmployee(
+            targetCompanyId!,
+            rowName,
+            rowEmail,
+            rowDoc,
+            health,
+            'benefit',
+            med,
+          )
           successCount++
         } catch (e) {
           errorCount++
@@ -256,14 +282,41 @@ export default function CompanyEmployees() {
     <div className="space-y-8 pb-10 animate-fade-in-up">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
         <div>
+          {user?.role === 'medical_director' && (
+            <Button variant="ghost" size="sm" asChild className="mb-2 -ml-3 text-muted-foreground">
+              <Link to="/admin">
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Voltar para Painel Admin
+              </Link>
+            </Button>
+          )}
           <h1 className="text-3xl font-bold flex items-center gap-3">
             <Users className="h-8 w-8 text-primary" /> Gestão de Funcionários
           </h1>
           <p className="text-muted-foreground mt-2">
-            Gerencie os colaboradores vinculados à sua empresa.
+            Gerencie os colaboradores vinculados à empresa.
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-2">
+          {user?.role === 'medical_director' && (
+            <Select
+              value={targetCompanyId || ''}
+              onValueChange={(val) => {
+                setSearchParams({ companyId: val })
+              }}
+            >
+              <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder="Selecione a Empresa" />
+              </SelectTrigger>
+              <SelectContent>
+                {companies.map((c) => (
+                  <SelectItem key={c.id} value={c.id}>
+                    {c.name || c.email}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
           <Button
             variant="outline"
             onClick={() => {

@@ -50,15 +50,6 @@ import Pharmacy from './pages/Pharmacy'
 const EntryPoint = () => {
   const { user, loading } = useAuth()
 
-  useEffect(() => {
-    if (user?.role === 'medical_director') {
-      const storedRoute = localStorage.getItem('currentRoute')
-      if (storedRoute?.includes('/company/dashboard') || storedRoute?.startsWith('/company')) {
-        localStorage.setItem('currentRoute', '/admin')
-      }
-    }
-  }, [user])
-
   if (loading) {
     return (
       <div className="flex h-full min-h-[60vh] w-full items-center justify-center">
@@ -105,7 +96,7 @@ const AdminOutlet = () => {
 
 const CompanyOutlet = () => {
   const { user } = useAuth()
-  if (user?.role === 'medical_director') return <Navigate to="/admin" replace />
+  if (user?.role === 'medical_director') return <Outlet />
   if (user?.role !== 'company') return <Navigate to="/" replace />
   return <Outlet />
 }
@@ -117,10 +108,6 @@ const AppRoutes = () => {
 
   useEffect(() => {
     if (user?.role === 'medical_director') {
-      if (location.pathname.startsWith('/company')) {
-        navigate('/admin', { replace: true })
-      }
-
       const keysToClear = [
         'lastVisitedPath',
         'last_visited_route',
@@ -137,7 +124,7 @@ const AppRoutes = () => {
         sessionStorage.removeItem(key)
       })
     }
-  }, [user, location.pathname, navigate])
+  }, [user])
 
   return (
     <Routes>

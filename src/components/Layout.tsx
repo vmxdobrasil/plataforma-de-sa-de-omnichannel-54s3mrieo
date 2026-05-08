@@ -111,7 +111,7 @@ const navItems = [
     title: 'Gestão de Funcionários',
     icon: Users,
     url: '/company/employees',
-    roles: ['company'],
+    roles: ['company', 'medical_director'],
   },
   {
     title: 'Transações de Benefícios',
