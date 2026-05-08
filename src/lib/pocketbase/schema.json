@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-08T19:41:01.332Z",
+  "generatedAt": "2026-05-08T19:47:21.733Z",
   "collections": [
     {
       "name": "users",
@@ -552,8 +552,8 @@
       "name": "prescriptions",
       "type": "base",
       "apiRules": {
-        "list": "@request.auth.id != '' && (patient_id = @request.auth.id || patient_id.parent_id = @request.auth.id || professional_id = @request.auth.id || @request.auth.role = 'medical_director')",
-        "view": "@request.auth.id != '' && (patient_id = @request.auth.id || patient_id.parent_id = @request.auth.id || professional_id = @request.auth.id || @request.auth.role = 'medical_director')",
+        "list": "@request.auth.id != '' && (patient_id = @request.auth.id || patient_id.parent_id = @request.auth.id || professional_id = @request.auth.id || @request.auth.role = 'medical_director' || @request.auth.role = 'admin')",
+        "view": "@request.auth.id != '' && (patient_id = @request.auth.id || patient_id.parent_id = @request.auth.id || professional_id = @request.auth.id || @request.auth.role = 'medical_director' || @request.auth.role = 'admin')",
         "create": "@request.auth.id != '' && professional_id = @request.auth.id",
         "update": "@request.auth.id != '' && professional_id = @request.auth.id",
         "delete": "@request.auth.id != '' && professional_id = @request.auth.id"
