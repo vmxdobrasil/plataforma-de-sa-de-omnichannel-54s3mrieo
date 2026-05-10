@@ -22,13 +22,19 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { CreatePharmacyLabForm } from '@/components/admin/forms/CreatePharmacyLabForm'
+import { PharmacyDocuments } from '@/components/admin/PharmacyDocuments'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { useRealtime } from '@/hooks/use-realtime'
 
 export default function AdminPharmacy() {
   const [products, setProducts] = useState<any[]>([])
   const [partners, setPartners] = useState<any[]>([])
   const [searchTerm, setSearchTerm] = useState('')
+
   const [searchPartner, setSearchPartner] = useState('')
+  const [searchCity, setSearchCity] = useState('')
+  const [searchNeighborhood, setSearchNeighborhood] = useState('')
+
   const [loadingProducts, setLoadingProducts] = useState(true)
   const [loadingPartners, setLoadingPartners] = useState(true)
   const [isPartnerDialogOpen, setIsPartnerDialogOpen] = useState(false)
@@ -55,11 +61,18 @@ export default function AdminPharmacy() {
   const loadPartners = async () => {
     try {
       setLoadingPartners(true)
-      const filter =
-        `(role = "pharmacy" || role = "laboratory")` +
-        (searchPartner
-          ? ` && (name ~ "${searchPartner}" || business_name ~ "${searchPartner}")`
-          : '')
+      let filter = `(role = "pharmacy" || role = "laboratory")`
+
+      if (searchPartner) {
+        filter += ` && (name ~ "${searchPartner}" || business_name ~ "${searchPartner}")`
+      }
+      if (searchCity) {
+        filter += ` && city ~ "${searchCity}"`
+      }
+      if (searchNeighborhood) {
+        filter += ` && address_neighborhood ~ "${searchNeighborhood}"`
+      }
+
       const res = await pb.collection('users').getList(1, 50, {
         filter,
         sort: '-created',
@@ -78,15 +91,20 @@ export default function AdminPharmacy() {
   }, [searchTerm])
 
   useEffect(() => {
-    loadPartners()
-  }, [searchPartner])
+    const delayDebounceFn = setTimeout(() => {
+      loadPartners()
+    }, 300)
+    return () => clearTimeout(delayDebounceFn)
+  }, [searchPartner, searchCity, searchNeighborhood])
+
+  useRealtime('users', () => loadPartners())
+  useRealtime('pharmacy_products', () => loadProducts())
 
   const handleDeleteProduct = async (id: string) => {
     if (!confirm('Deseja excluir este produto?')) return
     try {
       await pb.collection('pharmacy_products').delete(id)
       toast.success('Produto excluído com sucesso.')
-      loadProducts()
     } catch (error) {
       console.error(error)
       toast.error('Erro ao excluir produto.')
@@ -98,7 +116,6 @@ export default function AdminPharmacy() {
     try {
       await pb.collection('users').delete(id)
       toast.success('Parceiro excluído com sucesso.')
-      loadPartners()
     } catch (error) {
       console.error(error)
       toast.error('Erro ao excluir parceiro.')
@@ -113,7 +130,6 @@ export default function AdminPharmacy() {
   const handlePartnerSuccess = () => {
     setIsPartnerDialogOpen(false)
     setSelectedPartner(null)
-    loadPartners()
   }
 
   return (
@@ -140,37 +156,74 @@ export default function AdminPharmacy() {
         </TabsList>
 
         <TabsContent value="partners" className="space-y-4">
-          <div className="flex flex-col sm:flex-row items-center gap-4 bg-primary/5 p-4 rounded-xl border border-primary/10 shadow-sm">
-            <div className="relative flex-1 w-full">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Buscar parceiro por nome ou razão social..."
-                className="pl-9 bg-background"
-                value={searchPartner}
-                onChange={(e) => setSearchPartner(e.target.value)}
-              />
+          <div className="flex flex-col gap-4 bg-primary/5 p-4 rounded-xl border border-primary/10 shadow-sm">
+            <div className="flex flex-col md:flex-row gap-4 items-center w-full">
+              <div className="relative flex-1 w-full">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Nome fantasia ou razão social..."
+                  className="pl-9 bg-background"
+                  value={searchPartner}
+                  onChange={(e) => setSearchPartner(e.target.value)}
+                />
+              </div>
+              <div className="relative flex-1 w-full">
+                <Input
+                  placeholder="Filtrar por cidade..."
+                  className="bg-background"
+                  value={searchCity}
+                  onChange={(e) => setSearchCity(e.target.value)}
+                />
+              </div>
+              <div className="relative flex-1 w-full">
+                <Input
+                  placeholder="Filtrar por bairro..."
+                  className="bg-background"
+                  value={searchNeighborhood}
+                  onChange={(e) => setSearchNeighborhood(e.target.value)}
+                />
+              </div>
+              <Dialog
+                open={isPartnerDialogOpen}
+                onOpenChange={(open) => {
+                  setIsPartnerDialogOpen(open)
+                  if (!open) setSelectedPartner(null)
+                }}
+              >
+                <DialogTrigger asChild>
+                  <Button className="w-full md:w-auto shrink-0">
+                    <Plus className="h-4 w-4 mr-2" /> Novo Parceiro
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-3xl">
+                  <DialogHeader>
+                    <DialogTitle>
+                      {selectedPartner ? 'Editar Parceiro' : 'Cadastrar Novo Parceiro'}
+                    </DialogTitle>
+                  </DialogHeader>
+
+                  {selectedPartner ? (
+                    <Tabs defaultValue="info" className="w-full mt-2">
+                      <TabsList className="mb-4 w-full grid grid-cols-2">
+                        <TabsTrigger value="info">Informações</TabsTrigger>
+                        <TabsTrigger value="documents">Documentos</TabsTrigger>
+                      </TabsList>
+                      <TabsContent value="info">
+                        <CreatePharmacyLabForm
+                          partner={selectedPartner}
+                          onSuccess={handlePartnerSuccess}
+                        />
+                      </TabsContent>
+                      <TabsContent value="documents">
+                        <PharmacyDocuments partner={selectedPartner} />
+                      </TabsContent>
+                    </Tabs>
+                  ) : (
+                    <CreatePharmacyLabForm onSuccess={handlePartnerSuccess} />
+                  )}
+                </DialogContent>
+              </Dialog>
             </div>
-            <Dialog
-              open={isPartnerDialogOpen}
-              onOpenChange={(open) => {
-                setIsPartnerDialogOpen(open)
-                if (!open) setSelectedPartner(null)
-              }}
-            >
-              <DialogTrigger asChild>
-                <Button className="w-full sm:w-auto shrink-0">
-                  <Plus className="h-4 w-4 mr-2" /> Novo Parceiro
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-3xl">
-                <DialogHeader>
-                  <DialogTitle>
-                    {selectedPartner ? 'Editar Parceiro' : 'Cadastrar Novo Parceiro'}
-                  </DialogTitle>
-                </DialogHeader>
-                <CreatePharmacyLabForm partner={selectedPartner} onSuccess={handlePartnerSuccess} />
-              </DialogContent>
-            </Dialog>
           </div>
 
           <div className="bg-card border rounded-xl shadow-sm overflow-hidden">
@@ -209,13 +262,23 @@ export default function AdminPharmacy() {
                         </Avatar>
                       </TableCell>
                       <TableCell>
-                        <div className="flex flex-col">
-                          <span className="font-bold text-base text-foreground">
-                            {p.name || 'Sem nome'}
-                          </span>
-                          <span className="text-xs font-medium text-muted-foreground">
-                            {p.business_name || 'Razão social não informada'}
-                          </span>
+                        <div className="flex flex-col gap-1">
+                          <div>
+                            <span className="text-[10px] uppercase text-muted-foreground block leading-tight">
+                              Nome Fantasia
+                            </span>
+                            <span className="font-bold text-base text-foreground leading-tight">
+                              {p.name || '-'}
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-[10px] uppercase text-muted-foreground block leading-tight">
+                              Razão Social
+                            </span>
+                            <span className="text-xs font-medium text-muted-foreground leading-tight">
+                              {p.business_name || '-'}
+                            </span>
+                          </div>
                           <div className="flex items-center gap-2 mt-1">
                             <Badge variant="outline" className="text-[10px] uppercase h-5">
                               {p.role === 'pharmacy' ? 'Farmácia' : 'Laboratório'}
@@ -230,11 +293,17 @@ export default function AdminPharmacy() {
                       </TableCell>
                       <TableCell>
                         <div className="text-sm">{p.email}</div>
+                        {p.phone && <div className="text-xs text-muted-foreground">{p.phone}</div>}
                       </TableCell>
                       <TableCell>
                         <div className="text-sm">
                           {p.city ? `${p.city} - ${p.state}` : 'Não informada'}
                         </div>
+                        {p.address_neighborhood && (
+                          <div className="text-xs text-muted-foreground">
+                            {p.address_neighborhood}
+                          </div>
+                        )}
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-2">

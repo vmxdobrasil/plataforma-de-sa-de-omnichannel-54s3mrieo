@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-10T23:19:18.126Z",
+  "generatedAt": "2026-05-10T23:42:58.700Z",
   "collections": [
     {
       "name": "users",
@@ -738,8 +738,8 @@
         "list": "@request.auth.id != '' && (patient_id = @request.auth.id || patient_id.parent_id = @request.auth.id || professional_id = @request.auth.id || @request.auth.role = 'company' || (@request.auth.role = 'medical_director' || @request.auth.role = 'admin'))",
         "view": "@request.auth.id != '' && (patient_id = @request.auth.id || patient_id.parent_id = @request.auth.id || professional_id = @request.auth.id || @request.auth.role = 'company' || (@request.auth.role = 'medical_director' || @request.auth.role = 'admin'))",
         "create": "@request.auth.id != ''",
-        "update": "@request.auth.id != '' && (patient_id = @request.auth.id || professional_id = @request.auth.id)",
-        "delete": "@request.auth.id != '' && (patient_id = @request.auth.id || professional_id = @request.auth.id)"
+        "update": "@request.auth.id != '' && (patient_id = @request.auth.id || professional_id = @request.auth.id || @request.auth.role = 'medical_director' || @request.auth.role = 'admin')",
+        "delete": "@request.auth.id != '' && (patient_id = @request.auth.id || professional_id = @request.auth.id || @request.auth.role = 'medical_director' || @request.auth.role = 'admin')"
       },
       "fields": [
         {
@@ -774,7 +774,7 @@
           "type": "select",
           "required": true,
           "system": false,
-          "selectValues": ["exam", "prescription", "certificate", "other"]
+          "selectValues": ["exam", "prescription", "certificate", "other", "contract", "legal_doc"]
         },
         {
           "name": "file",
