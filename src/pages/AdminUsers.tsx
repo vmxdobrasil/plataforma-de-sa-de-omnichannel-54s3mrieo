@@ -137,7 +137,11 @@ export default function AdminUsers() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Badge variant="outline">{roleLabels[u.role] || u.role}</Badge>
+                        <Badge variant="outline">
+                          {u.role === 'admin' && u.specialty
+                            ? u.specialty
+                            : roleLabels[u.role] || u.role}
+                        </Badge>
                       </TableCell>
                       <TableCell className="text-muted-foreground">
                         {new Date(u.created).toLocaleDateString('pt-BR')}
