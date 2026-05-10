@@ -331,9 +331,12 @@ export default function Layout() {
                     <span className="text-primary font-bold">{linkedCompany.name}</span>
                   </div>
                 )}
-                {user?.role === 'pharmacy' && (
+                {(user?.role === 'pharmacy' || user?.role === 'laboratory') && (
                   <div className="text-xs font-medium text-muted-foreground mt-2 border-t pt-2">
-                    Unidade: <span className="text-primary font-bold">{user.name}</span>
+                    Unidade: <span className="text-primary font-bold block">{user.name}</span>
+                    {user.business_name && (
+                      <span className="text-[10px] block opacity-80">{user.business_name}</span>
+                    )}
                   </div>
                 )}
               </div>
@@ -401,9 +404,12 @@ export default function Layout() {
                     Vinculado a: <span className="text-primary">{linkedCompany.name}</span>
                   </div>
                 )}
-                {user?.role === 'pharmacy' && (
+                {(user?.role === 'pharmacy' || user?.role === 'laboratory') && (
                   <div className="text-[10px] font-medium text-muted-foreground mt-1 ml-1 leading-none">
                     Unidade: <span className="text-primary">{user.name}</span>
+                    {user.business_name && (
+                      <span className="block mt-0.5 opacity-80">{user.business_name}</span>
+                    )}
                   </div>
                 )}
               </div>
@@ -484,10 +490,15 @@ export default function Layout() {
                             Vinculado a: {linkedCompany.name}
                           </p>
                         )}
-                        {user?.role === 'pharmacy' && (
-                          <p className="text-xs font-medium text-primary mt-1">
-                            Unidade: {user.name}
-                          </p>
+                        {(user?.role === 'pharmacy' || user?.role === 'laboratory') && (
+                          <div className="mt-1">
+                            <p className="text-xs font-medium text-primary">Unidade: {user.name}</p>
+                            {user.business_name && (
+                              <p className="text-[10px] text-muted-foreground leading-tight">
+                                {user.business_name}
+                              </p>
+                            )}
+                          </div>
                         )}
                         {user?.role === 'admin' ? (
                           <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary w-fit mt-1">
