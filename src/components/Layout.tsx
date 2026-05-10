@@ -204,6 +204,16 @@ export default function Layout() {
   const location = useLocation()
   const navigate = useNavigate()
   const { user, signOut } = useAuth()
+  const [linkedCompany, setLinkedCompany] = useState<any>(null)
+
+  useEffect(() => {
+    if (user?.company_id) {
+      pb.collection('users')
+        .getOne(user.company_id)
+        .then((rec) => setLinkedCompany(rec))
+        .catch(console.error)
+    }
+  }, [user?.company_id])
 
   const handleLogout = () => {
     signOut()
@@ -315,6 +325,17 @@ export default function Layout() {
                     V MED BRASIL ADMIN
                   </div>
                 )}
+                {linkedCompany && (
+                  <div className="text-xs font-medium text-muted-foreground mt-2 border-t pt-2">
+                    Vinculado a:{' '}
+                    <span className="text-primary font-bold">{linkedCompany.name}</span>
+                  </div>
+                )}
+                {user?.role === 'pharmacy' && (
+                  <div className="text-xs font-medium text-muted-foreground mt-2 border-t pt-2">
+                    Unidade: <span className="text-primary font-bold">{user.name}</span>
+                  </div>
+                )}
               </div>
             </div>
             <SidebarGroup>
@@ -373,6 +394,16 @@ export default function Layout() {
                 {location.pathname.startsWith('/admin') && (
                   <div className="text-[10px] font-bold text-primary tracking-widest leading-none ml-1 mt-1">
                     V MED BRASIL ADMIN
+                  </div>
+                )}
+                {linkedCompany && (
+                  <div className="text-[10px] font-medium text-muted-foreground mt-1 ml-1 leading-none">
+                    Vinculado a: <span className="text-primary">{linkedCompany.name}</span>
+                  </div>
+                )}
+                {user?.role === 'pharmacy' && (
+                  <div className="text-[10px] font-medium text-muted-foreground mt-1 ml-1 leading-none">
+                    Unidade: <span className="text-primary">{user.name}</span>
                   </div>
                 )}
               </div>
@@ -448,6 +479,16 @@ export default function Layout() {
                       <div className="flex flex-col space-y-1">
                         <p className="text-sm font-medium leading-none">{user?.name}</p>
                         <p className="text-xs leading-none text-muted-foreground">{user?.email}</p>
+                        {linkedCompany && (
+                          <p className="text-xs font-medium text-primary mt-1">
+                            Vinculado a: {linkedCompany.name}
+                          </p>
+                        )}
+                        {user?.role === 'pharmacy' && (
+                          <p className="text-xs font-medium text-primary mt-1">
+                            Unidade: {user.name}
+                          </p>
+                        )}
                         {user?.role === 'admin' ? (
                           <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary w-fit mt-1">
                             Administrador Master

@@ -162,7 +162,12 @@ export default function AdminCompanies() {
             ) : (
               filteredCompanies.map((company) => (
                 <TableRow key={company.id}>
-                  <TableCell className="font-medium">{company.name || '-'}</TableCell>
+                  <TableCell>
+                    <div className="font-medium">{company.name || '-'}</div>
+                    {company.business_name && (
+                      <div className="text-xs text-muted-foreground">{company.business_name}</div>
+                    )}
+                  </TableCell>
                   <TableCell>{company.tax_id || '-'}</TableCell>
                   <TableCell>{company.email}</TableCell>
                   <TableCell>

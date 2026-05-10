@@ -53,6 +53,14 @@ export function SearchResultCard({ r, isAdmin, onToggleStatus }: SearchResultCar
               <h3 className="font-semibold text-lg leading-none truncate">
                 {r.name || 'Sem nome'}
               </h3>
+              {r.business_name && (
+                <span
+                  className="text-sm text-muted-foreground truncate max-w-[200px] hidden sm:inline-block"
+                  title={r.business_name}
+                >
+                  ({r.business_name})
+                </span>
+              )}
               {r.is_verified && (
                 <ShieldCheck className="h-4 w-4 text-green-500" title="Parceiro Verificado" />
               )}

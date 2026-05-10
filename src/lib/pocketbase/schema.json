@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-10T22:46:41.781Z",
+  "generatedAt": "2026-05-10T23:12:57.738Z",
   "collections": [
     {
       "name": "users",
@@ -251,6 +251,42 @@
         },
         {
           "name": "block_reason",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "business_name",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "address_street",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "address_number",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "address_neighborhood",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "address_zip_code",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "address_complement",
           "type": "text",
           "required": false,
           "system": false

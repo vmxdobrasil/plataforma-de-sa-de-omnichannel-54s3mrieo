@@ -106,7 +106,14 @@ export default function AdminPharmacy() {
               products.map((p) => (
                 <TableRow key={p.id}>
                   <TableCell className="font-medium">{p.name}</TableCell>
-                  <TableCell>{p.expand?.pharmacy_id?.name || 'Desconhecido'}</TableCell>
+                  <TableCell>
+                    <div>{p.expand?.pharmacy_id?.name || 'Desconhecido'}</div>
+                    {p.expand?.pharmacy_id?.business_name && (
+                      <div className="text-xs text-muted-foreground">
+                        {p.expand.pharmacy_id.business_name}
+                      </div>
+                    )}
+                  </TableCell>
                   <TableCell>R$ {p.price?.toFixed(2)}</TableCell>
                   <TableCell>
                     {p.is_promotion ? (
