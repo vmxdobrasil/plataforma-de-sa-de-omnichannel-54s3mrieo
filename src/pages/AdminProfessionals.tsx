@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { getAdminProfessionals, verifyProfessional } from '@/services/users'
+import { verifyProfessional } from '@/services/users'
 import { useRealtime } from '@/hooks/use-realtime'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import {
@@ -21,24 +21,59 @@ import { useToast } from '@/hooks/use-toast'
 export default function AdminProfessionals() {
   const [professionals, setProfessionals] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
-  const [search, setSearch] = useState('')
+
+  const [searchName, setSearchName] = useState('')
+  const [searchCity, setSearchCity] = useState('')
+  const [searchNeighborhood, setSearchNeighborhood] = useState('')
+
   const { toast } = useToast()
 
   const loadProfessionals = async () => {
     setLoading(true)
-    const data = await getAdminProfessionals()
-    setProfessionals(data)
-    setLoading(false)
+    try {
+      let filter = `role = "professional"`
+
+      // Escape double quotes and backslashes to prevent PB query syntax errors
+      const safeName = searchName.replace(/["\\]/g, '')
+      const safeCity = searchCity.replace(/["\\]/g, '')
+      const safeNeigh = searchNeighborhood.replace(/["\\]/g, '')
+
+      if (safeName) {
+        filter += ` && (name ~ "${safeName}" || crm_number ~ "${safeName}" || specialty ~ "${safeName}")`
+      }
+      if (safeCity) {
+        filter += ` && city ~ "${safeCity}"`
+      }
+      if (safeNeigh) {
+        filter += ` && address_neighborhood ~ "${safeNeigh}"`
+      }
+
+      const res = await pb.collection('users').getList(1, 50, {
+        filter,
+        sort: '-created',
+      })
+      setProfessionals(res.items)
+    } catch (err) {
+      console.error(err)
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível carregar os profissionais.',
+        variant: 'destructive',
+      })
+    } finally {
+      setLoading(false)
+    }
   }
 
   useEffect(() => {
-    loadProfessionals()
-  }, [])
-
-  useRealtime('users', (e) => {
-    if (e.action === 'create' || e.action === 'update' || e.action === 'delete') {
+    const delayDebounceFn = setTimeout(() => {
       loadProfessionals()
-    }
+    }, 300)
+    return () => clearTimeout(delayDebounceFn)
+  }, [searchName, searchCity, searchNeighborhood])
+
+  useRealtime('users', () => {
+    loadProfessionals()
   })
 
   const handleVerifyToggle = async (id: string, currentStatus: boolean) => {
@@ -57,13 +92,6 @@ export default function AdminProfessionals() {
     }
   }
 
-  const filteredProfessionals = professionals.filter(
-    (p) =>
-      p.name?.toLowerCase().includes(search.toLowerCase()) ||
-      p.crm_number?.toLowerCase().includes(search.toLowerCase()) ||
-      p.specialty?.toLowerCase().includes(search.toLowerCase()),
-  )
-
   return (
     <div className="space-y-6 animate-fade-in">
       <div>
@@ -73,25 +101,44 @@ export default function AdminProfessionals() {
         </p>
       </div>
 
+      <div className="flex flex-col gap-4 bg-primary/5 p-4 rounded-xl border border-primary/10 shadow-sm">
+        <div className="flex flex-col md:flex-row gap-4 items-center w-full">
+          <div className="relative flex-1 w-full">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar por nome, CRM ou especialidade..."
+              className="pl-9 bg-background"
+              value={searchName}
+              onChange={(e) => setSearchName(e.target.value)}
+            />
+          </div>
+          <div className="relative flex-1 w-full">
+            <Input
+              placeholder="Filtrar por cidade..."
+              className="bg-background"
+              value={searchCity}
+              onChange={(e) => setSearchCity(e.target.value)}
+            />
+          </div>
+          <div className="relative flex-1 w-full">
+            <Input
+              placeholder="Filtrar por bairro..."
+              className="bg-background"
+              value={searchNeighborhood}
+              onChange={(e) => setSearchNeighborhood(e.target.value)}
+            />
+          </div>
+        </div>
+      </div>
+
       <Card>
         <CardHeader className="bg-primary/20 rounded-t-xl border-b border-primary/10">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div>
-              <CardTitle>Profissionais de Saúde</CardTitle>
-              <CardDescription>Lista de todos os profissionais cadastrados</CardDescription>
-            </div>
-            <div className="relative w-full sm:w-72">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Buscar por nome, CRM ou especialidade..."
-                className="pl-8"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
-            </div>
+          <div>
+            <CardTitle>Profissionais de Saúde</CardTitle>
+            <CardDescription>Lista de todos os profissionais cadastrados</CardDescription>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-0">
           {loading ? (
             <div className="flex justify-center p-12">
               <div className="flex flex-col items-center gap-4">
@@ -99,97 +146,102 @@ export default function AdminProfessionals() {
                 <p className="text-sm text-muted-foreground">Carregando profissionais...</p>
               </div>
             </div>
-          ) : filteredProfessionals.length === 0 ? (
-            <div className="text-center p-12 text-muted-foreground border border-dashed rounded-lg bg-muted/20">
-              Nenhum profissional de saúde encontrado.
+          ) : professionals.length === 0 ? (
+            <div className="text-center p-12 text-muted-foreground border border-dashed rounded-lg bg-muted/20 m-6">
+              Nenhum profissional de saúde encontrado com os filtros atuais.
             </div>
           ) : (
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader className="bg-primary/20 [&_th]:text-foreground">
-                  <TableRow className="hover:bg-transparent">
-                    <TableHead>Profissional</TableHead>
-                    <TableHead>CRM</TableHead>
-                    <TableHead>Especialidade</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredProfessionals.map((prof) => (
-                    <TableRow key={prof.id}>
-                      <TableCell>
-                        <div className="flex items-center gap-3">
-                          <Avatar>
-                            <AvatarImage
-                              src={
-                                prof.avatar
-                                  ? pb.files.getURL(prof, prof.avatar)
-                                  : `https://api.dicebear.com/7.x/notionists/svg?seed=${prof.name}`
-                              }
-                            />
-                            <AvatarFallback>{prof.name?.charAt(0) || 'P'}</AvatarFallback>
-                          </Avatar>
-                          <div className="flex flex-col">
-                            <span className="font-medium">{prof.name || 'Sem nome'}</span>
-                            <span className="text-xs text-muted-foreground">{prof.email}</span>
-                          </div>
+            <Table>
+              <TableHeader className="bg-muted/50 [&_th]:text-foreground">
+                <TableRow className="hover:bg-transparent">
+                  <TableHead className="pl-6">Profissional</TableHead>
+                  <TableHead>CRM</TableHead>
+                  <TableHead>Especialidade</TableHead>
+                  <TableHead>Localização</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right pr-6">Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {professionals.map((prof) => (
+                  <TableRow key={prof.id}>
+                    <TableCell className="pl-6">
+                      <div className="flex items-center gap-3">
+                        <Avatar>
+                          <AvatarImage
+                            src={
+                              prof.avatar
+                                ? pb.files.getURL(prof, prof.avatar)
+                                : `https://api.dicebear.com/7.x/notionists/svg?seed=${prof.name}`
+                            }
+                          />
+                          <AvatarFallback>{prof.name?.charAt(0) || 'P'}</AvatarFallback>
+                        </Avatar>
+                        <div className="flex flex-col">
+                          <span className="font-medium">{prof.name || 'Sem nome'}</span>
+                          <span className="text-xs text-muted-foreground">{prof.email}</span>
                         </div>
-                      </TableCell>
-                      <TableCell>
-                        {prof.crm_number ? (
-                          <span className="font-medium text-sm">
-                            {prof.crm_number} - {prof.crm_state || 'BR'}
-                          </span>
-                        ) : (
-                          <span className="text-muted-foreground text-xs italic">
-                            Não informado
-                          </span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {prof.specialty ? (
-                          <span className="text-sm">{prof.specialty}</span>
-                        ) : (
-                          <span className="text-muted-foreground text-xs italic">
-                            Não informada
-                          </span>
-                        )}
-                      </TableCell>
-                      <TableCell>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      {prof.crm_number ? (
+                        <span className="font-medium text-sm">
+                          {prof.crm_number} - {prof.crm_state || 'BR'}
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground text-xs italic">Não informado</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {prof.specialty ? (
+                        <span className="text-sm">{prof.specialty}</span>
+                      ) : (
+                        <span className="text-muted-foreground text-xs italic">Não informada</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-sm">
+                        {prof.city ? `${prof.city} - ${prof.state || ''}` : 'Não informada'}
+                      </div>
+                      {prof.address_neighborhood && (
+                        <div className="text-xs text-muted-foreground">
+                          {prof.address_neighborhood}
+                        </div>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {prof.is_verified ? (
+                        <Badge variant="default" className="bg-green-500 hover:bg-green-600">
+                          Verificado
+                        </Badge>
+                      ) : (
+                        <Badge variant="secondary">Pendente</Badge>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right pr-6">
+                      <Button
+                        variant={prof.is_verified ? 'outline' : 'default'}
+                        size="sm"
+                        onClick={() => handleVerifyToggle(prof.id, prof.is_verified)}
+                        className={
+                          prof.is_verified ? 'text-destructive hover:text-destructive' : ''
+                        }
+                      >
                         {prof.is_verified ? (
-                          <Badge variant="default" className="bg-green-500 hover:bg-green-600">
-                            Verificado
-                          </Badge>
+                          <>
+                            <UserX className="w-4 h-4 mr-2" /> Revogar
+                          </>
                         ) : (
-                          <Badge variant="secondary">Pendente</Badge>
+                          <>
+                            <UserCheck className="w-4 h-4 mr-2" /> Verificar
+                          </>
                         )}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Button
-                          variant={prof.is_verified ? 'outline' : 'default'}
-                          size="sm"
-                          onClick={() => handleVerifyToggle(prof.id, prof.is_verified)}
-                          className={
-                            prof.is_verified ? 'text-destructive hover:text-destructive' : ''
-                          }
-                        >
-                          {prof.is_verified ? (
-                            <>
-                              <UserX className="w-4 h-4 mr-2" /> Revogar
-                            </>
-                          ) : (
-                            <>
-                              <UserCheck className="w-4 h-4 mr-2" /> Verificar
-                            </>
-                          )}
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           )}
         </CardContent>
       </Card>

@@ -413,12 +413,24 @@ export default function Layout() {
                   </div>
                 )}
               </div>
-              <div className="relative max-w-md w-full hidden md:block">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="V MED BRASIL AI: Como posso ajudar?"
-                  className="pl-10 bg-muted/50 border-none rounded-full"
-                />
+              <div className="hidden md:flex items-center gap-4 flex-1">
+                <div className="relative max-w-md w-full">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="V MED BRASIL AI: Como posso ajudar?"
+                    className="pl-10 bg-muted/50 border-none rounded-full"
+                  />
+                </div>
+                {(user?.role === 'pharmacy' || user?.role === 'laboratory') && (
+                  <div className="flex flex-col ml-4 pl-4 border-l border-border/50">
+                    <span className="text-[10px] uppercase font-bold text-primary tracking-wider">
+                      Unidade Operacional
+                    </span>
+                    <span className="text-sm font-semibold truncate max-w-[200px]">
+                      {user.business_name || user.name}
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
 

@@ -13,6 +13,7 @@ import pb from '@/lib/pocketbase/client'
 import { toast } from 'sonner'
 import { extractFieldErrors } from '@/lib/pocketbase/errors'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 
 export function CreatePharmacyLabForm({
   partner,
@@ -24,6 +25,9 @@ export function CreatePharmacyLabForm({
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [role, setRole] = useState(partner?.role || 'pharmacy')
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(
+    partner?.avatar ? pb.files.getURL(partner, partner.avatar) : null,
+  )
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -133,12 +137,30 @@ export function CreatePharmacyLabForm({
             </div>
             <div className="space-y-2">
               <Label>Logomarca (Avatar)</Label>
-              <Input type="file" name="avatar" accept="image/*" />
-              {partner?.avatar && (
-                <p className="text-xs text-muted-foreground mt-1">
-                  Logo atual já cadastrado. Envie um novo arquivo para substituir.
-                </p>
-              )}
+              <div className="flex items-center gap-4">
+                {avatarPreview && (
+                  <Avatar className="h-16 w-16 border rounded-md shrink-0">
+                    <AvatarImage src={avatarPreview} className="object-cover" />
+                    <AvatarFallback>L</AvatarFallback>
+                  </Avatar>
+                )}
+                <div className="flex-1">
+                  <Input
+                    type="file"
+                    name="avatar"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0]
+                      if (file) setAvatarPreview(URL.createObjectURL(file))
+                    }}
+                  />
+                  {partner?.avatar && !avatarPreview && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Logo atual já cadastrado. Envie um novo arquivo para substituir.
+                    </p>
+                  )}
+                </div>
+              </div>
             </div>
             <div className="space-y-2">
               <Label>E-mail *</Label>

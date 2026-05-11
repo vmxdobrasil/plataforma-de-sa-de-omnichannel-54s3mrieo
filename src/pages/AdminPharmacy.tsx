@@ -43,7 +43,8 @@ export default function AdminPharmacy() {
   const loadProducts = async () => {
     try {
       setLoadingProducts(true)
-      const filter = searchTerm ? `name ~ "${searchTerm}" || description ~ "${searchTerm}"` : ''
+      const safeTerm = searchTerm.replace(/["\\]/g, '')
+      const filter = safeTerm ? `name ~ "${safeTerm}" || description ~ "${safeTerm}"` : ''
       const res = await pb.collection('pharmacy_products').getList(1, 50, {
         filter,
         sort: '-created',
@@ -63,14 +64,18 @@ export default function AdminPharmacy() {
       setLoadingPartners(true)
       let filter = `(role = "pharmacy" || role = "laboratory")`
 
-      if (searchPartner) {
-        filter += ` && (name ~ "${searchPartner}" || business_name ~ "${searchPartner}")`
+      const safePartner = searchPartner.replace(/["\\]/g, '')
+      const safeCity = searchCity.replace(/["\\]/g, '')
+      const safeNeigh = searchNeighborhood.replace(/["\\]/g, '')
+
+      if (safePartner) {
+        filter += ` && (name ~ "${safePartner}" || business_name ~ "${safePartner}")`
       }
-      if (searchCity) {
-        filter += ` && city ~ "${searchCity}"`
+      if (safeCity) {
+        filter += ` && city ~ "${safeCity}"`
       }
-      if (searchNeighborhood) {
-        filter += ` && address_neighborhood ~ "${searchNeighborhood}"`
+      if (safeNeigh) {
+        filter += ` && address_neighborhood ~ "${safeNeigh}"`
       }
 
       const res = await pb.collection('users').getList(1, 50, {
@@ -129,7 +134,8 @@ export default function AdminPharmacy() {
 
   const handlePartnerSuccess = () => {
     setIsPartnerDialogOpen(false)
-    setSelectedPartner(null)
+    // Delay clearing the state to allow dialog closing animation
+    setTimeout(() => setSelectedPartner(null), 300)
   }
 
   return (
@@ -187,7 +193,9 @@ export default function AdminPharmacy() {
                 open={isPartnerDialogOpen}
                 onOpenChange={(open) => {
                   setIsPartnerDialogOpen(open)
-                  if (!open) setSelectedPartner(null)
+                  if (!open) {
+                    setTimeout(() => setSelectedPartner(null), 300)
+                  }
                 }}
               >
                 <DialogTrigger asChild>
@@ -297,7 +305,7 @@ export default function AdminPharmacy() {
                       </TableCell>
                       <TableCell>
                         <div className="text-sm">
-                          {p.city ? `${p.city} - ${p.state}` : 'Não informada'}
+                          {p.city ? `${p.city} - ${p.state || ''}` : 'Não informada'}
                         </div>
                         {p.address_neighborhood && (
                           <div className="text-xs text-muted-foreground">
