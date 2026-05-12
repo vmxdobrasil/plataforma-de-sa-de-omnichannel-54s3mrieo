@@ -25,6 +25,7 @@ import { CreatePharmacyLabForm } from '@/components/admin/forms/CreatePharmacyLa
 import { PharmacyDocuments } from '@/components/admin/PharmacyDocuments'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { useRealtime } from '@/hooks/use-realtime'
+import { AdminHeader } from '@/components/admin/AdminHeader'
 
 export default function AdminPharmacy() {
   const [products, setProducts] = useState<any[]>([])
@@ -140,16 +141,11 @@ export default function AdminPharmacy() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
-            <Pill className="h-8 w-8 text-primary" /> Farmácias e Laboratórios
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            Painel de gestão para farmácias, drogarias e laboratórios parceiros.
-          </p>
-        </div>
-      </div>
+      <AdminHeader
+        title="Farmácias e Laboratórios"
+        description="Painel de gestão para farmácias, drogarias e laboratórios parceiros."
+        icon={<Pill className="h-8 w-8" />}
+      />
 
       <Tabs defaultValue="partners" className="w-full">
         <TabsList className="mb-4 bg-muted/50 p-1">

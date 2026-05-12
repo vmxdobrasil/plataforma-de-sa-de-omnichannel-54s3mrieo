@@ -24,6 +24,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { AdminHeader } from '@/components/admin/AdminHeader'
 
 export default function AdminUsers() {
   const [users, setUsers] = useState<any[]>([])
@@ -64,48 +65,46 @@ export default function AdminUsers() {
 
   return (
     <div className="space-y-6 animate-fade-in-up pb-10">
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">CRM & Cadastros</h1>
-          <p className="text-muted-foreground mt-1">
-            Gestão de usuários e registro manual de parceiros.
-          </p>
-        </div>
+      <AdminHeader
+        title="CRM & Cadastros"
+        description="Gestão de usuários e registro manual de parceiros."
+        icon={<Users className="h-8 w-8" />}
+        rightContent={
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+              <Button className="w-full lg:w-auto">
+                <Plus className="h-4 w-4 mr-2" /> Novo Cadastro
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-3xl">
+              <DialogHeader>
+                <DialogTitle>Registro Manual & Convites</DialogTitle>
+              </DialogHeader>
 
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" /> Novo Cadastro
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-3xl">
-            <DialogHeader>
-              <DialogTitle>Registro Manual & Convites</DialogTitle>
-            </DialogHeader>
-
-            <Tabs defaultValue="professional" className="mt-4">
-              <TabsList className="grid grid-cols-2 md:grid-cols-4">
-                <TabsTrigger value="professional">Profissional</TabsTrigger>
-                <TabsTrigger value="company">Empresa</TabsTrigger>
-                <TabsTrigger value="pharmacy">Farmácia/Lab</TabsTrigger>
-                <TabsTrigger value="invites">Links Convite</TabsTrigger>
-              </TabsList>
-              <TabsContent value="professional">
-                <CreateProfessionalForm onSuccess={handleSuccess} />
-              </TabsContent>
-              <TabsContent value="company">
-                <CreateCompanyForm onSuccess={handleSuccess} />
-              </TabsContent>
-              <TabsContent value="pharmacy">
-                <CreatePharmacyLabForm onSuccess={handleSuccess} />
-              </TabsContent>
-              <TabsContent value="invites">
-                <InviteLinks />
-              </TabsContent>
-            </Tabs>
-          </DialogContent>
-        </Dialog>
-      </div>
+              <Tabs defaultValue="professional" className="mt-4">
+                <TabsList className="grid grid-cols-2 md:grid-cols-4">
+                  <TabsTrigger value="professional">Profissional</TabsTrigger>
+                  <TabsTrigger value="company">Empresa</TabsTrigger>
+                  <TabsTrigger value="pharmacy">Farmácia/Lab</TabsTrigger>
+                  <TabsTrigger value="invites">Links Convite</TabsTrigger>
+                </TabsList>
+                <TabsContent value="professional">
+                  <CreateProfessionalForm onSuccess={handleSuccess} />
+                </TabsContent>
+                <TabsContent value="company">
+                  <CreateCompanyForm onSuccess={handleSuccess} />
+                </TabsContent>
+                <TabsContent value="pharmacy">
+                  <CreatePharmacyLabForm onSuccess={handleSuccess} />
+                </TabsContent>
+                <TabsContent value="invites">
+                  <InviteLinks />
+                </TabsContent>
+              </Tabs>
+            </DialogContent>
+          </Dialog>
+        }
+      />
 
       <Card>
         <CardHeader>

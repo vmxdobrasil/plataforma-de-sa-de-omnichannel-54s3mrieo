@@ -20,6 +20,7 @@ import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { useAuth } from '@/hooks/use-auth'
+import { AdminHeader } from '@/components/admin/AdminHeader'
 
 export default function AdminDashboard() {
   const { user } = useAuth()
@@ -72,37 +73,38 @@ export default function AdminDashboard() {
 
   return (
     <div className="space-y-8 animate-fade-in-up pb-10">
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-primary/20 p-6 rounded-2xl border border-primary/30 relative overflow-hidden">
-        <div className="absolute right-0 top-0 opacity-5 pointer-events-none translate-x-1/4 -translate-y-1/4">
-          <Shield className="w-64 h-64" />
-        </div>
-        <div className="relative z-10">
-          <div className="flex items-center gap-2 text-primary mb-2">
-            <Shield className="h-6 w-6" />
-            <span className="font-bold uppercase tracking-wider text-sm">
-              HUB CENTRAL MASTER ADMIN
-            </span>
-          </div>
-          <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground">
-            Painel de Controle <span className="text-primary">VMX</span>
-          </h1>
-          <p className="text-muted-foreground mt-2 max-w-2xl text-base">
-            Operado por <strong>VMX do Brasil Administradora de Cartões e Benefícios Ltda</strong>.
-            Controle 100% da plataforma V MED BRASIL a partir deste ponto único.
-          </p>
-          <div className="mt-4 flex flex-wrap gap-2">
-            <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20">
+      <AdminHeader
+        title={
+          <>
+            Painel de Controle <span className="text-primary ml-2">VMX</span>
+          </>
+        }
+        description="Operado por VMX do Brasil Administradora de Cartões e Benefícios Ltda. Controle 100% da plataforma V MED BRASIL a partir deste ponto único."
+        icon={<Shield className="h-8 w-8" />}
+        rightContent={
+          <div className="flex flex-col gap-2">
+            <Badge
+              variant="secondary"
+              className="bg-primary/10 text-primary border-primary/20 w-fit"
+            >
               Gestor Master: Valter Paula Mendonça
             </Badge>
-            <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20">
+            <Badge
+              variant="secondary"
+              className="bg-primary/10 text-primary border-primary/20 w-fit"
+            >
               Gestor Master: Victor Hugo Tavares Mendonça
             </Badge>
-            <Badge variant="outline" className="border-amber-500/30 text-amber-700 bg-amber-500/10">
-              Dir. Técnico: Fauzer Andrigo Mendonça Simoes Rangel
+            <Badge
+              variant="outline"
+              className="border-amber-500/30 text-amber-700 bg-amber-500/10 w-fit"
+            >
+              Dir. Técnico: Fauzer Andrigo Mendonça Simões Rangel
             </Badge>
           </div>
-        </div>
-      </div>
+        }
+        className="bg-primary/10 border-primary/30"
+      />
 
       {isMasterAdmin && (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

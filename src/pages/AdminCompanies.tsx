@@ -21,6 +21,8 @@ import {
 } from '@/components/ui/dialog'
 import { CreateCompanyForm } from '@/components/admin/forms/CreateCompanyForm'
 import { EditCompanyForm } from '@/components/admin/forms/EditCompanyForm'
+import { AdminHeader } from '@/components/admin/AdminHeader'
+import { Building2 } from 'lucide-react'
 
 export default function AdminCompanies() {
   const [companies, setCompanies] = useState<any[]>([])
@@ -91,34 +93,32 @@ export default function AdminCompanies() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Gestão de Empresas</h1>
-          <p className="text-muted-foreground mt-2">
-            Gerencie empresas parceiras, subsídios e configurações de benefícios.
-          </p>
-        </div>
-
-        <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              Nova Empresa
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>Cadastrar Nova Empresa</DialogTitle>
-            </DialogHeader>
-            <CreateCompanyForm
-              onSuccess={() => {
-                setIsCreateOpen(false)
-                fetchCompanies()
-              }}
-            />
-          </DialogContent>
-        </Dialog>
-      </div>
+      <AdminHeader
+        title="Gestão de Empresas"
+        description="Gerencie empresas parceiras, subsídios e configurações de benefícios."
+        icon={<Building2 className="h-8 w-8" />}
+        rightContent={
+          <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+            <DialogTrigger asChild>
+              <Button className="w-full lg:w-auto">
+                <Plus className="mr-2 h-4 w-4" />
+                Nova Empresa
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>Cadastrar Nova Empresa</DialogTitle>
+              </DialogHeader>
+              <CreateCompanyForm
+                onSuccess={() => {
+                  setIsCreateOpen(false)
+                  fetchCompanies()
+                }}
+              />
+            </DialogContent>
+          </Dialog>
+        }
+      />
 
       <div className="flex items-center gap-2 max-w-sm">
         <Search className="h-4 w-4 text-muted-foreground" />

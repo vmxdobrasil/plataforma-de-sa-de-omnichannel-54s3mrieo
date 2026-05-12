@@ -13,10 +13,11 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
-import { Search, UserCheck, UserX, Loader2 } from 'lucide-react'
+import { Search, UserCheck, UserX, Loader2, Stethoscope } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import pb from '@/lib/pocketbase/client'
 import { useToast } from '@/hooks/use-toast'
+import { AdminHeader } from '@/components/admin/AdminHeader'
 
 export default function AdminProfessionals() {
   const [professionals, setProfessionals] = useState<any[]>([])
@@ -94,12 +95,11 @@ export default function AdminProfessionals() {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Guia Saúde (Gestão)</h1>
-        <p className="text-muted-foreground">
-          Gerencie os profissionais de saúde cadastrados na plataforma.
-        </p>
-      </div>
+      <AdminHeader
+        title="Guia Saúde (Gestão)"
+        description="Gerencie os profissionais de saúde cadastrados na plataforma."
+        icon={<Stethoscope className="h-8 w-8" />}
+      />
 
       <div className="flex flex-col gap-4 bg-primary/5 p-4 rounded-xl border border-primary/10 shadow-sm">
         <div className="flex flex-col md:flex-row gap-4 items-center w-full">

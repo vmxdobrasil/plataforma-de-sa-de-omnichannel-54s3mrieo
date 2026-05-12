@@ -41,6 +41,46 @@ import { toast } from 'sonner'
 import { format, isAfter, subDays } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { Skeleton } from '@/components/ui/skeleton'
+import { AdminHeader } from '@/components/admin/AdminHeader'
+
+const TableLoading = ({ colSpan = 5 }: { colSpan?: number }) => (
+  <TableRow>
+    <TableCell colSpan={colSpan} className="text-center py-12">
+      <div className="flex flex-col items-center justify-center gap-4">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <p className="text-muted-foreground">Carregando dados clínicos...</p>
+      </div>
+    </TableCell>
+  </TableRow>
+)
+
+const TableEmpty = ({
+  colSpan = 5,
+  message = 'Nenhuma atividade clínica encontrada para supervisão neste momento.',
+}: {
+  colSpan?: number
+  message?: string
+}) => (
+  <TableRow>
+    <TableCell colSpan={colSpan} className="text-center py-12 text-muted-foreground">
+      <div className="flex flex-col items-center justify-center gap-2">
+        <Activity className="h-8 w-8 text-muted-foreground/50" />
+        <p>{message}</p>
+      </div>
+    </TableCell>
+  </TableRow>
+)
+
+const safeFormatDate = (dateString: string) => {
+  try {
+    if (!dateString) return 'N/A'
+    const d = new Date(dateString)
+    if (isNaN(d.getTime())) return 'Data inválida'
+    return format(d, 'dd/MM/yyyy HH:mm', { locale: ptBR })
+  } catch {
+    return 'Data inválida'
+  }
+}
 
 function AdminSupervisionContent() {
   const { user } = useAuth()
@@ -110,8 +150,9 @@ function AdminSupervisionContent() {
   }
 
   useEffect(() => {
-    const searchFilter = searchTermProf
-      ? `role = "professional" && (name ~ "${searchTermProf}" || email ~ "${searchTermProf}")`
+    const safeTerm = searchTermProf.replace(/["\\]/g, '')
+    const searchFilter = safeTerm
+      ? `role = "professional" && (name ~ "${safeTerm}" || email ~ "${safeTerm}")`
       : `role = "professional"`
     const roleFilter = getRoleFilter('')
     const filter = combineFilters(roleFilter, searchFilter)
@@ -119,8 +160,9 @@ function AdminSupervisionContent() {
   }, [searchTermProf, user])
 
   useEffect(() => {
-    const searchFilter = searchTermApp
-      ? `patient_id.name ~ "${searchTermApp}" || professional_id.name ~ "${searchTermApp}"`
+    const safeTerm = searchTermApp.replace(/["\\]/g, '')
+    const searchFilter = safeTerm
+      ? `patient_id.name ~ "${safeTerm}" || professional_id.name ~ "${safeTerm}"`
       : ''
     const roleFilter = getRoleFilter('professional_id.')
     const filter = combineFilters(roleFilter, searchFilter)
@@ -128,8 +170,9 @@ function AdminSupervisionContent() {
   }, [searchTermApp, user])
 
   useEffect(() => {
-    const searchFilter = searchTermRec
-      ? `patient_id.name ~ "${searchTermRec}" || professional_id.name ~ "${searchTermRec}"`
+    const safeTerm = searchTermRec.replace(/["\\]/g, '')
+    const searchFilter = safeTerm
+      ? `patient_id.name ~ "${safeTerm}" || professional_id.name ~ "${safeTerm}"`
       : ''
     const roleFilter = getRoleFilter('professional_id.')
     const filter = combineFilters(roleFilter, searchFilter)
@@ -143,8 +186,9 @@ function AdminSupervisionContent() {
   }, [searchTermRec, user])
 
   useEffect(() => {
-    const searchFilter = searchTermPresc
-      ? `patient_id.name ~ "${searchTermPresc}" || professional_id.name ~ "${searchTermPresc}" || medications ~ "${searchTermPresc}"`
+    const safeTerm = searchTermPresc.replace(/["\\]/g, '')
+    const searchFilter = safeTerm
+      ? `patient_id.name ~ "${safeTerm}" || professional_id.name ~ "${safeTerm}" || medications ~ "${safeTerm}"`
       : ''
     const roleFilter = getRoleFilter('professional_id.')
     const filter = combineFilters(roleFilter, searchFilter)
@@ -204,34 +248,6 @@ function AdminSupervisionContent() {
     }
   }
 
-  const TableLoading = ({ colSpan = 5 }: { colSpan?: number }) => (
-    <TableRow>
-      <TableCell colSpan={colSpan} className="text-center py-12">
-        <div className="flex flex-col items-center justify-center gap-4">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p className="text-muted-foreground">Carregando dados clínicos...</p>
-        </div>
-      </TableCell>
-    </TableRow>
-  )
-
-  const TableEmpty = ({
-    colSpan = 5,
-    message = 'Nenhuma atividade clínica encontrada para supervisão neste momento.',
-  }: {
-    colSpan?: number
-    message?: string
-  }) => (
-    <TableRow>
-      <TableCell colSpan={colSpan} className="text-center py-12 text-muted-foreground">
-        <div className="flex flex-col items-center justify-center gap-2">
-          <Activity className="h-8 w-8 text-muted-foreground/50" />
-          <p>{message}</p>
-        </div>
-      </TableCell>
-    </TableRow>
-  )
-
   const recentRecordsCount = useMemo(() => {
     const thirtyDaysAgo = subDays(new Date(), 30)
     return healthRecords.filter((r) => {
@@ -246,54 +262,43 @@ function AdminSupervisionContent() {
     }).length
   }, [healthRecords])
 
-  const safeFormatDate = (dateString: string) => {
-    try {
-      if (!dateString) return 'N/A'
-      const d = new Date(dateString)
-      if (isNaN(d.getTime())) return 'Data inválida'
-      return format(d, 'dd/MM/yyyy HH:mm', { locale: ptBR })
-    } catch {
-      return 'Data inválida'
-    }
-  }
-
   return (
     <div className="relative min-h-[80vh] rounded-xl p-4 sm:p-6 overflow-hidden">
       {/* Visual Consistency Grid Pattern */}
       <div className="absolute inset-0 pointer-events-none opacity-[0.15] bg-[linear-gradient(to_right,hsl(var(--primary)/0.2)_1px,transparent_1px),linear-gradient(to_bottom,hsl(var(--primary)/0.2)_1px,transparent_1px)] bg-[size:40px_40px] z-0" />
       <div className="relative z-10 space-y-6">
-        <div className="bg-background/90 backdrop-blur-md border border-primary/20 rounded-xl p-6 shadow-sm">
-          <h1 className="text-3xl font-bold tracking-tight text-primary">Supervisão Clínica</h1>
-          <p className="text-muted-foreground mt-2 max-w-2xl">
-            Painel para gestão de profissionais, auditoria de prontuários, receitas e agendamentos.
-          </p>
-          <div className="mt-6 flex items-center gap-4 bg-background/80 backdrop-blur-sm w-fit px-4 py-3 rounded-lg border border-primary/10 shadow-sm">
-            <Avatar className="h-12 w-12 border-2 border-primary/30">
-              <AvatarImage
-                src={
-                  medicalDirector?.avatar
-                    ? pb.files.getURL(medicalDirector, medicalDirector.avatar)
-                    : `https://api.dicebear.com/7.x/notionists/svg?seed=${medicalDirector?.name || 'DrFauzer'}`
-                }
-              />
-              <AvatarFallback>
-                <Stethoscope className="h-5 w-5" />
-              </AvatarFallback>
-            </Avatar>
-            <div>
-              <p className="font-bold text-foreground leading-tight">
-                Diretor Médico:{' '}
-                {medicalDirector?.name || 'Dr. Fauzer Andrigo Mendonça Simões Rangel'}{' '}
-                {medicalDirector?.crm_state && medicalDirector?.crm_number
-                  ? `CRM-${medicalDirector.crm_state} ${medicalDirector.crm_number}`
-                  : 'CRM-GO 29015'}
-              </p>
-              <p className="text-sm text-primary font-semibold tracking-wide">
-                Responsabilidade Técnica e Clínica
-              </p>
+        <AdminHeader
+          title="Supervisão Clínica"
+          description="Painel para gestão de profissionais, auditoria de prontuários, receitas e agendamentos."
+          rightContent={
+            <div className="flex items-center gap-4 bg-background/80 backdrop-blur-sm px-4 py-3 rounded-lg border border-primary/10 shadow-sm w-full lg:w-auto">
+              <Avatar className="h-12 w-12 border-2 border-primary/30">
+                <AvatarImage
+                  src={
+                    medicalDirector?.avatar
+                      ? pb.files.getURL(medicalDirector, medicalDirector.avatar)
+                      : `https://api.dicebear.com/7.x/notionists/svg?seed=${medicalDirector?.name || 'DrFauzer'}`
+                  }
+                />
+                <AvatarFallback>
+                  <Stethoscope className="h-5 w-5" />
+                </AvatarFallback>
+              </Avatar>
+              <div>
+                <p className="font-bold text-foreground leading-tight text-sm">
+                  Diretor Médico:{' '}
+                  {medicalDirector?.name || 'Dr. Fauzer Andrigo Mendonça Simões Rangel'}{' '}
+                  {medicalDirector?.crm_state && medicalDirector?.crm_number
+                    ? `CRM-${medicalDirector.crm_state} ${medicalDirector.crm_number}`
+                    : 'CRM-GO 29015'}
+                </p>
+                <p className="text-xs text-primary font-semibold tracking-wide">
+                  Responsabilidade Técnica e Clínica
+                </p>
+              </div>
             </div>
-          </div>
-        </div>
+          }
+        />
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Card className="bg-primary/5 relative overflow-hidden border-primary/20">
