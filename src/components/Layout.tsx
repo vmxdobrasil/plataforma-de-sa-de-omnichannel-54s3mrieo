@@ -237,6 +237,7 @@ export default function Layout() {
     : `https://api.dicebear.com/7.x/notionists/svg?seed=${user?.name}`
 
   const [systemSettings, setSystemSettings] = useState<any>(null)
+  const [brandKit, setBrandKit] = useState<any>(null)
 
   const applyBrandColor = (color: string) => {
     if (!color) return
@@ -279,7 +280,16 @@ export default function Layout() {
       .catch(() => {
         /* ignore */
       })
-  }, [])
+
+    if (user?.role === 'professional') {
+      pb.collection('brand_kits')
+        .getFirstListItem(`user_id="${user.id}"`)
+        .then((rec) => setBrandKit(rec))
+        .catch(() => {
+          /* ignore */
+        })
+    }
+  }, [user])
 
   useRealtime('system_settings', (e) => {
     if (e.action === 'update' || e.action === 'create') {
@@ -288,11 +298,22 @@ export default function Layout() {
     }
   })
 
-  const brandLogoUrl = systemSettings?.logo
-    ? pb.files.getURL(systemSettings, systemSettings.logo)
-    : user?.role === 'company' && user?.avatar
-      ? pb.files.getURL({ id: user.id, collectionId: 'users' }, user.avatar)
-      : null
+  useRealtime('brand_kits', (e) => {
+    if (user?.role === 'professional' && e.record.user_id === user?.id) {
+      if (e.action === 'update' || e.action === 'create') {
+        setBrandKit(e.record)
+      }
+    }
+  })
+
+  const brandLogoUrl =
+    user?.role === 'professional' && brandKit?.logo
+      ? pb.files.getURL(brandKit, brandKit.logo)
+      : systemSettings?.logo
+        ? pb.files.getURL(systemSettings, systemSettings.logo)
+        : user?.role === 'company' && user?.avatar
+          ? pb.files.getURL({ id: user.id, collectionId: 'users' }, user.avatar)
+          : null
 
   return (
     <SidebarProvider>
