@@ -56,7 +56,7 @@ export function DynamicBranding() {
     const applyBranding = async () => {
       try {
         let colorToApply = ''
-        if (user.role === 'company') {
+        if (['company', 'admin', 'medical_director'].includes(user.role)) {
           const settings = await pb.collection('system_settings').getFirstListItem('')
           if (settings?.primary_color) {
             colorToApply = settings.primary_color

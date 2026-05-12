@@ -11,6 +11,9 @@ interface AdminHeaderProps {
   className?: string
 }
 
+let cachedLogoUrl: string | null = null
+let hasFetchedLogo = false
+
 export function AdminHeader({
   title,
   description,
@@ -18,19 +21,26 @@ export function AdminHeader({
   rightContent,
   className,
 }: AdminHeaderProps) {
-  const [logoUrl, setLogoUrl] = useState<string | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [logoUrl, setLogoUrl] = useState<string | null>(cachedLogoUrl)
+  const [loading, setLoading] = useState(!hasFetchedLogo)
 
   useEffect(() => {
+    if (hasFetchedLogo) return
+
     pb.collection('system_settings')
       .getFirstListItem('')
       .then((settings) => {
         if (settings?.logo) {
-          setLogoUrl(pb.files.getURL(settings, settings.logo))
+          const url = pb.files.getURL(settings, settings.logo)
+          cachedLogoUrl = url
+          setLogoUrl(url)
         }
       })
       .catch(() => {})
-      .finally(() => setLoading(false))
+      .finally(() => {
+        hasFetchedLogo = true
+        setLoading(false)
+      })
   }, [])
 
   return (
@@ -44,14 +54,21 @@ export function AdminHeader({
         {loading ? (
           <Skeleton className="h-16 w-32 shrink-0" />
         ) : logoUrl ? (
-          <div className="shrink-0 bg-white/90 dark:bg-white p-2 rounded-lg shadow-sm w-fit">
+          <div className="shrink-0 bg-white/90 dark:bg-white p-2 rounded-lg shadow-sm w-fit flex items-center justify-center">
             <img
               src={logoUrl}
-              alt="Logo"
-              className="h-14 w-auto object-contain mix-blend-multiply dark:mix-blend-normal"
+              alt="Logo VMed"
+              className="h-14 w-auto max-w-[200px] object-contain mix-blend-multiply dark:mix-blend-normal"
             />
           </div>
-        ) : null}
+        ) : (
+          <div className="shrink-0 bg-primary/10 p-3 rounded-xl shadow-sm w-fit flex items-center justify-center gap-2 border border-primary/20">
+            <div className="h-10 w-10 bg-primary text-primary-foreground flex items-center justify-center rounded-lg font-bold text-xl shadow-inner">
+              VM
+            </div>
+            <span className="font-bold text-2xl tracking-tight text-foreground pr-2">VMed</span>
+          </div>
+        )}
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight flex items-center gap-2">
             {icon && <span className="text-primary">{icon}</span>}

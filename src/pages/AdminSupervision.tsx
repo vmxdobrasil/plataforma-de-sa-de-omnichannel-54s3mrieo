@@ -48,7 +48,7 @@ const TableLoading = ({ colSpan = 5 }: { colSpan?: number }) => (
     <TableCell colSpan={colSpan} className="text-center py-12">
       <div className="flex flex-col items-center justify-center gap-4">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <p className="text-muted-foreground">Carregando dados clínicos...</p>
+        <p className="text-muted-foreground">Carregando dados...</p>
       </div>
     </TableCell>
   </TableRow>
@@ -56,7 +56,7 @@ const TableLoading = ({ colSpan = 5 }: { colSpan?: number }) => (
 
 const TableEmpty = ({
   colSpan = 5,
-  message = 'Nenhuma atividade clínica encontrada para supervisão neste momento.',
+  message = 'Nenhuma atividade encontrada neste momento.',
 }: {
   colSpan?: number
   message?: string
@@ -150,6 +150,7 @@ function AdminSupervisionContent() {
   }
 
   useEffect(() => {
+    if (!user) return
     const safeTerm = searchTermProf.replace(/["\\]/g, '')
     const searchFilter = safeTerm
       ? `role = "professional" && (name ~ "${safeTerm}" || email ~ "${safeTerm}")`
@@ -160,6 +161,7 @@ function AdminSupervisionContent() {
   }, [searchTermProf, user])
 
   useEffect(() => {
+    if (!user) return
     const safeTerm = searchTermApp.replace(/["\\]/g, '')
     const searchFilter = safeTerm
       ? `patient_id.name ~ "${safeTerm}" || professional_id.name ~ "${safeTerm}"`
@@ -170,6 +172,7 @@ function AdminSupervisionContent() {
   }, [searchTermApp, user])
 
   useEffect(() => {
+    if (!user) return
     const safeTerm = searchTermRec.replace(/["\\]/g, '')
     const searchFilter = safeTerm
       ? `patient_id.name ~ "${safeTerm}" || professional_id.name ~ "${safeTerm}"`
@@ -186,6 +189,7 @@ function AdminSupervisionContent() {
   }, [searchTermRec, user])
 
   useEffect(() => {
+    if (!user) return
     const safeTerm = searchTermPresc.replace(/["\\]/g, '')
     const searchFilter = safeTerm
       ? `patient_id.name ~ "${safeTerm}" || professional_id.name ~ "${safeTerm}" || medications ~ "${safeTerm}"`
@@ -262,10 +266,18 @@ function AdminSupervisionContent() {
     }).length
   }, [healthRecords])
 
+  const patternStyle = {
+    backgroundImage:
+      'linear-gradient(to right, hsl(var(--primary)/0.2) 1px, transparent 1px), linear-gradient(to bottom, hsl(var(--primary)/0.2) 1px, transparent 1px)',
+  }
+
   return (
     <div className="relative min-h-[80vh] rounded-xl p-4 sm:p-6 overflow-hidden">
-      {/* Visual Consistency Grid Pattern */}
-      <div className="absolute inset-0 pointer-events-none opacity-[0.15] bg-[linear-gradient(to_right,hsl(var(--primary)/0.2)_1px,transparent_1px),linear-gradient(to_bottom,hsl(var(--primary)/0.2)_1px,transparent_1px)] bg-[size:40px_40px] z-0" />
+      {/* Visual Consistency Grid Pattern using style to prevent tailwind compile errors */}
+      <div
+        className="absolute inset-0 pointer-events-none opacity-[0.15] z-0"
+        style={{ ...patternStyle, backgroundSize: '40px 40px' }}
+      />
       <div className="relative z-10 space-y-6">
         <AdminHeader
           title="Supervisão Clínica"
@@ -277,7 +289,7 @@ function AdminSupervisionContent() {
                   src={
                     medicalDirector?.avatar
                       ? pb.files.getURL(medicalDirector, medicalDirector.avatar)
-                      : `https://api.dicebear.com/7.x/notionists/svg?seed=${medicalDirector?.name || 'DrFauzer'}`
+                      : `https://api.dicebear.com/7.x/notionists/svg?seed=${encodeURIComponent(medicalDirector?.name || 'DrFauzer')}`
                   }
                 />
                 <AvatarFallback>
@@ -302,7 +314,10 @@ function AdminSupervisionContent() {
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Card className="bg-primary/5 relative overflow-hidden border-primary/20">
-            <div className="absolute inset-0 pointer-events-none opacity-10 bg-[linear-gradient(to_right,hsl(var(--primary)/0.2)_1px,transparent_1px),linear-gradient(to_bottom,hsl(var(--primary)/0.2)_1px,transparent_1px)] bg-[size:10px_10px]" />
+            <div
+              className="absolute inset-0 pointer-events-none opacity-10"
+              style={{ ...patternStyle, backgroundSize: '10px 10px' }}
+            />
             <div className="absolute inset-0 bg-background/60 backdrop-blur-[1px]"></div>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
               <CardTitle className="text-sm font-medium">Total de Agendamentos</CardTitle>
@@ -317,7 +332,10 @@ function AdminSupervisionContent() {
           </Card>
 
           <Card className="bg-primary/5 relative overflow-hidden border-primary/20">
-            <div className="absolute inset-0 pointer-events-none opacity-10 bg-[linear-gradient(to_right,hsl(var(--primary)/0.2)_1px,transparent_1px),linear-gradient(to_bottom,hsl(var(--primary)/0.2)_1px,transparent_1px)] bg-[size:10px_10px]" />
+            <div
+              className="absolute inset-0 pointer-events-none opacity-10"
+              style={{ ...patternStyle, backgroundSize: '10px 10px' }}
+            />
             <div className="absolute inset-0 bg-background/60 backdrop-blur-[1px]"></div>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
               <CardTitle className="text-sm font-medium">Prontuários Recentes</CardTitle>
@@ -332,7 +350,10 @@ function AdminSupervisionContent() {
           </Card>
 
           <Card className="bg-primary/5 relative overflow-hidden border-primary/20">
-            <div className="absolute inset-0 pointer-events-none opacity-10 bg-[linear-gradient(to_right,hsl(var(--primary)/0.2)_1px,transparent_1px),linear-gradient(to_bottom,hsl(var(--primary)/0.2)_1px,transparent_1px)] bg-[size:10px_10px]" />
+            <div
+              className="absolute inset-0 pointer-events-none opacity-10"
+              style={{ ...patternStyle, backgroundSize: '10px 10px' }}
+            />
             <div className="absolute inset-0 bg-background/60 backdrop-blur-[1px]"></div>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
               <CardTitle className="text-sm font-medium">Profissionais Registrados</CardTitle>
@@ -347,7 +368,10 @@ function AdminSupervisionContent() {
           </Card>
 
           <Card className="bg-primary/5 relative overflow-hidden border-primary/20">
-            <div className="absolute inset-0 pointer-events-none opacity-10 bg-[linear-gradient(to_right,hsl(var(--primary)/0.2)_1px,transparent_1px),linear-gradient(to_bottom,hsl(var(--primary)/0.2)_1px,transparent_1px)] bg-[size:10px_10px]" />
+            <div
+              className="absolute inset-0 pointer-events-none opacity-10"
+              style={{ ...patternStyle, backgroundSize: '10px 10px' }}
+            />
             <div className="absolute inset-0 bg-background/60 backdrop-blur-[1px]"></div>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
               <CardTitle className="text-sm font-medium">Receitas Prescritas</CardTitle>
@@ -393,7 +417,10 @@ function AdminSupervisionContent() {
           <TabsContent value="records" className="mt-4">
             <Card className="border shadow-sm relative overflow-hidden">
               <CardHeader className="bg-primary/5 border-b pb-4 relative">
-                <div className="absolute inset-0 pointer-events-none opacity-5 bg-[linear-gradient(to_right,hsl(var(--primary)/0.2)_1px,transparent_1px),linear-gradient(to_bottom,hsl(var(--primary)/0.2)_1px,transparent_1px)] bg-[size:20px_20px]" />
+                <div
+                  className="absolute inset-0 pointer-events-none opacity-5"
+                  style={{ ...patternStyle, backgroundSize: '20px 20px' }}
+                />
                 <CardTitle className="relative z-10">Prontuários de Saúde</CardTitle>
                 <CardDescription className="relative z-10">
                   Acesso aos registros clínicos de pacientes.
@@ -426,7 +453,7 @@ function AdminSupervisionContent() {
                       {loadingRecords ? (
                         <TableLoading />
                       ) : healthRecords.length === 0 ? (
-                        <TableEmpty />
+                        <TableEmpty message="Nenhum prontuário encontrado." />
                       ) : (
                         healthRecords.map((rec) => (
                           <TableRow key={rec.id}>
@@ -467,7 +494,10 @@ function AdminSupervisionContent() {
           <TabsContent value="appointments" className="mt-4">
             <Card className="border shadow-sm relative overflow-hidden">
               <CardHeader className="bg-primary/5 border-b pb-4 relative">
-                <div className="absolute inset-0 pointer-events-none opacity-5 bg-[linear-gradient(to_right,hsl(var(--primary)/0.2)_1px,transparent_1px),linear-gradient(to_bottom,hsl(var(--primary)/0.2)_1px,transparent_1px)] bg-[size:20px_20px]" />
+                <div
+                  className="absolute inset-0 pointer-events-none opacity-5"
+                  style={{ ...patternStyle, backgroundSize: '20px 20px' }}
+                />
                 <CardTitle className="relative z-10">Agendamentos Gerais</CardTitle>
                 <CardDescription className="relative z-10">
                   Auditoria de todas as consultas na plataforma.
@@ -500,7 +530,7 @@ function AdminSupervisionContent() {
                       {loadingApps ? (
                         <TableLoading />
                       ) : appointments.length === 0 ? (
-                        <TableEmpty />
+                        <TableEmpty message="Nenhum agendamento encontrado." />
                       ) : (
                         appointments.map((app) => (
                           <TableRow key={app.id}>
@@ -526,7 +556,10 @@ function AdminSupervisionContent() {
           <TabsContent value="prescriptions" className="mt-4">
             <Card className="border shadow-sm relative overflow-hidden">
               <CardHeader className="bg-primary/5 border-b pb-4 relative">
-                <div className="absolute inset-0 pointer-events-none opacity-5 bg-[linear-gradient(to_right,hsl(var(--primary)/0.2)_1px,transparent_1px),linear-gradient(to_bottom,hsl(var(--primary)/0.2)_1px,transparent_1px)] bg-[size:20px_20px]" />
+                <div
+                  className="absolute inset-0 pointer-events-none opacity-5"
+                  style={{ ...patternStyle, backgroundSize: '20px 20px' }}
+                />
                 <CardTitle className="relative z-10">Receitas Prescritas</CardTitle>
                 <CardDescription className="relative z-10">
                   Auditoria de prescrições médicas na plataforma.
@@ -558,7 +591,7 @@ function AdminSupervisionContent() {
                       {loadingPrescriptions ? (
                         <TableLoading colSpan={4} />
                       ) : prescriptions.length === 0 ? (
-                        <TableEmpty colSpan={4} />
+                        <TableEmpty colSpan={4} message="Nenhuma receita encontrada." />
                       ) : (
                         prescriptions.map((presc) => (
                           <TableRow key={presc.id}>
@@ -588,7 +621,10 @@ function AdminSupervisionContent() {
           <TabsContent value="professionals" className="mt-4">
             <Card className="border shadow-sm relative overflow-hidden">
               <CardHeader className="bg-primary/5 border-b pb-4 relative">
-                <div className="absolute inset-0 pointer-events-none opacity-5 bg-[linear-gradient(to_right,hsl(var(--primary)/0.2)_1px,transparent_1px),linear-gradient(to_bottom,hsl(var(--primary)/0.2)_1px,transparent_1px)] bg-[size:20px_20px]" />
+                <div
+                  className="absolute inset-0 pointer-events-none opacity-5"
+                  style={{ ...patternStyle, backgroundSize: '20px 20px' }}
+                />
                 <CardTitle className="relative z-10">Verificação de Profissionais</CardTitle>
                 <CardDescription className="relative z-10">
                   Gerencie acesso e verifique o CRM dos médicos.
