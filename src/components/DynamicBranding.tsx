@@ -57,14 +57,16 @@ export function DynamicBranding() {
       try {
         let colorToApply = ''
         if (['company', 'admin', 'medical_director'].includes(user.role)) {
-          const settings = await pb.collection('system_settings').getFirstListItem('')
-          if (settings?.primary_color) {
-            colorToApply = settings.primary_color
+          const settingsRes = await pb.collection('system_settings').getList(1, 1)
+          if (settingsRes.items.length > 0 && settingsRes.items[0].primary_color) {
+            colorToApply = settingsRes.items[0].primary_color
           }
         } else if (user.role === 'professional') {
-          const kit = await pb.collection('brand_kits').getFirstListItem(`user_id="${user.id}"`)
-          if (kit?.primary_color) {
-            colorToApply = kit.primary_color
+          const kitRes = await pb
+            .collection('brand_kits')
+            .getList(1, 1, { filter: `user_id="${user.id}"` })
+          if (kitRes.items.length > 0 && kitRes.items[0].primary_color) {
+            colorToApply = kitRes.items[0].primary_color
           }
         }
 

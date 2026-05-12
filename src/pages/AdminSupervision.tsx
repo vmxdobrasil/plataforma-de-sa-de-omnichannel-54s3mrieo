@@ -208,12 +208,16 @@ function AdminSupervisionContent() {
   useEffect(() => {
     const fetchMedicalDirector = async () => {
       try {
-        const res = await pb.collection('users').getFirstListItem('role = "medical_director"')
-        setMedicalDirector(res)
-      } catch (err: any) {
-        if (!err?.isAbort) {
-          console.error('Medical director not found')
+        const res = await pb
+          .collection('users')
+          .getList(1, 1, { filter: 'role = "medical_director"' })
+        if (res.items.length > 0) {
+          setMedicalDirector(res.items[0])
+        } else {
+          setMedicalDirector(null)
         }
+      } catch (err: any) {
+        // silently ignore to prevent console exceptions
       }
     }
     fetchMedicalDirector()
@@ -289,20 +293,19 @@ function AdminSupervisionContent() {
                   src={
                     medicalDirector?.avatar
                       ? pb.files.getURL(medicalDirector, medicalDirector.avatar)
-                      : `https://api.dicebear.com/7.x/notionists/svg?seed=${encodeURIComponent(medicalDirector?.name || 'DrFauzer')}`
+                      : ''
                   }
                 />
-                <AvatarFallback>
+                <AvatarFallback className="bg-primary/10 text-primary">
                   <Stethoscope className="h-5 w-5" />
                 </AvatarFallback>
               </Avatar>
               <div>
                 <p className="font-bold text-foreground leading-tight text-sm">
-                  Diretor Médico:{' '}
-                  {medicalDirector?.name || 'Dr. Fauzer Andrigo Mendonça Simões Rangel'}{' '}
+                  Diretor Médico: {medicalDirector?.name || 'Não atribuído'}{' '}
                   {medicalDirector?.crm_state && medicalDirector?.crm_number
                     ? `CRM-${medicalDirector.crm_state} ${medicalDirector.crm_number}`
-                    : 'CRM-GO 29015'}
+                    : ''}
                 </p>
                 <p className="text-xs text-primary font-semibold tracking-wide">
                   Responsabilidade Técnica e Clínica

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import pb from '@/lib/pocketbase/client'
 import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
+import { useRealtime } from '@/hooks/use-realtime'
 
 interface AdminHeaderProps {
   title: React.ReactNode
@@ -11,9 +12,6 @@ interface AdminHeaderProps {
   className?: string
 }
 
-let cachedLogoUrl: string | null = null
-let hasFetchedLogo = false
-
 export function AdminHeader({
   title,
   description,
@@ -21,27 +19,33 @@ export function AdminHeader({
   rightContent,
   className,
 }: AdminHeaderProps) {
-  const [logoUrl, setLogoUrl] = useState<string | null>(cachedLogoUrl)
-  const [loading, setLoading] = useState(!hasFetchedLogo)
+  const [logoUrl, setLogoUrl] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  const fetchLogo = async () => {
+    try {
+      const res = await pb.collection('system_settings').getList(1, 1)
+      if (res.items.length > 0 && res.items[0].logo) {
+        const settings = res.items[0]
+        const url = pb.files.getURL(settings, settings.logo)
+        setLogoUrl(url + '?v=' + settings.updated)
+      } else {
+        setLogoUrl(null)
+      }
+    } catch (error) {
+      setLogoUrl(null)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   useEffect(() => {
-    if (hasFetchedLogo) return
-
-    pb.collection('system_settings')
-      .getFirstListItem('')
-      .then((settings) => {
-        if (settings?.logo) {
-          const url = pb.files.getURL(settings, settings.logo)
-          cachedLogoUrl = url
-          setLogoUrl(url)
-        }
-      })
-      .catch(() => {})
-      .finally(() => {
-        hasFetchedLogo = true
-        setLoading(false)
-      })
+    fetchLogo()
   }, [])
+
+  useRealtime('system_settings', () => {
+    fetchLogo()
+  })
 
   return (
     <div
