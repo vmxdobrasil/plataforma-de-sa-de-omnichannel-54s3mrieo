@@ -58,7 +58,6 @@ import { NotificationsPopover } from './NotificationsPopover'
 import pb from '@/lib/pocketbase/client'
 import { useState, useEffect } from 'react'
 import { useRealtime } from '@/hooks/use-realtime'
-import logoUrl from '@/assets/image-editing3-e6f7b.png'
 
 const navItems = [
   { title: 'Início', icon: Home, url: '/', roles: ['patient', 'professional'] },
@@ -308,11 +307,11 @@ export default function Layout() {
 
   const brandLogoUrl =
     user?.role === 'professional' && brandKit?.logo
-      ? pb.files.getURL(brandKit, brandKit.logo)
+      ? `${pb.files.getURL(brandKit, brandKit.logo)}?v=${brandKit.updated}`
       : systemSettings?.logo
-        ? pb.files.getURL(systemSettings, systemSettings.logo)
+        ? `${pb.files.getURL(systemSettings, systemSettings.logo)}?v=${systemSettings.updated}`
         : user?.role === 'company' && user?.avatar
-          ? pb.files.getURL({ id: user.id, collectionId: 'users' }, user.avatar)
+          ? `${pb.files.getURL({ id: user.id, collectionId: 'users' }, user.avatar)}?v=${user.updated}`
           : null
 
   return (
@@ -334,13 +333,12 @@ export default function Layout() {
                       className="w-full h-16 sm:h-20 object-contain object-left"
                     />
                   ) : (
-                    <img
-                      src={logoUrl}
-                      alt="V MED BRASIL Logo"
-                      className="w-full h-16 sm:h-20 object-contain object-left mix-blend-multiply dark:mix-blend-normal dark:bg-white dark:p-1.5 dark:rounded-md"
-                    />
+                    <div className="flex items-center gap-2 text-primary p-2">
+                      <HeartPulse className="h-8 w-8" />
+                      <span className="font-bold text-xl tracking-tight">V MED BRASIL</span>
+                    </div>
                   )}
-                </Link>
+                </Link>{' '}
                 {location.pathname.startsWith('/admin') && (
                   <div className="text-xs font-bold text-primary tracking-widest mt-1">
                     V MED BRASIL ADMIN
@@ -408,13 +406,12 @@ export default function Layout() {
                       className="h-14 sm:h-16 w-auto max-w-[250px] object-contain"
                     />
                   ) : (
-                    <img
-                      src={logoUrl}
-                      alt="V MED BRASIL Logo"
-                      className="h-14 sm:h-16 w-auto max-w-[250px] object-contain mix-blend-multiply dark:mix-blend-normal dark:bg-white dark:p-1 dark:rounded-md"
-                    />
+                    <div className="flex items-center gap-2 text-primary">
+                      <HeartPulse className="h-6 w-6" />
+                      <span className="font-bold text-md tracking-tight">V MED BRASIL</span>
+                    </div>
                   )}
-                </Link>
+                </Link>{' '}
                 {location.pathname.startsWith('/admin') && (
                   <div className="text-[10px] font-bold text-primary tracking-widest leading-none ml-1 mt-1">
                     V MED BRASIL ADMIN

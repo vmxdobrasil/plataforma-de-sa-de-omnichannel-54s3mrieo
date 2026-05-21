@@ -57,19 +57,19 @@ import { updateUser } from '@/services/users'
 export default function CompanyEmployees() {
   const { user } = useAuth()
   const [searchParams, setSearchParams] = useSearchParams()
-  const targetCompanyId =
-    user?.role === 'medical_director' ? searchParams.get('companyId') : user?.id
+  const isAdmin = user?.role === 'medical_director' || user?.role === 'admin'
+  const targetCompanyId = isAdmin ? searchParams.get('companyId') : user?.id
 
   const [employees, setEmployees] = useState<any[]>([])
   const [companies, setCompanies] = useState<any[]>([])
 
   useEffect(() => {
-    if (user?.role === 'medical_director') {
+    if (isAdmin) {
       pb.collection('users')
         .getFullList({ filter: 'role="company"', sort: 'name' })
         .then(setCompanies)
     }
-  }, [user?.role])
+  }, [isAdmin])
   const [searchQuery, setSearchQuery] = useState('')
   const [isAddOpen, setIsAddOpen] = useState(false)
   const [isEditOpen, setIsEditOpen] = useState(false)
@@ -113,7 +113,7 @@ export default function CompanyEmployees() {
     loadData(false)
   })
 
-  if (user?.role !== 'company' && user?.role !== 'medical_director') {
+  if (user?.role !== 'company' && !isAdmin) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <p className="text-muted-foreground text-lg">
@@ -282,7 +282,7 @@ export default function CompanyEmployees() {
     <div className="space-y-8 pb-10 animate-fade-in-up">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
         <div>
-          {user?.role === 'medical_director' && (
+          {isAdmin && (
             <Button
               variant="outline"
               size="sm"
@@ -303,7 +303,7 @@ export default function CompanyEmployees() {
           </p>
         </div>
         <div className="flex flex-col sm:flex-row gap-2">
-          {user?.role === 'medical_director' && (
+          {isAdmin && (
             <Select
               value={targetCompanyId || ''}
               onValueChange={(val) => {
