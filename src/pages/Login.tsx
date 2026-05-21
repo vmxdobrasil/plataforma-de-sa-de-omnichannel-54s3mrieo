@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, Navigate } from 'react-router-dom'
 import { HeartPulse, Stethoscope, ArrowRight, RefreshCcw, WifiOff } from 'lucide-react'
-import logoUrl from '@/assets/image-editing3-e6f7b.png'
+import logoUrl from '@/assets/logo-v-med-c5c45.jpg'
 import { useAuth } from '@/hooks/use-auth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'

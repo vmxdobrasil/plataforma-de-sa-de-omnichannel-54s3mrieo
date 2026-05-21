@@ -58,6 +58,7 @@ import { NotificationsPopover } from './NotificationsPopover'
 import pb from '@/lib/pocketbase/client'
 import { useState, useEffect } from 'react'
 import { useRealtime } from '@/hooks/use-realtime'
+import defaultLogo from '@/assets/logo-v-med-c5c45.jpg'
 
 const navItems = [
   { title: 'Início', icon: Home, url: '/', roles: ['patient', 'professional'] },
@@ -308,11 +309,9 @@ export default function Layout() {
   const brandLogoUrl =
     user?.role === 'professional' && brandKit?.logo
       ? `${pb.files.getURL(brandKit, brandKit.logo)}?v=${brandKit.updated}`
-      : systemSettings?.logo
-        ? `${pb.files.getURL(systemSettings, systemSettings.logo)}?v=${systemSettings.updated}`
-        : user?.role === 'company' && user?.avatar
-          ? `${pb.files.getURL({ id: user.id, collectionId: 'users' }, user.avatar)}?v=${user.updated}`
-          : null
+      : user?.role === 'company' && user?.avatar
+        ? `${pb.files.getURL({ id: user.id, collectionId: 'users' }, user.avatar)}?v=${user.updated}`
+        : null
 
   return (
     <SidebarProvider>
@@ -333,9 +332,12 @@ export default function Layout() {
                       className="w-full h-16 sm:h-20 object-contain object-left"
                     />
                   ) : (
-                    <div className="flex items-center gap-2 text-primary p-2">
-                      <HeartPulse className="h-8 w-8" />
-                      <span className="font-bold text-xl tracking-tight">V MED BRASIL</span>
+                    <div className="bg-white/90 p-2 rounded-lg w-full flex items-center justify-start">
+                      <img
+                        src={defaultLogo}
+                        alt="V MED BRASIL Logo"
+                        className="w-full h-12 sm:h-16 object-contain object-left mix-blend-multiply"
+                      />
                     </div>
                   )}
                 </Link>{' '}
@@ -406,9 +408,12 @@ export default function Layout() {
                       className="h-14 sm:h-16 w-auto max-w-[250px] object-contain"
                     />
                   ) : (
-                    <div className="flex items-center gap-2 text-primary">
-                      <HeartPulse className="h-6 w-6" />
-                      <span className="font-bold text-md tracking-tight">V MED BRASIL</span>
+                    <div className="bg-white/90 p-1 rounded-lg flex items-center justify-center">
+                      <img
+                        src={defaultLogo}
+                        alt="V MED BRASIL Logo"
+                        className="h-10 sm:h-12 w-auto max-w-[200px] object-contain mix-blend-multiply"
+                      />
                     </div>
                   )}
                 </Link>{' '}

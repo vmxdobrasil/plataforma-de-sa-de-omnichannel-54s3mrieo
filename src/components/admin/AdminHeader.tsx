@@ -3,6 +3,7 @@ import pb from '@/lib/pocketbase/client'
 import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
 import { useRealtime } from '@/hooks/use-realtime'
+import defaultLogo from '@/assets/logo-v-med-c5c45.jpg'
 
 interface AdminHeaderProps {
   title: React.ReactNode
@@ -23,29 +24,13 @@ export function AdminHeader({
   const [loading, setLoading] = useState(true)
 
   const fetchLogo = async () => {
-    try {
-      const res = await pb.collection('system_settings').getList(1, 1)
-      if (res.items.length > 0 && res.items[0].logo) {
-        const settings = res.items[0]
-        const url = pb.files.getURL(settings, settings.logo)
-        setLogoUrl(url + '?v=' + settings.updated)
-      } else {
-        setLogoUrl(null)
-      }
-    } catch (error) {
-      setLogoUrl(null)
-    } finally {
-      setLoading(false)
-    }
+    setLogoUrl(defaultLogo)
+    setLoading(false)
   }
 
   useEffect(() => {
     fetchLogo()
   }, [])
-
-  useRealtime('system_settings', () => {
-    fetchLogo()
-  })
 
   return (
     <div
@@ -66,11 +51,12 @@ export function AdminHeader({
             />
           </div>
         ) : (
-          <div className="shrink-0 bg-primary/10 p-3 rounded-xl shadow-sm w-fit flex items-center justify-center gap-2 border border-primary/20">
-            <div className="h-10 w-10 bg-primary text-primary-foreground flex items-center justify-center rounded-lg font-bold text-xl shadow-inner">
-              VM
-            </div>
-            <span className="font-bold text-2xl tracking-tight text-foreground pr-2">VMed</span>
+          <div className="shrink-0 bg-white/90 dark:bg-white p-2 rounded-lg shadow-sm w-fit flex items-center justify-center">
+            <img
+              src={defaultLogo}
+              alt="Logo VMed"
+              className="h-14 w-auto max-w-[200px] object-contain mix-blend-multiply dark:mix-blend-normal"
+            />
           </div>
         )}
         <div>
