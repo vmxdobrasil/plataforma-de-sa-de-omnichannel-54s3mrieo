@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState, useMemo, useCallback } from 'react'
 import { useAuth } from '@/hooks/use-auth'
 import pb from '@/lib/pocketbase/client'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
@@ -116,12 +116,12 @@ function AdminSupervisionContent() {
   ) => {
     try {
       setLoading(true)
-      const res = await pb.collection(collection).getFullList({
-        filter,
-        sort: '-created',
-        expand,
-      })
-      setData(res)
+      const options: any = { sort: '-created' }
+      if (filter) options.filter = filter
+      if (expand) options.expand = expand
+
+      const res = await pb.collection(collection).getFullList(options)
+      setData(res || [])
     } catch (error: any) {
       console.error(`Error loading ${collection}:`, error)
       if (error?.isAbort) return
@@ -132,22 +132,27 @@ function AdminSupervisionContent() {
     }
   }
 
-  const isMasterAdmin = user?.role === 'admin' || user?.email === 'valterpmendonca@gmail.com'
+  const getRoleFilter = useCallback(
+    (prefix = '') => {
+      const isMasterAdmin = user?.role === 'admin' || user?.email === 'valterpmendonca@gmail.com'
+      if (isMasterAdmin) return ''
+      if (user?.role === 'medical_director') {
+        if (user?.crm_state) {
+          return `${prefix}crm_state = "${user.crm_state}"`
+        }
+        return `id = "invalid_no_crm"`
+      }
+      return `id = "invalid_role"`
+    },
+    [user],
+  )
 
-  const getRoleFilter = (prefix = '') => {
-    if (isMasterAdmin) return ''
-    if (user?.role === 'medical_director' && user?.crm_state) {
-      return `${prefix}crm_state = "${user.crm_state}"`
-    }
-    return ''
-  }
-
-  const combineFilters = (base: string, search: string) => {
+  const combineFilters = useCallback((base: string, search: string) => {
     const filters = []
     if (base) filters.push(`(${base})`)
     if (search) filters.push(`(${search})`)
     return filters.join(' && ')
-  }
+  }, [])
 
   useEffect(() => {
     if (!user) return
@@ -158,7 +163,7 @@ function AdminSupervisionContent() {
     const roleFilter = getRoleFilter('')
     const filter = combineFilters(roleFilter, searchFilter)
     loadData('users', filter, '', setLoadingProfs, setProfessionals)
-  }, [searchTermProf, user])
+  }, [searchTermProf, user, getRoleFilter, combineFilters])
 
   useEffect(() => {
     if (!user) return
@@ -169,7 +174,7 @@ function AdminSupervisionContent() {
     const roleFilter = getRoleFilter('professional_id.')
     const filter = combineFilters(roleFilter, searchFilter)
     loadData('appointments', filter, 'patient_id,professional_id', setLoadingApps, setAppointments)
-  }, [searchTermApp, user])
+  }, [searchTermApp, user, getRoleFilter, combineFilters])
 
   useEffect(() => {
     if (!user) return
@@ -186,7 +191,7 @@ function AdminSupervisionContent() {
       setLoadingRecords,
       setHealthRecords,
     )
-  }, [searchTermRec, user])
+  }, [searchTermRec, user, getRoleFilter, combineFilters])
 
   useEffect(() => {
     if (!user) return
@@ -203,7 +208,7 @@ function AdminSupervisionContent() {
       setLoadingPrescriptions,
       setPrescriptions,
     )
-  }, [searchTermPresc, user])
+  }, [searchTermPresc, user, getRoleFilter, combineFilters])
 
   useEffect(() => {
     const fetchMedicalDirector = async () => {
@@ -258,7 +263,7 @@ function AdminSupervisionContent() {
 
   const recentRecordsCount = useMemo(() => {
     const thirtyDaysAgo = subDays(new Date(), 30)
-    return healthRecords.filter((r) => {
+    return (healthRecords || []).filter((r) => {
       try {
         if (!r.created) return false
         const d = new Date(r.created)
@@ -328,7 +333,7 @@ function AdminSupervisionContent() {
             </CardHeader>
             <CardContent className="relative z-10">
               <div className="text-2xl font-bold">
-                {loadingApps ? <Skeleton className="h-8 w-16" /> : appointments.length}
+                {loadingApps ? <Skeleton className="h-8 w-16" /> : appointments?.length || 0}
               </div>
               <p className="text-xs text-muted-foreground mt-1">Consultas na plataforma</p>
             </CardContent>
@@ -364,7 +369,7 @@ function AdminSupervisionContent() {
             </CardHeader>
             <CardContent className="relative z-10">
               <div className="text-2xl font-bold">
-                {loadingProfs ? <Skeleton className="h-8 w-16" /> : professionals.length}
+                {loadingProfs ? <Skeleton className="h-8 w-16" /> : professionals?.length || 0}
               </div>
               <p className="text-xs text-muted-foreground mt-1">Médicos e especialistas</p>
             </CardContent>
@@ -382,7 +387,11 @@ function AdminSupervisionContent() {
             </CardHeader>
             <CardContent className="relative z-10">
               <div className="text-2xl font-bold">
-                {loadingPrescriptions ? <Skeleton className="h-8 w-16" /> : prescriptions.length}
+                {loadingPrescriptions ? (
+                  <Skeleton className="h-8 w-16" />
+                ) : (
+                  prescriptions?.length || 0
+                )}
               </div>
               <p className="text-xs text-muted-foreground mt-1">Total de prescrições</p>
             </CardContent>
@@ -455,7 +464,7 @@ function AdminSupervisionContent() {
                     <TableBody>
                       {loadingRecords ? (
                         <TableLoading />
-                      ) : healthRecords.length === 0 ? (
+                      ) : !healthRecords || healthRecords.length === 0 ? (
                         <TableEmpty message="Nenhum prontuário encontrado." />
                       ) : (
                         healthRecords.map((rec) => (
@@ -532,7 +541,7 @@ function AdminSupervisionContent() {
                     <TableBody>
                       {loadingApps ? (
                         <TableLoading />
-                      ) : appointments.length === 0 ? (
+                      ) : !appointments || appointments.length === 0 ? (
                         <TableEmpty message="Nenhum agendamento encontrado." />
                       ) : (
                         appointments.map((app) => (
@@ -593,7 +602,7 @@ function AdminSupervisionContent() {
                     <TableBody>
                       {loadingPrescriptions ? (
                         <TableLoading colSpan={4} />
-                      ) : prescriptions.length === 0 ? (
+                      ) : !prescriptions || prescriptions.length === 0 ? (
                         <TableEmpty colSpan={4} message="Nenhuma receita encontrada." />
                       ) : (
                         prescriptions.map((presc) => (
@@ -659,7 +668,7 @@ function AdminSupervisionContent() {
                     <TableBody>
                       {loadingProfs ? (
                         <TableLoading />
-                      ) : professionals.length === 0 ? (
+                      ) : !professionals || professionals.length === 0 ? (
                         <TableEmpty message="Nenhum profissional encontrado com os filtros aplicados." />
                       ) : (
                         professionals.map((prof) => (
