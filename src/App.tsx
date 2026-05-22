@@ -70,8 +70,8 @@ const EntryPoint = () => {
 
   if (!user) return <Index />
 
-  if (user.role === 'admin') return <Navigate to="/admin/supervision" replace />
-  if (user.role === 'medical_director') return <Navigate to="/admin" replace />
+  if (user.role === 'admin') return <Navigate to="/admin" replace />
+  if (user.role === 'medical_director') return <Navigate to="/admin/supervision" replace />
   if (user.role === 'company') return <Navigate to="/company/employees" replace />
   if (user.role === 'professional') return <Navigate to="/professional" replace />
 
@@ -104,8 +104,13 @@ const AdminOutlet = () => {
     return <Navigate to="/" replace />
   }
 
-  if (user?.role === 'admin' && location.pathname === '/admin') {
-    return <Navigate to="/admin/supervision" replace />
+  if (user?.role === 'medical_director') {
+    const isAllowed = ['/admin/supervision', '/admin/verification', '/admin/professionals'].some(
+      (path) => location.pathname === path || location.pathname.startsWith(`${path}/`),
+    )
+    if (!isAllowed && location.pathname.startsWith('/admin')) {
+      return <Navigate to="/admin/supervision" replace />
+    }
   }
 
   return <Outlet />

@@ -63,10 +63,11 @@ import defaultLogo from '@/assets/logo-v-med-c5c45.jpg'
 const navItems = [
   { title: 'Início', icon: Home, url: '/', roles: ['patient', 'professional'] },
   {
-    title: 'Dashboard Principal',
+    title: 'Dashboard VMX',
     icon: Shield,
     url: '/admin',
-    roles: ['medical_director', 'admin'],
+    roles: ['admin'],
+    masterOnly: true,
   },
   {
     title: 'Supervisão Clínica',
@@ -343,7 +344,7 @@ export default function Layout() {
                 </Link>{' '}
                 {location.pathname.startsWith('/admin') && (
                   <div className="text-xs font-bold text-primary tracking-widest mt-1">
-                    V MED BRASIL ADMIN
+                    VMX ADMIN
                   </div>
                 )}
                 {linkedCompany && (
@@ -419,7 +420,7 @@ export default function Layout() {
                 </Link>{' '}
                 {location.pathname.startsWith('/admin') && (
                   <div className="text-[10px] font-bold text-primary tracking-widest leading-none ml-1 mt-1">
-                    V MED BRASIL ADMIN
+                    VMX ADMIN
                   </div>
                 )}
                 {linkedCompany && (

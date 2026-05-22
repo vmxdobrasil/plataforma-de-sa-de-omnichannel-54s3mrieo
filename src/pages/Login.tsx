@@ -81,9 +81,9 @@ export default function Login() {
 
   if (user) {
     if (user.role === 'admin') {
-      return <Navigate to="/admin/supervision" replace />
-    } else if (user.role === 'medical_director') {
       return <Navigate to="/admin" replace />
+    } else if (user.role === 'medical_director') {
+      return <Navigate to="/admin/supervision" replace />
     } else if (user.role === 'company') {
       return <Navigate to="/company/employees" replace />
     } else if (user.role === 'professional') {

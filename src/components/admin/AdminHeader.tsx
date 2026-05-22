@@ -60,6 +60,9 @@ export function AdminHeader({
           </div>
         )}
         <div>
+          <div className="text-[10px] sm:text-xs font-bold text-primary uppercase tracking-widest mb-1 sm:mb-2">
+            Vmx do Brasil Administradora de Cartões e Benefícios Ltda
+          </div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight flex items-center gap-2">
             {icon && <span className="text-primary">{icon}</span>}
             {title}
