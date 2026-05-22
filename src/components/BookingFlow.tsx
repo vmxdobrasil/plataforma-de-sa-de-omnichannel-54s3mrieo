@@ -25,6 +25,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
+import { Input } from '@/components/ui/input'
 
 interface BookingFlowProps {
   open: boolean
@@ -47,6 +48,8 @@ export function BookingFlow({ open, onOpenChange, professional }: BookingFlowPro
     amount: number
     remaining: number
     method: string
+    pixData?: any
+    txId?: string
   } | null>(null)
 
   useEffect(() => {
@@ -181,12 +184,7 @@ export function BookingFlow({ open, onOpenChange, professional }: BookingFlowPro
 
         setPaymentDetails({ amount: appointmentCost, remaining: 0, method: 'corporate_split' })
       } else if (method === 'pix' || method === 'credit') {
-        if (!employeeData.asaas_customer_id) {
-          await pb.collection('users').update(employeeData.id, {
-            asaas_customer_id: 'cus_mock_' + Math.random().toString(36).substr(2, 9),
-          })
-        }
-        await pb.collection('benefit_transactions').create({
+        const tx = await pb.collection('benefit_transactions').create({
           employee_id: employeeData.id,
           company_id: employeeData.id,
           appointment_id: appointment.id,
@@ -194,24 +192,55 @@ export function BookingFlow({ open, onOpenChange, professional }: BookingFlowPro
           type: 'debit',
           category: 'health_service',
           description: `Pagamento Direto: ${mode} (${method.toUpperCase()})`,
+          payment_status: 'pending',
         })
-        setPaymentDetails({ amount: appointmentCost, remaining: healthBalance, method })
+
+        const res = await pb.send('/backend/v1/asaas/pay', {
+          method: 'POST',
+          body: JSON.stringify({
+            amount: appointmentCost,
+            billingType: method === 'pix' ? 'PIX' : 'CREDIT_CARD',
+            description: `Consulta VMed: ${mode}`,
+            transactionId: tx.id,
+            split:
+              professional.asaas_wallet_id && professional.commission_rate
+                ? {
+                    walletId: professional.asaas_wallet_id,
+                    percentage: professional.commission_rate,
+                  }
+                : undefined,
+          }),
+        })
+
+        setPaymentDetails({
+          amount: appointmentCost,
+          remaining: healthBalance,
+          method,
+          pixData: res.pix,
+          txId: tx.id,
+        })
       }
 
       setStep(3)
-      toast.success(`Agendamento Confirmado com ${professional.name}!`)
-
-      setTimeout(
-        () => {
-          onOpenChange(false)
-          setTimeout(() => {
-            setStep(1)
-            setTime(null)
-            setPaymentDetails(null)
-          }, 500)
-        },
-        method.includes('corporate') ? 4000 : 2000,
+      toast.success(
+        method === 'pix'
+          ? 'Aguardando Pagamento'
+          : `Agendamento Confirmado com ${professional.name}!`,
       )
+
+      if (method !== 'pix') {
+        setTimeout(
+          () => {
+            onOpenChange(false)
+            setTimeout(() => {
+              setStep(1)
+              setTime(null)
+              setPaymentDetails(null)
+            }, 500)
+          },
+          method.includes('corporate') ? 4000 : 2000,
+        )
+      }
     } catch (error) {
       toast.error('Erro ao confirmar agendamento. Tente novamente.')
     } finally {
@@ -473,37 +502,82 @@ export function BookingFlow({ open, onOpenChange, professional }: BookingFlowPro
             </div>
           )}
 
-          {step === 3 && (
-            <div className="space-y-4 animate-fade-in-up text-center">
-              <div className="flex justify-center mb-4">
-                <CheckCircle2 className="h-16 w-16 text-primary" />
-              </div>
-              <h3 className="font-semibold text-lg text-primary">Pronto!</h3>
+          {step === 3 && paymentDetails?.method === 'pix' ? (
+            <div className="space-y-4 animate-fade-in-up text-center flex flex-col items-center">
+              <h3 className="font-semibold text-lg text-primary">Pagamento PIX</h3>
               <p className="text-sm text-muted-foreground">
-                Consulta {mode} agendada para {date?.toLocaleDateString()} às {time}.
+                Escaneie o QR Code para confirmar sua consulta {mode}.
               </p>
-              {(paymentDetails?.method === 'corporate_full' ||
-                paymentDetails?.method === 'corporate_split') && (
-                <div className="mt-4 p-4 bg-muted/50 rounded-lg text-left border">
-                  <p className="font-semibold text-sm mb-2 border-b pb-2">
-                    Comprovante de Uso de Saldo
-                  </p>
-                  <div className="flex justify-between text-sm mb-1">
-                    <span className="text-muted-foreground">Valor deduzido do saldo:</span>
-                    <span className="font-medium text-destructive">
-                      - R${' '}
-                      {paymentDetails.method === 'corporate_split'
-                        ? employeeData?.health_allowance?.toFixed(2)
-                        : paymentDetails.amount.toFixed(2)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Saldo Saúde restante:</span>
-                    <span className="font-medium">R$ {paymentDetails.remaining.toFixed(2)}</span>
-                  </div>
+              {paymentDetails.pixData?.encodedImage ? (
+                <img
+                  src={`data:image/png;base64,${paymentDetails.pixData.encodedImage}`}
+                  alt="PIX"
+                  className="w-48 h-48"
+                />
+              ) : (
+                <div className="w-48 h-48 bg-muted flex items-center justify-center rounded-lg">
+                  Mock PIX
                 </div>
               )}
+              <Input
+                readOnly
+                value={paymentDetails.pixData?.payload || 'mock_pix_code'}
+                className="font-mono text-xs text-center"
+              />
+              <Button
+                onClick={async () => {
+                  await pb.send('/backend/v1/asaas/webhook', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                      event: 'PAYMENT_MOCKED',
+                      externalReference: paymentDetails.txId,
+                    }),
+                  })
+                  toast.success(`Agendamento Confirmado com ${professional.name}!`)
+                  onOpenChange(false)
+                  setStep(1)
+                  setTime(null)
+                  setPaymentDetails(null)
+                }}
+                variant="secondary"
+                className="w-full"
+              >
+                Simular Pagamento (Sandbox)
+              </Button>
             </div>
+          ) : (
+            step === 3 && (
+              <div className="space-y-4 animate-fade-in-up text-center">
+                <div className="flex justify-center mb-4">
+                  <CheckCircle2 className="h-16 w-16 text-primary" />
+                </div>
+                <h3 className="font-semibold text-lg text-primary">Pronto!</h3>
+                <p className="text-sm text-muted-foreground">
+                  Consulta {mode} agendada para {date?.toLocaleDateString()} às {time}.
+                </p>
+                {(paymentDetails?.method === 'corporate_full' ||
+                  paymentDetails?.method === 'corporate_split') && (
+                  <div className="mt-4 p-4 bg-muted/50 rounded-lg text-left border">
+                    <p className="font-semibold text-sm mb-2 border-b pb-2">
+                      Comprovante de Uso de Saldo
+                    </p>
+                    <div className="flex justify-between text-sm mb-1">
+                      <span className="text-muted-foreground">Valor deduzido do saldo:</span>
+                      <span className="font-medium text-destructive">
+                        - R${' '}
+                        {paymentDetails.method === 'corporate_split'
+                          ? employeeData?.health_allowance?.toFixed(2)
+                          : paymentDetails.amount.toFixed(2)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Saldo Saúde restante:</span>
+                      <span className="font-medium">R$ {paymentDetails.remaining.toFixed(2)}</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )
           )}
         </div>
 

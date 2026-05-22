@@ -15,12 +15,25 @@ import { useToast } from '@/hooks/use-toast'
 import { Check, ShoppingCart } from 'lucide-react'
 import { useRealtime } from '@/hooks/use-realtime'
 import { Navigate } from 'react-router-dom'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import pb from '@/lib/pocketbase/client'
 
 export default function Marketplace() {
   const [products, setProducts] = useState<any[]>([])
   const [subscriptions, setSubscriptions] = useState<any[]>([])
   const { user } = useAuth()
   const { toast } = useToast()
+
+  const [pixData, setPixData] = useState<any>(null)
+  const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false)
+  const [pendingTxId, setPendingTxId] = useState<string | null>(null)
 
   useEffect(() => {
     if (user) {
@@ -38,17 +51,59 @@ export default function Marketplace() {
     if (user) loadData()
   })
 
-  const handleSubscribe = async (productId: string) => {
+  const handleSubscribe = async (product: any) => {
     try {
-      await subscribeToProduct(productId, user.id)
-      toast({ title: 'Sucesso', description: 'Assinatura realizada com sucesso!' })
-      loadData()
+      const tx = await pb.collection('benefit_transactions').create({
+        employee_id: user.id,
+        company_id: user.company_id || user.id,
+        amount: product.price,
+        type: 'debit',
+        description: `Compra: ${product.id}`,
+        payment_status: 'pending',
+      })
+
+      const res = await pb.send('/backend/v1/asaas/pay', {
+        method: 'POST',
+        body: JSON.stringify({
+          amount: product.price,
+          billingType: 'PIX',
+          description: `Compra na VMed: ${product.name}`,
+          transactionId: tx.id,
+        }),
+      })
+
+      if (res.pix) {
+        setPixData(res.pix)
+        setPendingTxId(tx.id)
+        setIsPaymentDialogOpen(true)
+      } else {
+        toast({ title: 'Sucesso', description: 'Cobrança gerada com sucesso!' })
+      }
     } catch (error) {
       toast({
         title: 'Erro',
-        description: 'Não foi possível realizar a assinatura.',
+        description: 'Não foi possível gerar a cobrança.',
         variant: 'destructive',
       })
+    }
+  }
+
+  const simulatePayment = async () => {
+    try {
+      if (!pendingTxId) return
+      await pb.send('/backend/v1/asaas/webhook', {
+        method: 'POST',
+        body: JSON.stringify({
+          event: 'PAYMENT_MOCKED',
+          externalReference: pendingTxId,
+        }),
+      })
+      toast({ title: 'Sucesso', description: 'Pagamento confirmado!' })
+      setIsPaymentDialogOpen(false)
+      setPixData(null)
+      loadData()
+    } catch (e) {
+      console.error(e)
     }
   }
 
@@ -84,7 +139,7 @@ export default function Marketplace() {
                   <Check className="mr-2 h-4 w-4" /> Assinado
                 </Button>
               ) : (
-                <Button className="w-full" onClick={() => handleSubscribe(product.id)}>
+                <Button className="w-full" onClick={() => handleSubscribe(product)}>
                   <ShoppingCart className="mr-2 h-4 w-4" /> Assinar
                 </Button>
               )}
@@ -97,6 +152,35 @@ export default function Marketplace() {
 
   return (
     <div className="space-y-6">
+      <Dialog open={isPaymentDialogOpen} onOpenChange={setIsPaymentDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Pagamento via PIX</DialogTitle>
+            <DialogDescription>Escaneie o QR Code abaixo para concluir a compra.</DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col items-center justify-center space-y-4 py-4">
+            {pixData?.encodedImage ? (
+              <img
+                src={`data:image/png;base64,${pixData.encodedImage}`}
+                alt="PIX QR Code"
+                className="w-48 h-48"
+              />
+            ) : (
+              <div className="w-48 h-48 bg-muted flex items-center justify-center text-muted-foreground rounded-lg">
+                QR Code Simulado
+              </div>
+            )}
+            <Input
+              readOnly
+              value={pixData?.payload || 'mock_pix_copy_paste_code'}
+              className="font-mono text-xs"
+            />
+            <Button onClick={simulatePayment} className="w-full mt-4" variant="secondary">
+              Simular Pagamento Confirmado
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Marketplace</h1>
         <p className="text-muted-foreground">

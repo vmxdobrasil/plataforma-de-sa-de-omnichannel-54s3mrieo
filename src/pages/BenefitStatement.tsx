@@ -2,6 +2,15 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, Briefcase, Pill, ReceiptText, PlusCircle, CreditCard } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { toast } from 'sonner'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -35,6 +44,10 @@ export default function BenefitStatement() {
   const [categoryFilter, setCategoryFilter] = useState<string>('all')
   const [typeFilter, setTypeFilter] = useState<string>('all')
   const [loading, setLoading] = useState(true)
+  const [pixData, setPixData] = useState<any>(null)
+  const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false)
+  const [isAmountDialogOpen, setIsAmountDialogOpen] = useState(false)
+  const [paymentAmount, setPaymentAmount] = useState('200')
 
   const loadParent = async () => {
     if (user?.parent_id) {
@@ -94,34 +107,60 @@ export default function BenefitStatement() {
 
   const handleAddCredit = async () => {
     if (!employeeData) return
+    const amount = Number(paymentAmount) || 200
     try {
-      const amount = 200 // Mock Asaas amount
-
-      if (!employeeData.asaas_customer_id) {
-        await pb.collection('users').update(employeeData.id, {
-          asaas_customer_id: 'cus_mock_' + Math.random().toString(36).substring(2, 9),
-        })
-      }
-
-      const newBalance = (employeeData.health_allowance || 0) + amount
-
-      await pb.collection('benefit_transactions').create({
+      const tx = await pb.collection('benefit_transactions').create({
         employee_id: employeeData.id,
         company_id: employeeData.id,
         amount: amount,
         type: 'credit',
         category: 'health_service',
         description: 'Adição de Crédito via Asaas',
+        payment_status: 'pending',
       })
 
-      await pb.collection('users').update(employeeData.id, {
-        health_allowance: newBalance,
+      const res = await pb.send('/backend/v1/asaas/pay', {
+        method: 'POST',
+        body: JSON.stringify({
+          amount: amount,
+          billingType: 'PIX',
+          description: 'Adição de Crédito na VMed',
+          transactionId: tx.id,
+        }),
       })
 
-      toast.success('Saldo de R$ 200,00 adicionado com sucesso!')
+      if (res.pix) {
+        setPixData(res.pix)
+        setIsPaymentDialogOpen(true)
+      } else {
+        toast.success('Cobrança gerada com sucesso!')
+      }
     } catch (e) {
       console.error(e)
-      toast.error('Erro ao adicionar crédito.')
+      toast.error('Erro ao gerar cobrança.')
+    }
+  }
+
+  // Simulate payment for demo purposes
+  const simulatePayment = async () => {
+    try {
+      if (!pixData) return
+      // In real life, webhook handles this. We mock it here.
+      const txId = transactions.find((t) => t.payment_status === 'pending')?.id
+      if (txId) {
+        await pb.send('/backend/v1/asaas/webhook', {
+          method: 'POST',
+          body: JSON.stringify({
+            event: 'PAYMENT_MOCKED',
+            externalReference: txId,
+          }),
+        })
+        toast.success('Pagamento confirmado!')
+        setIsPaymentDialogOpen(false)
+        setPixData(null)
+      }
+    } catch (e) {
+      console.error(e)
     }
   }
 
@@ -148,7 +187,10 @@ export default function BenefitStatement() {
             </p>
           </div>
           {isIndependent && (
-            <Button onClick={handleAddCredit} className="w-full md:w-auto shrink-0">
+            <Button
+              onClick={() => setIsAmountDialogOpen(true)}
+              className="w-full md:w-auto shrink-0"
+            >
               <PlusCircle className="mr-2 h-4 w-4" />
               Adicionar Saldo
             </Button>
@@ -220,6 +262,66 @@ export default function BenefitStatement() {
           </div>
         )
       )}
+
+      <Dialog open={isAmountDialogOpen} onOpenChange={setIsAmountDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Adicionar Saldo</DialogTitle>
+            <DialogDescription>
+              Insira o valor que deseja adicionar à sua carteira.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Valor (R$)</Label>
+              <Input
+                type="number"
+                value={paymentAmount}
+                onChange={(e) => setPaymentAmount(e.target.value)}
+              />
+            </div>
+            <Button
+              onClick={() => {
+                setIsAmountDialogOpen(false)
+                handleAddCredit()
+              }}
+              className="w-full"
+            >
+              Gerar PIX
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isPaymentDialogOpen} onOpenChange={setIsPaymentDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Pagamento via PIX</DialogTitle>
+            <DialogDescription>Escaneie o QR Code abaixo para adicionar saldo.</DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col items-center justify-center space-y-4 py-4">
+            {pixData?.encodedImage ? (
+              <img
+                src={`data:image/png;base64,${pixData.encodedImage}`}
+                alt="PIX QR Code"
+                className="w-48 h-48"
+              />
+            ) : (
+              <div className="w-48 h-48 bg-muted flex items-center justify-center text-muted-foreground rounded-lg">
+                QR Code Simulado
+              </div>
+            )}
+            <Input
+              readOnly
+              value={pixData?.payload || 'mock_pix_copy_paste_code'}
+              className="font-mono text-xs"
+            />
+            <Button onClick={simulatePayment} className="w-full mt-4" variant="secondary">
+              Simular Pagamento Confirmado (Sandbox)
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <Card className="border-border/50 shadow-sm overflow-hidden">
         <CardHeader className="pb-4 border-b bg-muted/20 flex flex-col md:flex-row md:items-center justify-between gap-4">
