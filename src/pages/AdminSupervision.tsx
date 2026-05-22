@@ -307,13 +307,13 @@ function AdminSupervisionContent() {
               </Avatar>
               <div>
                 <p className="font-bold text-foreground leading-tight text-sm">
-                  Diretor Médico: {medicalDirector?.name || 'Não atribuído'}{' '}
-                  {medicalDirector?.crm_state && medicalDirector?.crm_number
-                    ? `CRM-${medicalDirector.crm_state} ${medicalDirector.crm_number}`
-                    : ''}
+                  Responsável Técnico: {medicalDirector?.name || 'Não atribuído'}
                 </p>
                 <p className="text-xs text-primary font-semibold tracking-wide">
-                  Responsabilidade Técnica e Clínica
+                  Diretor Médico
+                  {medicalDirector?.crm_state && medicalDirector?.crm_number
+                    ? ` • CRM-${medicalDirector.crm_state} ${medicalDirector.crm_number}`
+                    : ''}
                 </p>
               </div>
             </div>
