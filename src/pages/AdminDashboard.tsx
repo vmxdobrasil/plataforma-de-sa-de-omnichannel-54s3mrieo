@@ -1,4 +1,12 @@
 import { useEffect, useState } from 'react'
+import { Bar, BarChart, CartesianGrid, XAxis, Pie, PieChart, Cell } from 'recharts'
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  ChartLegend,
+  ChartLegendContent,
+} from '@/components/ui/chart'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import {
   Users,
@@ -37,6 +45,12 @@ export default function AdminDashboard() {
     companies: 0,
     appointments: 0,
   })
+  const [financialData, setFinancialData] = useState<
+    { month: string; revenue: number; transfers: number }[]
+  >([])
+  const [paymentStatusData, setPaymentStatusData] = useState<
+    { status: string; value: number; fill: string }[]
+  >([])
   const [loading, setLoading] = useState(true)
   const navigate = useNavigate()
 
@@ -48,11 +62,12 @@ export default function AdminDashboard() {
       }
 
       try {
-        const [patients, professionals, companies, appointments] = await Promise.all([
+        const [patients, professionals, companies, appointments, transactions] = await Promise.all([
           pb.collection('users').getList(1, 1, { filter: 'role="patient"' }),
           pb.collection('users').getList(1, 1, { filter: 'role="professional"' }),
           pb.collection('users').getList(1, 1, { filter: 'role="company"' }),
           pb.collection('appointments').getList(1, 1),
+          pb.collection('benefit_transactions').getFullList(),
         ])
 
         setStats({
@@ -61,6 +76,38 @@ export default function AdminDashboard() {
           companies: companies.totalItems,
           appointments: appointments.totalItems,
         })
+
+        // Process financial data
+        let totalRevenue = 0
+        let totalTransfers = 0
+        const statusCounts = { confirmed: 0, pending: 0, failed: 0, refunded: 0 }
+
+        transactions.forEach((t) => {
+          if (
+            t.payment_status &&
+            statusCounts[t.payment_status as keyof typeof statusCounts] !== undefined
+          ) {
+            statusCounts[t.payment_status as keyof typeof statusCounts]++
+          } else if (t.payment_status) {
+            statusCounts['confirmed']++
+          }
+
+          if (t.type === 'credit') {
+            totalRevenue += t.amount || 0
+          } else {
+            totalTransfers += t.amount || 0
+          }
+        })
+
+        setFinancialData([{ month: 'Atual', revenue: totalRevenue, transfers: totalTransfers }])
+
+        setPaymentStatusData(
+          [
+            { status: 'Confirmado', value: statusCounts.confirmed, fill: 'hsl(var(--chart-2))' },
+            { status: 'Pendente', value: statusCounts.pending, fill: 'hsl(var(--chart-3))' },
+            { status: 'Falhou', value: statusCounts.failed, fill: 'hsl(var(--destructive))' },
+          ].filter((d) => d.value > 0),
+        )
       } catch (error) {
         console.error('Error fetching stats:', error)
       } finally {
@@ -101,46 +148,126 @@ export default function AdminDashboard() {
       />
 
       {isMasterAdmin && (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <Card className="border-primary/20 bg-primary/20 shadow-sm">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total de Pacientes</CardTitle>
-              <Users className="h-4 w-4 text-foreground/70" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{loading ? '...' : stats.patients}</div>
-            </CardContent>
-          </Card>
+        <div className="space-y-8">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <Card className="border-primary/20 bg-primary/20 shadow-sm">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total de Pacientes</CardTitle>
+                <Users className="h-4 w-4 text-foreground/70" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{loading ? '...' : stats.patients}</div>
+              </CardContent>
+            </Card>
 
-          <Card className="border-primary/20 bg-primary/20 shadow-sm">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Profissionais (Médicos)</CardTitle>
-              <Stethoscope className="h-4 w-4 text-foreground/70" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{loading ? '...' : stats.professionals}</div>
-            </CardContent>
-          </Card>
+            <Card className="border-primary/20 bg-primary/20 shadow-sm">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Profissionais (Médicos)</CardTitle>
+                <Stethoscope className="h-4 w-4 text-foreground/70" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{loading ? '...' : stats.professionals}</div>
+              </CardContent>
+            </Card>
 
-          <Card className="border-primary/20 bg-primary/20 shadow-sm">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Empresas Parceiras</CardTitle>
-              <Building2 className="h-4 w-4 text-foreground/70" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{loading ? '...' : stats.companies}</div>
-            </CardContent>
-          </Card>
+            <Card className="border-primary/20 bg-primary/20 shadow-sm">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Empresas Parceiras</CardTitle>
+                <Building2 className="h-4 w-4 text-foreground/70" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{loading ? '...' : stats.companies}</div>
+              </CardContent>
+            </Card>
 
-          <Card className="border-primary/20 bg-primary/20 shadow-sm">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Consultas Realizadas</CardTitle>
-              <ActivitySquare className="h-4 w-4 text-foreground/70" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{loading ? '...' : stats.appointments}</div>
-            </CardContent>
-          </Card>
+            <Card className="border-primary/20 bg-primary/20 shadow-sm">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Consultas Realizadas</CardTitle>
+                <ActivitySquare className="h-4 w-4 text-foreground/70" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{loading ? '...' : stats.appointments}</div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Financial Dashboard */}
+          <div>
+            <h2 className="text-xl font-bold tracking-tight mb-4 flex items-center gap-2">
+              <BadgeAlert className="h-5 w-5 text-primary" /> Visão Financeira
+            </h2>
+            <div className="grid gap-4 md:grid-cols-2">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Receita vs. Repasses</CardTitle>
+                  <CardDescription>Comparativo de entradas e saídas (splits)</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {financialData.length > 0 ? (
+                    <ChartContainer
+                      config={{
+                        revenue: { label: 'Receita', color: 'hsl(var(--chart-1))' },
+                        transfers: { label: 'Repasses', color: 'hsl(var(--chart-2))' },
+                      }}
+                      className="h-[300px] w-full"
+                    >
+                      <BarChart data={financialData}>
+                        <CartesianGrid vertical={false} />
+                        <XAxis dataKey="month" tickLine={false} tickMargin={10} axisLine={false} />
+                        <ChartTooltip content={<ChartTooltipContent />} />
+                        <ChartLegend content={<ChartLegendContent />} />
+                        <Bar dataKey="revenue" fill="var(--color-revenue)" radius={4} />
+                        <Bar dataKey="transfers" fill="var(--color-transfers)" radius={4} />
+                      </BarChart>
+                    </ChartContainer>
+                  ) : (
+                    <div className="flex h-[300px] items-center justify-center text-muted-foreground">
+                      Sem dados
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Status de Pagamentos</CardTitle>
+                  <CardDescription>Distribuição por status (Asaas)</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {paymentStatusData.length > 0 ? (
+                    <ChartContainer
+                      config={{
+                        Confirmado: { label: 'Confirmado', color: 'hsl(var(--chart-2))' },
+                        Pendente: { label: 'Pendente', color: 'hsl(var(--chart-3))' },
+                        Falhou: { label: 'Falhou', color: 'hsl(var(--destructive))' },
+                      }}
+                      className="h-[300px] w-full"
+                    >
+                      <PieChart>
+                        <Pie
+                          data={paymentStatusData}
+                          dataKey="value"
+                          nameKey="status"
+                          innerRadius={60}
+                          strokeWidth={5}
+                        >
+                          {paymentStatusData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.fill} />
+                          ))}
+                        </Pie>
+                        <ChartTooltip content={<ChartTooltipContent />} />
+                        <ChartLegend content={<ChartLegendContent />} />
+                      </PieChart>
+                    </ChartContainer>
+                  ) : (
+                    <div className="flex h-[300px] items-center justify-center text-muted-foreground">
+                      Sem dados
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </div>
         </div>
       )}
 

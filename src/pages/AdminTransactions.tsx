@@ -9,7 +9,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Input } from '@/components/ui/input'
-import { Search, ReceiptText, ArrowUpDown } from 'lucide-react'
+import { Search, ReceiptText, ArrowUpDown, RefreshCw, AlertTriangle } from 'lucide-react'
 import { toast } from 'sonner'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -57,6 +57,16 @@ export default function AdminTransactions() {
     loadTransactions()
   }, [searchTerm, sortOrder])
 
+  const handleSyncAsaas = async (id: string) => {
+    try {
+      await pb.send(`/backend/v1/asaas/sync/${id}`, { method: 'POST' })
+      toast.success('Status sincronizado com sucesso!')
+      loadTransactions()
+    } catch (err) {
+      toast.error('Erro ao sincronizar com Asaas.')
+    }
+  }
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'confirmed':
@@ -76,9 +86,18 @@ export default function AdminTransactions() {
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
-            <ReceiptText className="h-8 w-8 text-primary" /> Transações e Financeiro
-          </h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
+              <ReceiptText className="h-8 w-8 text-primary" /> Transações e Financeiro
+            </h1>
+            <Badge
+              variant="outline"
+              className="bg-amber-500/10 text-amber-600 border-amber-500/30 flex items-center gap-1"
+            >
+              <AlertTriangle className="h-3 w-3" />
+              Asaas Sandbox Ativo
+            </Badge>
+          </div>
           <p className="text-muted-foreground mt-1">
             Visão global de todas as transações de benefícios na plataforma.
           </p>
@@ -121,20 +140,22 @@ export default function AdminTransactions() {
               <TableHead>Funcionário</TableHead>
               <TableHead>Categoria</TableHead>
               <TableHead>Tipo</TableHead>
+              <TableHead>ID Asaas</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="text-right">Valor</TableHead>
+              <TableHead className="text-right">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {loading ? (
               <TableRow>
-                <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={10} className="text-center py-8 text-muted-foreground">
                   Carregando...
                 </TableCell>
               </TableRow>
             ) : transactions.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={10} className="text-center py-8 text-muted-foreground">
                   Nenhuma transação encontrada.
                 </TableCell>
               </TableRow>
@@ -163,11 +184,23 @@ export default function AdminTransactions() {
                       </Badge>
                     )}
                   </TableCell>
+                  <TableCell className="font-mono text-xs">{t.asaas_payment_id || '-'}</TableCell>
                   <TableCell>{getStatusBadge(t.payment_status)}</TableCell>
                   <TableCell className="text-right font-bold whitespace-nowrap">
                     <span className={t.type === 'credit' ? 'text-emerald-600' : 'text-red-600'}>
                       {t.type === 'credit' ? '+' : '-'} R$ {t.amount?.toFixed(2)}
                     </span>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      title="Sincronizar com Asaas"
+                      onClick={() => handleSyncAsaas(t.id)}
+                      disabled={!t.asaas_payment_id}
+                    >
+                      <RefreshCw className="h-4 w-4" />
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))

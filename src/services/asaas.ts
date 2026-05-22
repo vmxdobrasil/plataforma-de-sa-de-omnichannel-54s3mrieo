@@ -1,5 +1,11 @@
 import pb from '@/lib/pocketbase/client'
 
+export const syncAsaasPayment = async (id: string) => {
+  return await pb.send(`/backend/v1/asaas/sync/${id}`, {
+    method: 'POST',
+  })
+}
+
 export const createAsaasPayment = async (data: {
   amount: number
   billingType: string

@@ -89,11 +89,13 @@ function AdminSupervisionContent() {
   const [appointments, setAppointments] = useState<any[]>([])
   const [healthRecords, setHealthRecords] = useState<any[]>([])
   const [prescriptions, setPrescriptions] = useState<any[]>([])
+  const [auditLogs, setAuditLogs] = useState<any[]>([])
 
   const [loadingProfs, setLoadingProfs] = useState(true)
   const [loadingApps, setLoadingApps] = useState(true)
   const [loadingRecords, setLoadingRecords] = useState(true)
   const [loadingPrescriptions, setLoadingPrescriptions] = useState(true)
+  const [loadingAudit, setLoadingAudit] = useState(true)
 
   const [medicalDirector, setMedicalDirector] = useState<any>(null)
 
@@ -104,7 +106,9 @@ function AdminSupervisionContent() {
 
   const [selectedProf, setSelectedProf] = useState<any>(null)
   const [isBlockDialogOpen, setIsBlockDialogOpen] = useState(false)
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [blockReason, setBlockReason] = useState('')
+  const [editSpecialty, setEditSpecialty] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
   const loadData = async (
@@ -211,6 +215,17 @@ function AdminSupervisionContent() {
   }, [searchTermPresc, user, getRoleFilter, combineFilters])
 
   useEffect(() => {
+    if (!user) return
+    loadData(
+      'audit_logs',
+      `resource_type = "health_records" || resource_type = "prescriptions"`,
+      'user_id',
+      setLoadingAudit,
+      setAuditLogs,
+    )
+  }, [user])
+
+  useEffect(() => {
     const fetchMedicalDirector = async () => {
       try {
         const res = await pb
@@ -232,6 +247,27 @@ function AdminSupervisionContent() {
     setSelectedProf(prof)
     setBlockReason(prof.block_reason || '')
     setIsBlockDialogOpen(true)
+  }
+
+  const handleOpenEditDialog = (prof: any) => {
+    setSelectedProf(prof)
+    setEditSpecialty(prof.specialty || '')
+    setIsEditDialogOpen(true)
+  }
+
+  const handleSaveSpecialty = async () => {
+    if (!selectedProf) return
+    try {
+      setSubmitting(true)
+      await pb.collection('users').update(selectedProf.id, { specialty: editSpecialty })
+      toast.success('Especialidade atualizada.')
+      setIsEditDialogOpen(false)
+      loadData('users', `role = "professional"`, '', setLoadingProfs, setProfessionals)
+    } catch (error) {
+      toast.error('Erro ao atualizar especialidade.')
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   const handleToggleBlock = async () => {
@@ -319,6 +355,71 @@ function AdminSupervisionContent() {
             </div>
           }
         />
+
+        {/* Audit Logs Quick View */}
+        <Card className="border-primary/20 bg-card shadow-sm">
+          <CardHeader className="pb-3 border-b">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <ShieldCheck className="h-5 w-5 text-primary" />
+              Auditoria de Prontuários e Receitas
+            </CardTitle>
+            <CardDescription>
+              Últimas 10 ações registradas em recursos clínicos sensíveis.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader className="bg-muted/50">
+                  <TableRow>
+                    <TableHead>Data</TableHead>
+                    <TableHead>Usuário</TableHead>
+                    <TableHead>Ação</TableHead>
+                    <TableHead>Recurso</TableHead>
+                    <TableHead>ID</TableHead>
+                    <TableHead className="text-right">Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {loadingAudit ? (
+                    <TableLoading colSpan={6} />
+                  ) : auditLogs.slice(0, 10).length === 0 ? (
+                    <TableEmpty colSpan={6} message="Nenhum log de auditoria encontrado." />
+                  ) : (
+                    auditLogs.slice(0, 10).map((log) => (
+                      <TableRow key={log.id}>
+                        <TableCell className="whitespace-nowrap">
+                          {safeFormatDate(log.created)}
+                        </TableCell>
+                        <TableCell>{log.expand?.user_id?.name || 'Sistema'}</TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className="capitalize">
+                            {log.action}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {log.resource_type === 'health_records' ? 'Prontuário' : 'Receita'}
+                        </TableCell>
+                        <TableCell className="font-mono text-xs">{log.resource_id}</TableCell>
+                        <TableCell className="text-right">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() =>
+                              toast.info(`Visualizar detalhe do recurso: ${log.resource_id}`)
+                            }
+                          >
+                            Ver
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Card className="bg-primary/5 relative overflow-hidden border-primary/20">
@@ -661,15 +762,19 @@ function AdminSupervisionContent() {
                         <TableHead>Profissional</TableHead>
                         <TableHead>E-mail</TableHead>
                         <TableHead>CRM / UF</TableHead>
+                        <TableHead>Especialidade</TableHead>
                         <TableHead>Status</TableHead>
                         <TableHead className="text-right">Ações</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {loadingProfs ? (
-                        <TableLoading />
+                        <TableLoading colSpan={6} />
                       ) : !professionals || professionals.length === 0 ? (
-                        <TableEmpty message="Nenhum profissional encontrado com os filtros aplicados." />
+                        <TableEmpty
+                          colSpan={6}
+                          message="Nenhum profissional encontrado com os filtros aplicados."
+                        />
                       ) : (
                         professionals.map((prof) => (
                           <TableRow key={prof.id}>
@@ -678,6 +783,7 @@ function AdminSupervisionContent() {
                             <TableCell>
                               {prof.crm_number ? `${prof.crm_number} - ${prof.crm_state}` : 'N/A'}
                             </TableCell>
+                            <TableCell>{prof.specialty || 'Não informada'}</TableCell>
                             <TableCell>
                               {prof.is_blocked ? (
                                 <Badge
@@ -696,13 +802,22 @@ function AdminSupervisionContent() {
                               )}
                             </TableCell>
                             <TableCell className="text-right">
-                              <Button
-                                variant={prof.is_blocked ? 'outline' : 'destructive'}
-                                size="sm"
-                                onClick={() => handleOpenBlockDialog(prof)}
-                              >
-                                {prof.is_blocked ? 'Desbloquear' : 'Bloquear'}
-                              </Button>
+                              <div className="flex justify-end gap-2">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleOpenEditDialog(prof)}
+                                >
+                                  Editar
+                                </Button>
+                                <Button
+                                  variant={prof.is_blocked ? 'outline' : 'destructive'}
+                                  size="sm"
+                                  onClick={() => handleOpenBlockDialog(prof)}
+                                >
+                                  {prof.is_blocked ? 'Desbloquear' : 'Bloquear'}
+                                </Button>
+                              </div>
                             </TableCell>
                           </TableRow>
                         ))
@@ -763,6 +878,40 @@ function AdminSupervisionContent() {
                   : selectedProf?.is_blocked
                     ? 'Confirmar Desbloqueio'
                     : 'Confirmar Bloqueio'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Editar Profissional</DialogTitle>
+              <DialogDescription>
+                Atualize a especialidade médica de {selectedProf?.name}.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="specialty">Especialidade</Label>
+                <Input
+                  id="specialty"
+                  placeholder="Ex: Cardiologia, Pediatria..."
+                  value={editSpecialty}
+                  onChange={(e) => setEditSpecialty(e.target.value)}
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button
+                variant="ghost"
+                onClick={() => setIsEditDialogOpen(false)}
+                disabled={submitting}
+              >
+                Cancelar
+              </Button>
+              <Button onClick={handleSaveSpecialty} disabled={submitting}>
+                {submitting ? 'Salvando...' : 'Salvar Alterações'}
               </Button>
             </DialogFooter>
           </DialogContent>
