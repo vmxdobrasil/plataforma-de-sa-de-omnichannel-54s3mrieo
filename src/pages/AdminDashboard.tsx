@@ -22,7 +22,16 @@ import {
   HeartPulse,
   BadgeAlert,
   Bot,
+  Download,
 } from 'lucide-react'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { subDays, startOfMonth, format } from 'date-fns'
 import pb from '@/lib/pocketbase/client'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
@@ -52,6 +61,8 @@ export default function AdminDashboard() {
     { status: string; value: number; fill: string }[]
   >([])
   const [loading, setLoading] = useState(true)
+  const [period, setPeriod] = useState('this_month')
+  const [txData, setTxData] = useState<any[]>([])
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -61,14 +72,29 @@ export default function AdminDashboard() {
         return
       }
 
+      setLoading(true)
+
       try {
+        let dateFilter = ''
+        if (period === 'last_7_days') {
+          dateFilter = `created >= "${format(subDays(new Date(), 7), 'yyyy-MM-dd 00:00:00')}"`
+        } else if (period === 'this_month') {
+          dateFilter = `created >= "${format(startOfMonth(new Date()), 'yyyy-MM-dd 00:00:00')}"`
+        }
+
         const [patients, professionals, companies, appointments, transactions] = await Promise.all([
           pb.collection('users').getList(1, 1, { filter: 'role="patient"' }),
           pb.collection('users').getList(1, 1, { filter: 'role="professional"' }),
           pb.collection('users').getList(1, 1, { filter: 'role="company"' }),
           pb.collection('appointments').getList(1, 1),
-          pb.collection('benefit_transactions').getFullList(),
+          pb.collection('benefit_transactions').getFullList({
+            filter: dateFilter,
+            expand: 'employee_id,company_id',
+            sort: '-created',
+          }),
         ])
+
+        setTxData(transactions)
 
         setStats({
           patients: patients.totalItems,
@@ -116,7 +142,39 @@ export default function AdminDashboard() {
     }
 
     fetchStats()
-  }, [isMasterAdmin])
+  }, [isMasterAdmin, period])
+
+  const exportCSV = () => {
+    const headers = [
+      'Data',
+      'Tipo',
+      'Valor Bruto',
+      'Comissão VMX',
+      'Profissional/Empresa',
+      'ID Asaas',
+      'Status',
+    ]
+    const rows = txData.map((t) => {
+      const date = format(new Date(t.created), 'dd/MM/yyyy HH:mm')
+      const type = t.type === 'credit' ? 'Crédito' : 'Débito'
+      const amount = t.amount || 0
+      const rate =
+        t.expand?.employee_id?.commission_rate || t.expand?.company_id?.commission_rate || 0
+      const commission = (amount * rate) / 100
+      const name = t.expand?.employee_id?.name || t.expand?.company_id?.name || 'N/A'
+      const asaasId = t.asaas_payment_id || 'N/A'
+      const status = t.payment_status || 'N/A'
+      return [date, type, amount, commission, `"${name}"`, asaasId, status].join(',')
+    })
+    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows].join('\n')
+    const encodedUri = encodeURI(csvContent)
+    const link = document.createElement('a')
+    link.setAttribute('href', encodedUri)
+    link.setAttribute('download', `transacoes_${period}.csv`)
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
 
   return (
     <div className="space-y-8 animate-fade-in-up pb-10">
@@ -193,9 +251,30 @@ export default function AdminDashboard() {
 
           {/* Financial Dashboard */}
           <div>
-            <h2 className="text-xl font-bold tracking-tight mb-4 flex items-center gap-2">
-              <BadgeAlert className="h-5 w-5 text-primary" /> Visão Financeira
-            </h2>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-4">
+              <h2 className="text-xl font-bold tracking-tight flex items-center gap-2">
+                <BadgeAlert className="h-5 w-5 text-primary" /> Visão Financeira
+              </h2>
+              <div className="flex items-center gap-2">
+                <Select value={period} onValueChange={setPeriod}>
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Selecione o período" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="last_7_days">Últimos 7 dias</SelectItem>
+                    <SelectItem value="this_month">Este Mês</SelectItem>
+                    <SelectItem value="all_time">Todo o Período</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button
+                  variant="outline"
+                  onClick={exportCSV}
+                  disabled={loading || txData.length === 0}
+                >
+                  <Download className="mr-2 h-4 w-4" /> Exportar CSV
+                </Button>
+              </div>
+            </div>
             <div className="grid gap-4 md:grid-cols-2">
               <Card>
                 <CardHeader>

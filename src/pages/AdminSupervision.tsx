@@ -24,6 +24,7 @@ import {
   Activity,
   Users,
   Loader2,
+  DollarSign,
 } from 'lucide-react'
 import {
   Dialog,
@@ -90,12 +91,14 @@ function AdminSupervisionContent() {
   const [healthRecords, setHealthRecords] = useState<any[]>([])
   const [prescriptions, setPrescriptions] = useState<any[]>([])
   const [auditLogs, setAuditLogs] = useState<any[]>([])
+  const [transactions, setTransactions] = useState<any[]>([])
 
   const [loadingProfs, setLoadingProfs] = useState(true)
   const [loadingApps, setLoadingApps] = useState(true)
   const [loadingRecords, setLoadingRecords] = useState(true)
   const [loadingPrescriptions, setLoadingPrescriptions] = useState(true)
   const [loadingAudit, setLoadingAudit] = useState(true)
+  const [loadingTransactions, setLoadingTransactions] = useState(true)
 
   const [medicalDirector, setMedicalDirector] = useState<any>(null)
 
@@ -103,6 +106,7 @@ function AdminSupervisionContent() {
   const [searchTermApp, setSearchTermApp] = useState('')
   const [searchTermRec, setSearchTermRec] = useState('')
   const [searchTermPresc, setSearchTermPresc] = useState('')
+  const [searchTermTx, setSearchTermTx] = useState('')
 
   const [selectedProf, setSelectedProf] = useState<any>(null)
   const [isBlockDialogOpen, setIsBlockDialogOpen] = useState(false)
@@ -224,6 +228,22 @@ function AdminSupervisionContent() {
       setAuditLogs,
     )
   }, [user])
+
+  useEffect(() => {
+    if (!user) return
+    const safeTerm = searchTermTx.replace(/["\\]/g, '')
+    const searchFilter = safeTerm
+      ? `appointment_id.patient_id.name ~ "${safeTerm}" || employee_id.name ~ "${safeTerm}" || company_id.name ~ "${safeTerm}"`
+      : ''
+
+    loadData(
+      'benefit_transactions',
+      searchFilter,
+      'appointment_id.patient_id,appointment_id.professional_id,employee_id,company_id',
+      setLoadingTransactions,
+      setTransactions,
+    )
+  }, [searchTermTx, user])
 
   useEffect(() => {
     const fetchMedicalDirector = async () => {
@@ -500,7 +520,7 @@ function AdminSupervisionContent() {
         </div>
 
         <Tabs defaultValue="records" className="w-full">
-          <TabsList className="grid grid-cols-2 md:grid-cols-4 w-full h-auto gap-2 bg-transparent p-0">
+          <TabsList className="grid grid-cols-2 md:grid-cols-5 w-full h-auto gap-2 bg-transparent p-0">
             <TabsTrigger
               value="records"
               className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary border bg-card py-3"
@@ -524,6 +544,12 @@ function AdminSupervisionContent() {
               className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary border bg-card py-3"
             >
               <Stethoscope className="mr-2 h-4 w-4" /> Profissionais
+            </TabsTrigger>
+            <TabsTrigger
+              value="transactions"
+              className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary border bg-card py-3"
+            >
+              <DollarSign className="mr-2 h-4 w-4" /> Transações
             </TabsTrigger>
           </TabsList>
 
@@ -818,6 +844,105 @@ function AdminSupervisionContent() {
                                   {prof.is_blocked ? 'Desbloquear' : 'Bloquear'}
                                 </Button>
                               </div>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="transactions" className="mt-4">
+            <Card className="border shadow-sm relative overflow-hidden">
+              <CardHeader className="bg-primary/5 border-b pb-4 relative">
+                <div
+                  className="absolute inset-0 pointer-events-none opacity-5"
+                  style={{ ...patternStyle, backgroundSize: '20px 20px' }}
+                />
+                <CardTitle className="relative z-10">Histórico de Transações</CardTitle>
+                <CardDescription className="relative z-10">
+                  Auditoria de pagamentos e splits processados pela plataforma.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="p-0 relative z-10 bg-card">
+                <div className="p-4 border-b">
+                  <div className="relative max-w-md">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Buscar por paciente ou profissional..."
+                      className="pl-9"
+                      value={searchTermTx}
+                      onChange={(e) => setSearchTermTx(e.target.value)}
+                    />
+                  </div>
+                </div>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader className="bg-muted/50">
+                      <TableRow>
+                        <TableHead>Data</TableHead>
+                        <TableHead>Paciente</TableHead>
+                        <TableHead>Profissional / Empresa</TableHead>
+                        <TableHead>Serviço / Categoria</TableHead>
+                        <TableHead>Valor</TableHead>
+                        <TableHead>Status</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {loadingTransactions ? (
+                        <TableLoading colSpan={6} />
+                      ) : !transactions || transactions.length === 0 ? (
+                        <TableEmpty
+                          colSpan={6}
+                          message="Nenhuma transação encontrada com os filtros aplicados."
+                        />
+                      ) : (
+                        transactions.map((tx) => (
+                          <TableRow key={tx.id}>
+                            <TableCell className="font-medium whitespace-nowrap">
+                              {safeFormatDate(tx.created)}
+                            </TableCell>
+                            <TableCell>
+                              {tx.expand?.appointment_id?.expand?.patient_id?.name ||
+                                tx.expand?.employee_id?.name ||
+                                'N/A'}
+                            </TableCell>
+                            <TableCell>
+                              {tx.expand?.appointment_id?.expand?.professional_id?.name ||
+                                tx.expand?.company_id?.name ||
+                                'N/A'}
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant="outline" className="capitalize">
+                                {tx.category || 'Serviço'}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="font-semibold text-emerald-600">
+                              {new Intl.NumberFormat('pt-BR', {
+                                style: 'currency',
+                                currency: 'BRL',
+                              }).format(tx.amount || 0)}
+                            </TableCell>
+                            <TableCell>
+                              {tx.payment_status === 'confirmed' ? (
+                                <Badge className="bg-emerald-500 hover:bg-emerald-600">
+                                  Confirmado
+                                </Badge>
+                              ) : tx.payment_status === 'pending' ? (
+                                <Badge
+                                  variant="secondary"
+                                  className="bg-amber-500/20 text-amber-700 hover:bg-amber-500/30"
+                                >
+                                  Pendente
+                                </Badge>
+                              ) : tx.payment_status === 'failed' ? (
+                                <Badge variant="destructive">Falhou</Badge>
+                              ) : (
+                                <Badge variant="outline">{tx.payment_status || 'N/A'}</Badge>
+                              )}
                             </TableCell>
                           </TableRow>
                         ))
