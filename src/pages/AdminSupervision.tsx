@@ -215,7 +215,7 @@ function AdminSupervisionContent() {
       try {
         const res = await pb
           .collection('users')
-          .getList(1, 1, { filter: 'role = "medical_director"' })
+          .getList(1, 1, { filter: 'role = "medical_director" || name ~ "Fauzer"' })
         if (res.items.length > 0) {
           setMedicalDirector(res.items[0])
         } else {
@@ -305,15 +305,15 @@ function AdminSupervisionContent() {
                   <Stethoscope className="h-5 w-5" />
                 </AvatarFallback>
               </Avatar>
-              <div>
+              <div className="flex flex-col gap-0.5">
                 <p className="font-bold text-foreground leading-tight text-sm">
-                  Responsável Técnico: {medicalDirector?.name || 'Não atribuído'}
-                </p>
-                <p className="text-xs text-primary font-semibold tracking-wide">
-                  Diretor Médico
+                  Diretor Médico: {medicalDirector?.name || 'Fauzer Andrigo Mendonça Simoes Rangel'}
                   {medicalDirector?.crm_state && medicalDirector?.crm_number
-                    ? ` • CRM-${medicalDirector.crm_state} ${medicalDirector.crm_number}`
+                    ? ` (CRM-${medicalDirector.crm_state} ${medicalDirector.crm_number})`
                     : ''}
+                </p>
+                <p className="text-xs text-muted-foreground font-semibold tracking-wide">
+                  Responsável Técnico: Não atribuído
                 </p>
               </div>
             </div>

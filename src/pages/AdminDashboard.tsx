@@ -95,12 +95,6 @@ export default function AdminDashboard() {
             >
               Gestor Master: Victor Hugo Tavares Mendonça
             </Badge>
-            <Badge
-              variant="outline"
-              className="border-amber-500/30 text-amber-700 bg-amber-500/10 w-fit"
-            >
-              Dir. Técnico: Fauzer Andrigo Mendonça Simões Rangel
-            </Badge>
           </div>
         }
         className="bg-primary/10 border-primary/30"
