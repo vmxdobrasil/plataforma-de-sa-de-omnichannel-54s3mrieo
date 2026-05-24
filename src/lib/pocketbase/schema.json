@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-22T15:39:18.365Z",
+  "generatedAt": "2026-05-24T11:58:33.041Z",
   "collections": [
     {
       "name": "users",
@@ -288,6 +288,12 @@
         {
           "name": "address_complement",
           "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "pending_commission_rate",
+          "type": "number",
           "required": false,
           "system": false
         }
@@ -727,6 +733,13 @@
           "required": false,
           "system": false,
           "selectValues": ["pending", "confirmed", "failed", "refunded"]
+        },
+        {
+          "name": "partner_id",
+          "type": "relation",
+          "required": false,
+          "system": false,
+          "collectionRef": "users"
         }
       ],
       "indexes": []

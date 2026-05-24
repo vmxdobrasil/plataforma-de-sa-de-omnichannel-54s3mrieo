@@ -12,8 +12,10 @@ import { Toaster } from '@/components/ui/toaster'
 import { Toaster as Sonner } from '@/components/ui/sonner'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { Loader2 } from 'lucide-react'
+import { toast } from 'sonner'
 
 import { AuthProvider, useAuth } from './hooks/use-auth'
+import { useRealtime } from './hooks/use-realtime'
 import { ThemeProvider } from './components/ThemeProvider'
 import { DynamicBranding } from './components/DynamicBranding'
 import { ErrorBoundary } from './components/ErrorBoundary'
@@ -123,65 +125,94 @@ const CompanyOutlet = () => {
   return <Outlet />
 }
 
+const CommissionNotifications = () => {
+  const { user } = useAuth()
+
+  useRealtime('users', (e) => {
+    if (!user) return
+    if (e.action !== 'update') return
+
+    if (user.role === 'admin' && e.record.pending_commission_rate) {
+      toast('Comissão Pendente', {
+        description: `${e.record.name || 'Um parceiro'} solicitou alteração de comissão para ${e.record.pending_commission_rate}%.`,
+      })
+    } else if (
+      (user.role === 'pharmacy' || user.role === 'laboratory') &&
+      e.record.id === user.id
+    ) {
+      if (e.record.commission_rate && !e.record.pending_commission_rate) {
+        toast.success('Comissão Aprovada!', {
+          description: `Sua taxa de comissão foi atualizada para ${e.record.commission_rate}%.`,
+        })
+      }
+    }
+  })
+
+  return null
+}
+
 const AppRoutes = () => {
   const { user } = useAuth()
   const location = useLocation()
   const navigate = useNavigate()
 
   return (
-    <Routes>
-      <Route path="/login" element={<Login />} />
-      <Route path="/signup" element={<Signup />} />
+    <>
+      <CommissionNotifications />
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
 
-      <Route element={<Layout />}>
-        {/* Entry Point / Public / Patient Dashboard */}
-        <Route path="/" element={<EntryPoint />} />
+        <Route element={<Layout />}>
+          {/* Entry Point / Public / Patient Dashboard */}
+          <Route path="/" element={<EntryPoint />} />
 
-        {/* Protected Routes */}
-        <Route element={<ProtectedOutlet />}>
-          <Route path="/search" element={<Search />} />
-          <Route path="/professional" element={<ProfessionalDashboard />} />
-          <Route path="/professional/schedule" element={<ProfessionalSchedule />} />
-          <Route path="/health-profile" element={<HealthProfile />} />
-          <Route path="/pharmacy" element={<Pharmacy />} />
+          {/* Protected Routes */}
+          <Route element={<ProtectedOutlet />}>
+            <Route path="/search" element={<Search />} />
+            <Route path="/professional" element={<ProfessionalDashboard />} />
+            <Route path="/professional/schedule" element={<ProfessionalSchedule />} />
+            <Route path="/health-profile" element={<HealthProfile />} />
+            <Route path="/pharmacy" element={<Pharmacy />} />
 
-          <Route element={<CompanyOutlet />}>
-            {/* <Route path="/company/dashboard" element={<CompanyDashboard />} /> */}
-            <Route path="/company/employees" element={<CompanyEmployees />} />
-            <Route path="/company/transactions" element={<CompanyTransactions />} />
+            <Route element={<CompanyOutlet />}>
+              {/* <Route path="/company/dashboard" element={<CompanyDashboard />} /> */}
+              <Route path="/company/employees" element={<CompanyEmployees />} />
+              <Route path="/company/transactions" element={<CompanyTransactions />} />
+            </Route>
+
+            <Route path="/benefits/statement" element={<BenefitStatement />} />
+            <Route path="/hr/simulator" element={<HRSimulator />} />
+            <Route path="/documents" element={<Documents />} />
+            <Route path="/settings" element={<Settings />} />
+
+            <Route element={<AdminOutlet />}>
+              <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/admin/settings" element={<AdminSettings />} />
+              <Route path="/admin/verification" element={<AdminVerification />} />
+              <Route path="/admin/supervision" element={<AdminSupervision />} />
+              <Route path="/admin/users" element={<AdminUsers />} />
+              <Route path="/admin/insurance" element={<AdminInsurance />} />
+              <Route path="/admin/specialties" element={<AdminSpecialties />} />
+              <Route path="/admin/audit" element={<AdminAudit />} />
+              <Route path="/admin/pharmacy" element={<AdminPharmacy />} />
+              <Route path="/admin/companies" element={<AdminCompanies />} />
+              <Route path="/admin/ai" element={<AdminAI />} />
+              <Route path="/admin/transactions" element={<AdminTransactions />} />
+              <Route path="/admin/professionals" element={<AdminProfessionals />} />
+            </Route>
+            <Route path="/telemedicine/:id" element={<TelemedicineRoom />} />
+            <Route path="/dashboard/social-ai" element={<SocialAI />} />
+            <Route path="/dashboard/marketplace" element={<Marketplace />} />
+            <Route path="/dashboard/brand-kit" element={<BrandKit />} />
+            <Route path="/dashboard/academy" element={<Academy />} />
+            <Route path="/dashboard/agents" element={<AgentsHub />} />
+            <Route path="/dashboard/agency" element={<AgencyDashboard />} />
           </Route>
-
-          <Route path="/benefits/statement" element={<BenefitStatement />} />
-          <Route path="/hr/simulator" element={<HRSimulator />} />
-          <Route path="/documents" element={<Documents />} />
-          <Route path="/settings" element={<Settings />} />
-
-          <Route element={<AdminOutlet />}>
-            <Route path="/admin" element={<AdminDashboard />} />
-            <Route path="/admin/settings" element={<AdminSettings />} />
-            <Route path="/admin/verification" element={<AdminVerification />} />
-            <Route path="/admin/supervision" element={<AdminSupervision />} />
-            <Route path="/admin/users" element={<AdminUsers />} />
-            <Route path="/admin/insurance" element={<AdminInsurance />} />
-            <Route path="/admin/specialties" element={<AdminSpecialties />} />
-            <Route path="/admin/audit" element={<AdminAudit />} />
-            <Route path="/admin/pharmacy" element={<AdminPharmacy />} />
-            <Route path="/admin/companies" element={<AdminCompanies />} />
-            <Route path="/admin/ai" element={<AdminAI />} />
-            <Route path="/admin/transactions" element={<AdminTransactions />} />
-            <Route path="/admin/professionals" element={<AdminProfessionals />} />
-          </Route>
-          <Route path="/telemedicine/:id" element={<TelemedicineRoom />} />
-          <Route path="/dashboard/social-ai" element={<SocialAI />} />
-          <Route path="/dashboard/marketplace" element={<Marketplace />} />
-          <Route path="/dashboard/brand-kit" element={<BrandKit />} />
-          <Route path="/dashboard/academy" element={<Academy />} />
-          <Route path="/dashboard/agents" element={<AgentsHub />} />
-          <Route path="/dashboard/agency" element={<AgencyDashboard />} />
         </Route>
-      </Route>
-      <Route path="*" element={<NotFound />} />
-    </Routes>
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </>
   )
 }
 

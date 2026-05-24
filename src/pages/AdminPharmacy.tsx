@@ -9,7 +9,17 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Input } from '@/components/ui/input'
-import { Search, Pill, Trash2, Edit, Plus, Store } from 'lucide-react'
+import {
+  Search,
+  Pill,
+  Trash2,
+  Edit,
+  Plus,
+  Store,
+  MoreVertical,
+  DollarSign,
+  Percent,
+} from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -19,15 +29,29 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogTrigger,
 } from '@/components/ui/dialog'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { Label } from '@/components/ui/label'
 import { CreatePharmacyLabForm } from '@/components/admin/forms/CreatePharmacyLabForm'
 import { PharmacyDocuments } from '@/components/admin/PharmacyDocuments'
+import { PharmacyFinancialHistory } from '@/components/admin/PharmacyFinancialHistory'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { useRealtime } from '@/hooks/use-realtime'
 import { AdminHeader } from '@/components/admin/AdminHeader'
+import { useAuth } from '@/hooks/use-auth'
 
 export default function AdminPharmacy() {
+  const { user } = useAuth()
+  const isMasterAdmin = user?.role === 'admin'
+
   const [products, setProducts] = useState<any[]>([])
   const [partners, setPartners] = useState<any[]>([])
   const [searchTerm, setSearchTerm] = useState('')
@@ -40,6 +64,13 @@ export default function AdminPharmacy() {
   const [loadingPartners, setLoadingPartners] = useState(true)
   const [isPartnerDialogOpen, setIsPartnerDialogOpen] = useState(false)
   const [selectedPartner, setSelectedPartner] = useState<any>(null)
+
+  const [commissionDialogOpen, setCommissionDialogOpen] = useState(false)
+  const [commissionPartner, setCommissionPartner] = useState<any>(null)
+  const [commissionRate, setCommissionRate] = useState<string>('')
+
+  const [financialDialogOpen, setFinancialDialogOpen] = useState(false)
+  const [financialPartner, setFinancialPartner] = useState<any>(null)
 
   const loadProducts = async () => {
     try {
@@ -133,9 +164,81 @@ export default function AdminPharmacy() {
     setIsPartnerDialogOpen(true)
   }
 
+  const openEditCommission = (partner: any) => {
+    setCommissionPartner(partner)
+    setCommissionRate(partner.commission_rate?.toString() || '')
+    setCommissionDialogOpen(true)
+  }
+
+  const handleSaveCommission = async () => {
+    const rate = parseFloat(commissionRate)
+    if (isNaN(rate) || rate < 7.99 || rate > 13.89) {
+      toast.error('A comissão deve estar entre 7.99% e 13.89%')
+      return
+    }
+
+    try {
+      if (isMasterAdmin) {
+        await pb.collection('users').update(commissionPartner.id, {
+          commission_rate: rate,
+          pending_commission_rate: null,
+        })
+        await pb.collection('audit_logs').create({
+          user_id: user?.id,
+          action: 'update',
+          resource_type: 'users',
+          resource_id: commissionPartner.id,
+          details: {
+            field: 'commission_rate',
+            old_value: commissionPartner.commission_rate,
+            new_value: rate,
+          },
+        })
+        toast.success('Comissão atualizada com sucesso!')
+      } else {
+        await pb.collection('users').update(commissionPartner.id, {
+          pending_commission_rate: rate,
+        })
+        toast.success('Solicitação enviada para aprovação do Master Admin.')
+      }
+      setCommissionDialogOpen(false)
+      loadPartners()
+    } catch (e: any) {
+      toast.error(
+        e?.response?.data?.commission_rate?.message ||
+          e?.response?.data?.pending_commission_rate?.message ||
+          'Erro ao salvar comissão.',
+      )
+    }
+  }
+
+  const handleApproveCommission = async (partner: any) => {
+    try {
+      await pb.collection('users').update(partner.id, {
+        commission_rate: partner.pending_commission_rate,
+        pending_commission_rate: null,
+      })
+      await pb.collection('audit_logs').create({
+        user_id: user?.id,
+        action: 'update',
+        resource_type: 'users',
+        resource_id: partner.id,
+        details: {
+          field: 'commission_rate',
+          old_value: partner.commission_rate,
+          new_value: partner.pending_commission_rate,
+          approved_by: user?.id,
+        },
+      })
+      toast.success('Comissão aprovada com sucesso!')
+      loadPartners()
+    } catch (e) {
+      toast.error('Erro ao aprovar comissão.')
+    }
+  }
+
   const handlePartnerSuccess = () => {
     setIsPartnerDialogOpen(false)
-    // Delay clearing the state to allow dialog closing animation
     setTimeout(() => setSelectedPartner(null), 300)
   }
 
@@ -283,7 +386,7 @@ export default function AdminPharmacy() {
                               {p.business_name || '-'}
                             </span>
                           </div>
-                          <div className="flex items-center gap-2 mt-1">
+                          <div className="flex items-center gap-2 mt-1 flex-wrap">
                             <Badge variant="outline" className="text-[10px] uppercase h-5">
                               {p.role === 'pharmacy' ? 'Farmácia' : 'Laboratório'}
                             </Badge>
@@ -293,6 +396,29 @@ export default function AdminPharmacy() {
                               </span>
                             )}
                           </div>
+                          {p.pending_commission_rate ? (
+                            <div className="mt-1 flex items-center gap-2">
+                              <Badge className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100 text-[10px] h-5">
+                                Pendente: {p.pending_commission_rate}%
+                              </Badge>
+                              {isMasterAdmin && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="h-5 text-[10px] px-2 py-0"
+                                  onClick={() => handleApproveCommission(p)}
+                                >
+                                  Aprovar
+                                </Button>
+                              )}
+                            </div>
+                          ) : p.commission_rate ? (
+                            <div className="mt-1">
+                              <Badge variant="secondary" className="text-[10px] h-5">
+                                Comissão: {p.commission_rate}%
+                              </Badge>
+                            </div>
+                          ) : null}
                         </div>
                       </TableCell>
                       <TableCell>
@@ -310,17 +436,37 @@ export default function AdminPharmacy() {
                         )}
                       </TableCell>
                       <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <Button variant="ghost" size="sm" onClick={() => openEditPartner(p)}>
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDeletePartner(p.id)}
-                          >
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                          </Button>
+                        <div className="flex items-center justify-end">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="sm">
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => openEditPartner(p)}>
+                                <Edit className="h-4 w-4 mr-2" /> Editar Perfil
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => openEditCommission(p)}>
+                                <Percent className="h-4 w-4 mr-2" /> Taxa de Comissão
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  setFinancialPartner(p)
+                                  setFinancialDialogOpen(true)
+                                }}
+                              >
+                                <DollarSign className="h-4 w-4 mr-2" /> Histórico Financeiro
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem
+                                onClick={() => handleDeletePartner(p.id)}
+                                className="text-destructive"
+                              >
+                                <Trash2 className="h-4 w-4 mr-2" /> Excluir
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -424,6 +570,48 @@ export default function AdminPharmacy() {
           </div>
         </TabsContent>
       </Tabs>
+
+      <Dialog open={commissionDialogOpen} onOpenChange={setCommissionDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Taxa de Comissão</DialogTitle>
+            <DialogDescription>
+              Defina a taxa de comissão para {commissionPartner?.name}. Alterações exigem aprovação
+              do Master Admin se feitas por outros níveis.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Nova Taxa (%)</Label>
+              <Input
+                type="number"
+                step="0.01"
+                value={commissionRate}
+                onChange={(e) => setCommissionRate(e.target.value)}
+                placeholder="Ex: 10.5"
+              />
+              <p className="text-xs text-muted-foreground">
+                A taxa deve estar entre 7.99% e 13.89%.
+              </p>
+            </div>
+            <Button onClick={handleSaveCommission} className="w-full">
+              {isMasterAdmin ? 'Salvar Comissão' : 'Solicitar Aprovação'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={financialDialogOpen} onOpenChange={setFinancialDialogOpen}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>Histórico Financeiro - {financialPartner?.name}</DialogTitle>
+            <DialogDescription>
+              Visualize as transações e repasses vinculados a este parceiro.
+            </DialogDescription>
+          </DialogHeader>
+          {financialPartner && <PharmacyFinancialHistory partner={financialPartner} />}
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

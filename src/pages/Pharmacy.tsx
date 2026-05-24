@@ -7,7 +7,15 @@ import { Badge } from '@/components/ui/badge'
 import { useAuth } from '@/hooks/use-auth'
 import { toast } from 'sonner'
 import pb from '@/lib/pocketbase/client'
-import { Search, ShoppingCart, Pill, Loader2 } from 'lucide-react'
+import { Search, ShoppingCart, Pill, Loader2, QrCode } from 'lucide-react'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog'
+import { Label } from '@/components/ui/label'
 
 export default function Pharmacy() {
   const { user } = useAuth()
@@ -17,13 +25,12 @@ export default function Pharmacy() {
   const [employeeData, setEmployeeData] = useState<any>(null)
   const [search, setSearch] = useState('')
   const [processing, setProcessing] = useState<string | null>(null)
+  const [processingAsaas, setProcessingAsaas] = useState<any>(null)
 
   const loadData = async () => {
     try {
-      // Create mock products if none exist
       const existing = await pb.collection('pharmacy_products').getList(1, 50)
       if (existing.items.length === 0) {
-        // Find a pharmacy user
         let pharmacyUser
         try {
           pharmacyUser = await pb.collection('users').getFirstListItem('role="pharmacy"')
@@ -74,7 +81,9 @@ export default function Pharmacy() {
         }
       }
 
-      const res = await pb.collection('pharmacy_products').getFullList({ sort: 'name' })
+      const res = await pb
+        .collection('pharmacy_products')
+        .getFullList({ sort: 'name', expand: 'pharmacy_id' })
       setProducts(res)
 
       if (user?.parent_id) {
@@ -104,33 +113,48 @@ export default function Pharmacy() {
     }
 
     const price = product.is_promotion ? product.promo_price : product.price
-    const currentBalance = employeeData.medication_allowance || 0
-
-    if (currentBalance < price) {
-      toast.error('Saldo Farmácia insuficiente para esta compra.')
-      return
-    }
 
     setProcessing(product.id)
 
     try {
-      const newBalance = currentBalance - price
+      const commissionRate = product.expand?.pharmacy_id?.commission_rate || 10
+      const asaasWalletId = product.expand?.pharmacy_id?.asaas_wallet_id
+      const partnerId = product.expand?.pharmacy_id?.id || product.pharmacy_id
 
-      await pb.collection('benefit_transactions').create({
+      const split = asaasWalletId
+        ? {
+            walletId: asaasWalletId,
+            percentage: 100 - commissionRate,
+          }
+        : undefined
+
+      const tx = await pb.collection('benefit_transactions').create({
         employee_id: employeeData.id,
         company_id: employeeData.company_id || employeeData.id,
+        partner_id: partnerId,
         amount: price,
         type: 'debit',
         category: 'medication',
         description: `Compra na Farmácia: ${product.name}`,
       })
 
-      await pb.collection('users').update(employeeData.id, {
-        medication_allowance: newBalance,
+      const payRes = await pb.send('/backend/v1/asaas/pay', {
+        method: 'POST',
+        body: JSON.stringify({
+          amount: price,
+          description: `Compra na Farmácia: ${product.name}`,
+          transactionId: tx.id,
+          split: split,
+          billingType: 'PIX',
+        }),
+        headers: { 'Content-Type': 'application/json' },
       })
 
-      setEmployeeData((prev: any) => ({ ...prev, medication_allowance: newBalance }))
-      toast.success('Compra realizada com sucesso usando seu Saldo Farmácia!')
+      if (payRes.invoiceUrl) {
+        setProcessingAsaas({ ...payRes, product })
+      } else {
+        toast.success('Compra registrada e enviada para o parceiro.')
+      }
     } catch (err) {
       console.error(err)
       toast.error('Erro ao processar a compra.')
@@ -149,22 +173,9 @@ export default function Pharmacy() {
             <Pill className="h-8 w-8 text-teal-600" /> Farmácia V MED
           </h1>
           <p className="text-muted-foreground mt-1">
-            Compre medicamentos e itens de perfumaria usando seu Saldo Farmácia.
+            Compre medicamentos e itens de perfumaria pagando via PIX.
           </p>
         </div>
-        <Card className="bg-teal-50 border-teal-200 shrink-0">
-          <CardContent className="p-4 flex items-center gap-4">
-            <div className="bg-teal-100 p-3 rounded-full">
-              <ShoppingCart className="h-6 w-6 text-teal-700" />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-teal-800">Seu Saldo Farmácia</p>
-              <p className="text-2xl font-bold text-teal-900">
-                R$ {employeeData?.medication_allowance?.toFixed(2) || '0.00'}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
       </div>
 
       <div className="relative max-w-md">
@@ -237,9 +248,9 @@ export default function Pharmacy() {
                   {processing === product.id ? (
                     <Loader2 className="h-4 w-4 animate-spin mr-2" />
                   ) : (
-                    <ShoppingCart className="h-4 w-4 mr-2" />
+                    <QrCode className="h-4 w-4 mr-2" />
                   )}
-                  Comprar
+                  Pagar com PIX
                 </Button>
               </CardFooter>
             </Card>
@@ -251,6 +262,62 @@ export default function Pharmacy() {
           )}
         </div>
       )}
+
+      <Dialog open={!!processingAsaas} onOpenChange={(open) => !open && setProcessingAsaas(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Pagamento via PIX</DialogTitle>
+            <DialogDescription>
+              Escaneie o QR Code ou copie o código Copia e Cola para pagar sua compra.
+            </DialogDescription>
+          </DialogHeader>
+          {processingAsaas && (
+            <div className="flex flex-col items-center gap-4 py-4">
+              {processingAsaas.pix?.encodedImage &&
+              processingAsaas.pix.encodedImage !== 'mock_base64' ? (
+                <img
+                  src={`data:image/png;base64,${processingAsaas.pix.encodedImage}`}
+                  alt="QR Code PIX"
+                  className="w-48 h-48 border rounded-lg p-2 bg-white"
+                />
+              ) : (
+                <div className="w-48 h-48 bg-muted flex flex-col items-center justify-center rounded-lg border text-sm text-muted-foreground text-center p-4">
+                  <QrCode className="h-10 w-10 mb-2 opacity-50" />
+                  [Ambiente de Teste]
+                  <br />
+                  QR Code Simulado
+                </div>
+              )}
+              <div className="w-full space-y-2 mt-2">
+                <Label>Pix Copia e Cola</Label>
+                <div className="flex gap-2">
+                  <Input
+                    readOnly
+                    value={processingAsaas.pix?.payload || '00020101021226...mock_pix'}
+                    className="text-xs font-mono"
+                  />
+                  <Button
+                    variant="secondary"
+                    onClick={() => {
+                      navigator.clipboard.writeText(
+                        processingAsaas.pix?.payload || '00020101021226...mock_pix',
+                      )
+                      toast.success('Código copiado!')
+                    }}
+                  >
+                    Copiar
+                  </Button>
+                </div>
+              </div>
+              <Button className="w-full mt-4 bg-teal-600 hover:bg-teal-700" asChild>
+                <a href={processingAsaas.invoiceUrl} target="_blank" rel="noreferrer">
+                  Visualizar Fatura no Asaas
+                </a>
+              </Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
