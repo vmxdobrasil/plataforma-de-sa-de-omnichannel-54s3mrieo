@@ -103,7 +103,10 @@ export default function Search() {
         }
 
         if (onlyVerified) filterParts.push(`is_verified = true`)
-        if (!isAdmin) filterParts.push(`is_blocked != true`)
+        if (!isAdmin) {
+          filterParts.push(`is_blocked != true`)
+          filterParts.push(`registration_status != "pending" && registration_status != "rejected"`)
+        }
 
         const filter = filterParts.join(' && ')
 

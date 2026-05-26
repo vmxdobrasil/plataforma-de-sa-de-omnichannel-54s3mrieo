@@ -14,6 +14,7 @@ import { toast } from 'sonner'
 import { extractFieldErrors } from '@/lib/pocketbase/errors'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
+import { useAuth } from '@/hooks/use-auth'
 
 export function CreatePharmacyLabForm({
   partner,
@@ -22,12 +23,69 @@ export function CreatePharmacyLabForm({
   partner?: any
   onSuccess: () => void
 }) {
+  const { user } = useAuth()
+  const isMasterAdmin = user?.role === 'admin'
+
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [role, setRole] = useState(partner?.role || 'pharmacy')
   const [avatarPreview, setAvatarPreview] = useState<string | null>(
     partner?.avatar ? pb.files.getURL(partner, partner.avatar) : null,
   )
+
+  const [cep, setCep] = useState(partner?.address_zip_code || '')
+  const [street, setStreet] = useState(partner?.address_street || '')
+  const [neighborhood, setNeighborhood] = useState(partner?.address_neighborhood || '')
+  const [city, setCity] = useState(partner?.city || '')
+  const [stateUF, setStateUF] = useState(partner?.state || '')
+  const [cnpj, setCnpj] = useState(partner?.tax_id || '')
+  const [phone, setPhone] = useState(partner?.phone || '')
+
+  const formatCEP = (value: string) => {
+    return value.replace(/\D/g, '').replace(/^(\d{5})(\d{3}).*/, '$1-$2')
+  }
+
+  const formatCNPJ = (value: string) => {
+    return value
+      .replace(/\D/g, '')
+      .replace(/^(\d{2})(\d)/, '$1.$2')
+      .replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3')
+      .replace(/\.(\d{3})(\d)/, '.$1/$2')
+      .replace(/(\d{4})(\d)/, '$1-$2')
+      .slice(0, 18)
+  }
+
+  const formatPhone = (value: string) => {
+    const v = value.replace(/\D/g, '')
+    if (v.length <= 10) {
+      return v
+        .replace(/^(\d{2})(\d{4})(\d{0,4}).*/, '($1) $2-$3')
+        .trim()
+        .replace(/-$/, '')
+    }
+    return v
+      .replace(/^(\d{2})(\d{5})(\d{0,4}).*/, '($1) $2-$3')
+      .trim()
+      .replace(/-$/, '')
+  }
+
+  const handleCepBlur = async (e: React.FocusEvent<HTMLInputElement>) => {
+    const cleanCep = e.target.value.replace(/\D/g, '')
+    if (cleanCep.length === 8) {
+      try {
+        const res = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`)
+        const data = await res.json()
+        if (!data.erro) {
+          setStreet(data.logradouro || '')
+          setNeighborhood(data.bairro || '')
+          setCity(data.localidade || '')
+          setStateUF(data.uf || '')
+        }
+      } catch (err) {
+        console.error('Error fetching CEP:', err)
+      }
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -36,6 +94,30 @@ export function CreatePharmacyLabForm({
 
     const formData = new FormData(e.currentTarget)
     const submitData = new FormData()
+
+    const commissionStr = formData.get('commission_rate') as string
+    if (commissionStr) {
+      const rate = parseFloat(commissionStr)
+      if (isNaN(rate) || rate < 7.99 || rate > 13.89) {
+        toast.error('A comissão deve estar entre 7.99% e 13.89%')
+        setLoading(false)
+        return
+      }
+      if (isMasterAdmin) {
+        submitData.append('commission_rate', rate.toString())
+        submitData.append('pending_commission_rate', '')
+      } else {
+        submitData.append('pending_commission_rate', rate.toString())
+      }
+    } else if (!partner) {
+      toast.error('A taxa de comissão é obrigatória')
+      setLoading(false)
+      return
+    }
+
+    if (phone) {
+      submitData.append('phone', phone)
+    }
 
     submitData.append('role', role)
     submitData.append('name', formData.get('name') as string)
@@ -56,15 +138,15 @@ export function CreatePharmacyLabForm({
       }
     }
 
-    submitData.append('tax_id', formData.get('tax_id') as string)
+    submitData.append('tax_id', cnpj)
 
-    submitData.append('address_zip_code', formData.get('address_zip_code') as string)
-    submitData.append('address_street', formData.get('address_street') as string)
+    submitData.append('address_zip_code', cep)
+    submitData.append('address_street', street)
     submitData.append('address_number', formData.get('address_number') as string)
-    submitData.append('address_neighborhood', formData.get('address_neighborhood') as string)
+    submitData.append('address_neighborhood', neighborhood)
     submitData.append('address_complement', formData.get('address_complement') as string)
-    submitData.append('city', formData.get('city') as string)
-    submitData.append('state', formData.get('state') as string)
+    submitData.append('city', city)
+    submitData.append('state', stateUF)
 
     const lat = formData.get('latitude')
     if (lat) submitData.append('latitude', lat as string)
@@ -74,6 +156,10 @@ export function CreatePharmacyLabForm({
     const avatarFile = formData.get('avatar') as File
     if (avatarFile && avatarFile.size > 0) {
       submitData.append('avatar', avatarFile)
+    }
+
+    if (!partner) {
+      submitData.append('registration_status', 'pending')
     }
 
     try {
@@ -86,8 +172,20 @@ export function CreatePharmacyLabForm({
       }
       onSuccess()
     } catch (err: any) {
-      setErrors(extractFieldErrors(err))
-      toast.error(partner ? 'Erro ao atualizar parceiro.' : 'Erro ao cadastrar parceiro.')
+      const fieldErrors = extractFieldErrors(err)
+      if (
+        fieldErrors.tax_id?.toLowerCase().includes('unique') ||
+        fieldErrors.tax_id === 'The value must be unique.' ||
+        err.message?.toLowerCase().includes('unique')
+      ) {
+        fieldErrors.tax_id = 'Este CNPJ já está cadastrado no sistema.'
+      }
+      setErrors(fieldErrors)
+      toast.error(
+        partner
+          ? 'Erro ao atualizar parceiro. Verifique os campos.'
+          : 'Erro ao cadastrar parceiro. Verifique os campos.',
+      )
     } finally {
       setLoading(false)
     }
@@ -117,10 +215,11 @@ export function CreatePharmacyLabForm({
               {errors.name && <p className="text-xs text-red-500">{errors.name}</p>}
             </div>
             <div className="space-y-2">
-              <Label>Razão Social</Label>
+              <Label>Razão Social *</Label>
               <Input
                 name="business_name"
                 defaultValue={partner?.business_name}
+                required
                 placeholder="Ex: Simões e Silva Ltda"
               />
               {errors.business_name && (
@@ -128,12 +227,16 @@ export function CreatePharmacyLabForm({
               )}
             </div>
             <div className="space-y-2">
-              <Label>CNPJ</Label>
+              <Label>CNPJ *</Label>
               <Input
                 name="tax_id"
-                defaultValue={partner?.tax_id}
+                value={cnpj}
+                onChange={(e) => setCnpj(formatCNPJ(e.target.value))}
+                required
                 placeholder="00.000.000/0000-00"
+                maxLength={18}
               />
+              {errors.tax_id && <p className="text-xs text-red-500">{errors.tax_id}</p>}
             </div>
             <div className="space-y-2">
               <Label>Logomarca (Avatar)</Label>
@@ -168,6 +271,30 @@ export function CreatePharmacyLabForm({
               {errors.email && <p className="text-xs text-red-500">{errors.email}</p>}
             </div>
             <div className="space-y-2">
+              <Label>Telefone *</Label>
+              <Input
+                name="phone"
+                value={phone}
+                onChange={(e) => setPhone(formatPhone(e.target.value))}
+                required
+                placeholder="(00) 00000-0000"
+                maxLength={15}
+              />
+              {errors.phone && <p className="text-xs text-red-500">{errors.phone}</p>}
+            </div>
+            <div className="space-y-2">
+              <Label>Taxa de Comissão (%) *</Label>
+              <Input
+                type="number"
+                step="0.01"
+                name="commission_rate"
+                defaultValue={partner?.commission_rate || partner?.pending_commission_rate}
+                required
+                placeholder="Ex: 10.5"
+              />
+              <p className="text-[10px] text-muted-foreground">Entre 7.99% e 13.89%</p>
+            </div>
+            <div className="space-y-2">
               <Label>
                 {partner ? 'Nova Senha (deixe em branco para manter)' : 'Senha Inicial *'}
               </Label>
@@ -181,32 +308,56 @@ export function CreatePharmacyLabForm({
           <h3 className="font-semibold text-lg border-b pb-2">Localização & Endereço</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
-              <Label>CEP</Label>
+              <Label>CEP *</Label>
               <Input
                 name="address_zip_code"
-                defaultValue={partner?.address_zip_code}
+                value={cep}
+                onChange={(e) => setCep(formatCEP(e.target.value))}
+                onBlur={handleCepBlur}
+                required
                 placeholder="00000-000"
+                maxLength={9}
               />
+              {errors.address_zip_code && (
+                <p className="text-xs text-red-500">{errors.address_zip_code}</p>
+              )}
             </div>
             <div className="space-y-2 md:col-span-2">
-              <Label>Logradouro / Rua</Label>
+              <Label>Logradouro / Rua *</Label>
               <Input
                 name="address_street"
-                defaultValue={partner?.address_street}
+                value={street}
+                onChange={(e) => setStreet(e.target.value)}
+                required
                 placeholder="Ex: Rua das Flores"
               />
+              {errors.address_street && (
+                <p className="text-xs text-red-500">{errors.address_street}</p>
+              )}
             </div>
             <div className="space-y-2">
-              <Label>Número</Label>
+              <Label>Número *</Label>
               <Input
                 name="address_number"
                 defaultValue={partner?.address_number}
+                required
                 placeholder="Ex: 123"
               />
+              {errors.address_number && (
+                <p className="text-xs text-red-500">{errors.address_number}</p>
+              )}
             </div>
             <div className="space-y-2">
-              <Label>Bairro</Label>
-              <Input name="address_neighborhood" defaultValue={partner?.address_neighborhood} />
+              <Label>Bairro *</Label>
+              <Input
+                name="address_neighborhood"
+                value={neighborhood}
+                onChange={(e) => setNeighborhood(e.target.value)}
+                required
+              />
+              {errors.address_neighborhood && (
+                <p className="text-xs text-red-500">{errors.address_neighborhood}</p>
+              )}
             </div>
             <div className="space-y-2">
               <Label>Complemento</Label>
@@ -217,17 +368,21 @@ export function CreatePharmacyLabForm({
               />
             </div>
             <div className="space-y-2 md:col-span-2">
-              <Label>Cidade</Label>
-              <Input name="city" defaultValue={partner?.city} />
+              <Label>Cidade *</Label>
+              <Input name="city" value={city} onChange={(e) => setCity(e.target.value)} required />
+              {errors.city && <p className="text-xs text-red-500">{errors.city}</p>}
             </div>
             <div className="space-y-2">
-              <Label>Estado (UF)</Label>
+              <Label>Estado (UF) *</Label>
               <Input
                 name="state"
-                defaultValue={partner?.state}
+                value={stateUF}
+                onChange={(e) => setStateUF(e.target.value.toUpperCase())}
+                required
                 maxLength={2}
                 placeholder="Ex: SP"
               />
+              {errors.state && <p className="text-xs text-red-500">{errors.state}</p>}
             </div>
             <div className="space-y-2">
               <Label>Latitude</Label>

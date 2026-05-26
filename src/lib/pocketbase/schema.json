@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-24T11:58:33.041Z",
+  "generatedAt": "2026-05-26T15:57:40.333Z",
   "collections": [
     {
       "name": "users",
@@ -296,11 +296,19 @@
           "type": "number",
           "required": false,
           "system": false
+        },
+        {
+          "name": "registration_status",
+          "type": "select",
+          "required": false,
+          "system": false,
+          "selectValues": ["pending", "approved", "rejected"]
         }
       ],
       "indexes": [
         "CREATE UNIQUE INDEX `idx_tokenKey__pb_users_auth_` ON `users` (`tokenKey`)",
-        "CREATE UNIQUE INDEX `idx_email__pb_users_auth_` ON `users` (`email`) WHERE `email` != ''"
+        "CREATE UNIQUE INDEX `idx_email__pb_users_auth_` ON `users` (`email`) WHERE `email` != ''",
+        "CREATE UNIQUE INDEX `idx_users_tax_id` ON `users` (tax_id) WHERE tax_id != ''"
       ]
     },
     {
@@ -748,8 +756,8 @@
       "name": "documents",
       "type": "base",
       "apiRules": {
-        "list": "@request.auth.id != '' && (patient_id = @request.auth.id || patient_id.parent_id = @request.auth.id || professional_id = @request.auth.id || @request.auth.role = 'company' || (@request.auth.role = 'medical_director' || @request.auth.role = 'admin'))",
-        "view": "@request.auth.id != '' && (patient_id = @request.auth.id || patient_id.parent_id = @request.auth.id || professional_id = @request.auth.id || @request.auth.role = 'company' || (@request.auth.role = 'medical_director' || @request.auth.role = 'admin'))",
+        "list": "@request.auth.id != '' && (patient_id = @request.auth.id || patient_id.parent_id = @request.auth.id || professional_id = @request.auth.id || @request.auth.role = 'company' || @request.auth.role = 'medical_director' || @request.auth.role = 'admin' || (@request.auth.role = 'pharmacy' && patient_id = @request.auth.id) || (@request.auth.role = 'laboratory' && patient_id = @request.auth.id))",
+        "view": "@request.auth.id != '' && (patient_id = @request.auth.id || patient_id.parent_id = @request.auth.id || professional_id = @request.auth.id || @request.auth.role = 'company' || @request.auth.role = 'medical_director' || @request.auth.role = 'admin' || (@request.auth.role = 'pharmacy' && patient_id = @request.auth.id) || (@request.auth.role = 'laboratory' && patient_id = @request.auth.id))",
         "create": "@request.auth.id != ''",
         "update": "@request.auth.id != '' && (patient_id = @request.auth.id || professional_id = @request.auth.id || @request.auth.role = 'medical_director' || @request.auth.role = 'admin')",
         "delete": "@request.auth.id != '' && (patient_id = @request.auth.id || professional_id = @request.auth.id || @request.auth.role = 'medical_director' || @request.auth.role = 'admin')"

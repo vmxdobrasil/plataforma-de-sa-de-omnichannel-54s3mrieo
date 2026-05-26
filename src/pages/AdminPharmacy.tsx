@@ -19,6 +19,8 @@ import {
   MoreVertical,
   DollarSign,
   Percent,
+  Check,
+  X,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -51,6 +53,7 @@ import { useAuth } from '@/hooks/use-auth'
 export default function AdminPharmacy() {
   const { user } = useAuth()
   const isMasterAdmin = user?.role === 'admin'
+  const canApprove = user?.role === 'admin' || user?.role === 'medical_director'
 
   const [products, setProducts] = useState<any[]>([])
   const [partners, setPartners] = useState<any[]>([])
@@ -237,6 +240,18 @@ export default function AdminPharmacy() {
     }
   }
 
+  const handleApprovePartner = async (partner: any, status: 'approved' | 'rejected') => {
+    try {
+      await pb.collection('users').update(partner.id, {
+        registration_status: status,
+      })
+      toast.success(`Parceiro ${status === 'approved' ? 'aprovado' : 'rejeitado'} com sucesso!`)
+      loadPartners()
+    } catch (e) {
+      toast.error('Erro ao atualizar status do parceiro.')
+    }
+  }
+
   const handlePartnerSuccess = () => {
     setIsPartnerDialogOpen(false)
     setTimeout(() => setSelectedPartner(null), 300)
@@ -390,6 +405,21 @@ export default function AdminPharmacy() {
                             <Badge variant="outline" className="text-[10px] uppercase h-5">
                               {p.role === 'pharmacy' ? 'Farmácia' : 'Laboratório'}
                             </Badge>
+                            {p.registration_status === 'approved' && (
+                              <Badge className="bg-green-100 text-green-800 hover:bg-green-100 text-[10px] h-5">
+                                Aprovado
+                              </Badge>
+                            )}
+                            {p.registration_status === 'pending' && (
+                              <Badge className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100 text-[10px] h-5">
+                                Pendente
+                              </Badge>
+                            )}
+                            {p.registration_status === 'rejected' && (
+                              <Badge className="bg-red-100 text-red-800 hover:bg-red-100 text-[10px] h-5">
+                                Rejeitado
+                              </Badge>
+                            )}
                             {p.tax_id && (
                               <span className="text-[10px] text-muted-foreground">
                                 CNPJ: {p.tax_id}
@@ -458,6 +488,20 @@ export default function AdminPharmacy() {
                               >
                                 <DollarSign className="h-4 w-4 mr-2" /> Histórico Financeiro
                               </DropdownMenuItem>
+                              {canApprove && p.registration_status !== 'approved' && (
+                                <DropdownMenuItem
+                                  onClick={() => handleApprovePartner(p, 'approved')}
+                                >
+                                  <Check className="h-4 w-4 mr-2 text-green-600" /> Aprovar Cadastro
+                                </DropdownMenuItem>
+                              )}
+                              {canApprove && p.registration_status !== 'rejected' && (
+                                <DropdownMenuItem
+                                  onClick={() => handleApprovePartner(p, 'rejected')}
+                                >
+                                  <X className="h-4 w-4 mr-2 text-red-600" /> Rejeitar Cadastro
+                                </DropdownMenuItem>
+                              )}
                               <DropdownMenuSeparator />
                               <DropdownMenuItem
                                 onClick={() => handleDeletePartner(p.id)}
