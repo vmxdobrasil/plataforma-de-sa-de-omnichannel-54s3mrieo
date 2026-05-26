@@ -55,6 +55,32 @@ export function CreatePharmacyLabForm({
       .slice(0, 18)
   }
 
+  const handleCnpjBlur = async (e: React.FocusEvent<HTMLInputElement>) => {
+    const val = e.target.value
+    if (val.replace(/\D/g, '').length === 14) {
+      try {
+        const existing = await pb.collection('users').getFirstListItem(`tax_id="${val}"`)
+        if (existing && existing.id !== partner?.id) {
+          setErrors((prev) => ({ ...prev, tax_id: 'Este CNPJ já está cadastrado no sistema.' }))
+          toast.error('Este CNPJ já está cadastrado no sistema.')
+        } else {
+          setErrors((prev) => {
+            const newErrors = { ...prev }
+            delete newErrors.tax_id
+            return newErrors
+          })
+        }
+      } catch (err) {
+        // Not found, which means it's available
+        setErrors((prev) => {
+          const newErrors = { ...prev }
+          delete newErrors.tax_id
+          return newErrors
+        })
+      }
+    }
+  }
+
   const formatPhone = (value: string) => {
     const v = value.replace(/\D/g, '')
     if (v.length <= 10) {
@@ -158,6 +184,12 @@ export function CreatePharmacyLabForm({
       submitData.append('avatar', avatarFile)
     }
 
+    if (errors.tax_id) {
+      toast.error('Corrija os erros antes de enviar.')
+      setLoading(false)
+      return
+    }
+
     if (!partner) {
       submitData.append('registration_status', 'pending')
     }
@@ -232,6 +264,7 @@ export function CreatePharmacyLabForm({
                 name="tax_id"
                 value={cnpj}
                 onChange={(e) => setCnpj(formatCNPJ(e.target.value))}
+                onBlur={handleCnpjBlur}
                 required
                 placeholder="00.000.000/0000-00"
                 maxLength={18}
