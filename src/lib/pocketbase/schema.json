@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-27T12:49:16.172Z",
+  "generatedAt": "2026-05-27T13:04:55.563Z",
   "collections": [
     {
       "name": "users",
@@ -192,18 +192,6 @@
         {
           "name": "notify_browser",
           "type": "bool",
-          "required": false,
-          "system": false
-        },
-        {
-          "name": "latitude",
-          "type": "number",
-          "required": false,
-          "system": false
-        },
-        {
-          "name": "longitude",
-          "type": "number",
           "required": false,
           "system": false
         },

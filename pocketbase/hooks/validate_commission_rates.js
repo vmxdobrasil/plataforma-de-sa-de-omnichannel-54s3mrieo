@@ -11,7 +11,7 @@ onRecordValidate((e) => {
           throw new BadRequestError('Dados inválidos', {
             commission_rate: new ValidationError(
               'invalid_range',
-              'A taxa de comissão deve estar entre 7,99% e 13,89%',
+              'A taxa deve estar entre 7.99% e 13.89%',
             ),
           })
         }
@@ -24,7 +24,7 @@ onRecordValidate((e) => {
           throw new BadRequestError('Dados inválidos', {
             pending_commission_rate: new ValidationError(
               'invalid_range',
-              'A taxa de comissão deve estar entre 7,99% e 13,89%',
+              'A taxa deve estar entre 7.99% e 13.89%',
             ),
           })
         }

@@ -189,10 +189,10 @@ export function CreatePharmacyLabForm({
     if (commissionStr) {
       const rate = parseFloat(commissionStr)
       if (isNaN(rate) || rate < 7.99 || rate > 13.89) {
-        toast.error('A taxa de comissão deve estar entre 7,99% e 13,89%')
+        toast.error('A taxa deve estar entre 7.99% e 13.89%')
         setErrors((prev) => ({
           ...prev,
-          commission_rate: 'A taxa de comissão deve estar entre 7,99% e 13,89%',
+          commission_rate: 'A taxa deve estar entre 7.99% e 13.89%',
         }))
         setLoading(false)
         return
@@ -251,20 +251,6 @@ export function CreatePharmacyLabForm({
     submitData.append('city', city)
     submitData.append('state', stateUF)
 
-    const lat = formData.get('latitude')
-    if (lat !== null && lat !== '') {
-      submitData.append('latitude', lat as string)
-    } else {
-      submitData.append('latitude', '')
-    }
-
-    const lng = formData.get('longitude')
-    if (lng !== null && lng !== '') {
-      submitData.append('longitude', lng as string)
-    } else {
-      submitData.append('longitude', '')
-    }
-
     const avatarFile = formData.get('avatar') as File
     if (avatarFile && avatarFile.size > 0) {
       submitData.append('avatar', avatarFile)
@@ -319,6 +305,7 @@ export function CreatePharmacyLabForm({
       if (
         fieldErrors.tax_id?.toLowerCase().includes('unique') ||
         fieldErrors.tax_id === 'The value must be unique.' ||
+        fieldErrors.tax_id === 'Este valor já está em uso.' ||
         err.message?.toLowerCase().includes('unique')
       ) {
         try {
@@ -331,12 +318,28 @@ export function CreatePharmacyLabForm({
           fieldErrors.tax_id = 'Este CNPJ já está cadastrado.'
         }
       }
+
+      if (
+        fieldErrors.email?.toLowerCase().includes('unique') ||
+        fieldErrors.email === 'The value must be unique.' ||
+        fieldErrors.email === 'Este valor já está em uso.'
+      ) {
+        try {
+          const existing = await pb.collection('users').getFirstListItem(`email="${email}"`)
+          const msg = `Este e-mail já está vinculado ao parceiro ${existing.business_name || existing.name}.`
+          fieldErrors.email = msg
+          setConflictPartner(existing)
+        } catch (_) {
+          fieldErrors.email = 'Este e-mail já está cadastrado.'
+        }
+      }
+
       setErrors(fieldErrors)
-      toast.error(
-        partner
-          ? 'Erro ao atualizar parceiro. Verifique os campos com erro.'
-          : 'Erro ao cadastrar parceiro. Verifique os campos com erro.',
-      )
+      if (Object.keys(fieldErrors).length > 0) {
+        toast.error('Verifique os campos destacados com erro no formulário.')
+      } else {
+        toast.error(partner ? 'Erro ao atualizar parceiro.' : 'Erro ao cadastrar parceiro.')
+      }
     } finally {
       setLoading(false)
     }
@@ -588,14 +591,6 @@ export function CreatePharmacyLabForm({
                 placeholder="Ex: SP"
               />
               {errors.state && <p className="text-xs text-red-500">{errors.state}</p>}
-            </div>
-            <div className="space-y-2">
-              <Label>Latitude</Label>
-              <Input name="latitude" defaultValue={partner?.latitude} type="number" step="any" />
-            </div>
-            <div className="space-y-2">
-              <Label>Longitude</Label>
-              <Input name="longitude" defaultValue={partner?.longitude} type="number" step="any" />
             </div>
           </div>
         </div>
