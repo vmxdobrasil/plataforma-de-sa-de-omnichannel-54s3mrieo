@@ -74,14 +74,21 @@ class PharmacyErrorBoundary extends React.Component<
   render() {
     if (this.state.hasError) {
       return (
-        <div className="p-8 text-center bg-card rounded-xl border border-destructive/20 shadow-sm flex flex-col items-center justify-center min-h-[300px]">
-          <AlertCircle className="h-12 w-12 text-destructive mb-4" />
-          <h2 className="text-xl font-bold mb-2">Não foi possível carregar esta seção</h2>
-          <p className="text-muted-foreground mb-6 max-w-md">
-            Ocorreu um erro inesperado ao processar os dados da farmácia. Não se preocupe, a sua
-            sessão continua ativa.
+        <div className="p-8 text-center bg-card rounded-xl border border-amber-200 shadow-sm flex flex-col items-center justify-center min-h-[300px] m-6">
+          <div className="rounded-full bg-amber-100 p-4 mb-4">
+            <AlertCircle className="h-10 w-10 text-amber-600" />
+          </div>
+          <h2 className="text-xl font-bold text-amber-900 mb-2">Erro Temporário</h2>
+          <p className="text-amber-700/80 mb-6 max-w-md">
+            Ocorreu um problema ao carregar a interface de farmácias. Nossos sistemas estão tentando
+            se recuperar automaticamente.
           </p>
-          <Button onClick={() => window.location.reload()}>Recarregar</Button>
+          <Button
+            onClick={() => window.location.reload()}
+            className="bg-amber-600 hover:bg-amber-700 text-white"
+          >
+            Recarregar Página
+          </Button>
         </div>
       )
     }

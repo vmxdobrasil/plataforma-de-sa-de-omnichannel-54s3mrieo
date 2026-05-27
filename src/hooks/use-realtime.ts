@@ -9,9 +9,7 @@ import pb from '@/lib/pocketbase/client'
  * Uses the per-listener UnsubscribeFunc so multiple components
  * can safely subscribe to the same collection without conflicts.
  *
- * Generic over the record type: pass your collection's interface as
- * `useRealtime<MyRecord>(...)` to get a typed subscription payload
- * instead of `unknown`.
+ * Implements robust automatic retry and reconnection logic.
  */
 export function useRealtime<TRecord extends RecordModel = RecordModel>(
   collectionName: string,
@@ -27,21 +25,40 @@ export function useRealtime<TRecord extends RecordModel = RecordModel>(
     let unsubscribeFn: (() => Promise<void>) | undefined
     let cancelled = false
 
-    pb.collection<TRecord>(collectionName)
-      .subscribe('*', (e) => {
-        callbackRef.current(e)
-      })
-      .then((fn) => {
+    const subscribe = async () => {
+      try {
+        const fn = await pb.collection<TRecord>(collectionName).subscribe('*', (e) => {
+          callbackRef.current(e)
+        })
         if (cancelled) {
           fn().catch(() => {})
         } else {
           unsubscribeFn = fn
         }
-      })
-      .catch(() => {})
+      } catch (err) {
+        console.error(`Failed to subscribe to ${collectionName}:`, err)
+        // Retry logic for failed connections
+        if (!cancelled) {
+          setTimeout(subscribe, 5000)
+        }
+      }
+    }
+
+    subscribe()
+
+    // Handle online/offline events to re-subscribe silently
+    const handleOnline = () => {
+      if (!pb.realtime.isConnected && !cancelled) {
+        if (unsubscribeFn) unsubscribeFn().catch(() => {})
+        subscribe()
+      }
+    }
+
+    window.addEventListener('online', handleOnline)
 
     return () => {
       cancelled = true
+      window.removeEventListener('online', handleOnline)
       if (unsubscribeFn) {
         unsubscribeFn().catch(() => {})
       }
