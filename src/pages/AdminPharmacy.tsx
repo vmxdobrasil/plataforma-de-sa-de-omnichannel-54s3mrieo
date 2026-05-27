@@ -68,6 +68,9 @@ class PharmacyErrorBoundary extends React.Component<
   static getDerivedStateFromError() {
     return { hasError: true }
   }
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error('Pharmacy module error:', error, errorInfo)
+  }
   render() {
     if (this.state.hasError) {
       return (
@@ -78,7 +81,7 @@ class PharmacyErrorBoundary extends React.Component<
             Ocorreu um erro inesperado ao processar os dados da farmácia. Não se preocupe, a sua
             sessão continua ativa.
           </p>
-          <Button onClick={() => window.location.reload()}>Recarregar</Button>
+          <Button onClick={() => window.location.reload()}>Recarregar página</Button>
         </div>
       )
     }
@@ -128,7 +131,7 @@ function AdminPharmacyContent() {
       })
       setProducts(res?.items || [])
     } catch (error) {
-      console.error(error)
+      console.error('Error loading products:', error)
       setFetchProductsError(true)
       toast.error('Erro ao carregar produtos de farmácia.')
     } finally {
@@ -150,7 +153,12 @@ function AdminPharmacyContent() {
       const safeNeigh = searchNeighborhood.replace(/["\\]/g, '')
 
       if (safePartner) {
-        filter += ` && (name ~ "${safePartner}" || business_name ~ "${safePartner}" || tax_id ~ "${safePartner}")`
+        const numericPartner = safePartner.replace(/\D/g, '')
+        if (numericPartner.length > 0) {
+          filter += ` && (name ~ "${safePartner}" || business_name ~ "${safePartner}" || tax_id ~ "${safePartner}" || tax_id ~ "${numericPartner}")`
+        } else {
+          filter += ` && (name ~ "${safePartner}" || business_name ~ "${safePartner}" || tax_id ~ "${safePartner}")`
+        }
       }
       if (safeCity) {
         filter += ` && city ~ "${safeCity}"`
@@ -172,7 +180,7 @@ function AdminPharmacyContent() {
       })
       setPartners(res?.items || [])
     } catch (error) {
-      console.error(error)
+      console.error('Error loading partners:', error)
       setFetchError(true)
       toast.error('Erro ao carregar parceiros.')
     } finally {

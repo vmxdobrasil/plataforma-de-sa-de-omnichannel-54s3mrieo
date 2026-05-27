@@ -133,26 +133,40 @@ export function CreatePharmacyLabForm({
     handleFormChange()
   }, [stateUF, city, neighborhood, street, cep, commissionRate, cnpj, phone, email, role])
 
-  const handleCnpjBlur = async (e: React.FocusEvent<HTMLInputElement>) => {
-    const val = e.target.value
-    const cleanCnpj = val.replace(/\D/g, '')
+  const onConflictRef = useRef(onConflict)
+  useEffect(() => {
+    onConflictRef.current = onConflict
+  }, [onConflict])
+
+  useEffect(() => {
+    const cleanCnpj = cnpj.replace(/\D/g, '')
     if (cleanCnpj.length === 14) {
-      try {
-        const existing = await pb.collection('users').getFirstListItem(`tax_id="${cleanCnpj}"`)
-        if (existing && existing.id !== partner?.id) {
-          const msg = `Este CNPJ já está cadastrado no sistema.`
-          setConflictPartner(existing)
-          setErrors((prev) => ({ ...prev, tax_id: msg }))
-          if (onConflict) {
-            toast.error(msg, {
-              action: {
-                label: 'Ver Cadastro Existente',
-                onClick: () => onConflict(existing),
-              },
-              duration: 10000,
+      const checkCnpj = async () => {
+        try {
+          const existing = await pb.collection('users').getFirstListItem(`tax_id="${cleanCnpj}"`)
+          if (existing && existing.id !== partner?.id) {
+            const msg = `Este CNPJ já está cadastrado no sistema.`
+            setConflictPartner(existing)
+            setErrors((prev) => ({ ...prev, tax_id: msg }))
+            if (onConflictRef.current) {
+              toast.error(msg, {
+                id: `cnpj-conflict-${cleanCnpj}`,
+                action: {
+                  label: 'Ver Cadastro Existente',
+                  onClick: () => onConflictRef.current?.(existing),
+                },
+                duration: 10000,
+              })
+            }
+          } else {
+            setConflictPartner(null)
+            setErrors((prev) => {
+              const newErrors = { ...prev }
+              delete newErrors.tax_id
+              return newErrors
             })
           }
-        } else {
+        } catch (err) {
           setConflictPartner(null)
           setErrors((prev) => {
             const newErrors = { ...prev }
@@ -160,17 +174,17 @@ export function CreatePharmacyLabForm({
             return newErrors
           })
         }
-      } catch (err) {
-        // Not found, which means it's available
-        setConflictPartner(null)
-        setErrors((prev) => {
-          const newErrors = { ...prev }
-          delete newErrors.tax_id
-          return newErrors
-        })
       }
+      checkCnpj()
+    } else {
+      setConflictPartner(null)
+      setErrors((prev) => {
+        const newErrors = { ...prev }
+        delete newErrors.tax_id
+        return newErrors
+      })
     }
-  }
+  }, [cnpj, partner?.id])
 
   const handleEmailBlur = async (e: React.FocusEvent<HTMLInputElement>) => {
     const val = e.target.value
@@ -181,9 +195,13 @@ export function CreatePharmacyLabForm({
           const msg = `Este e-mail já está vinculado ao parceiro ${existing.business_name || existing.name}.`
           setConflictPartner(existing)
           setErrors((prev) => ({ ...prev, email: msg }))
-          if (onConflict) {
+          if (onConflictRef.current) {
             toast.error(`E-mail já cadastrado para ${existing.business_name || existing.name}.`, {
-              action: { label: 'Ver Cadastro Existente', onClick: () => onConflict(existing) },
+              id: `email-conflict-${val}`,
+              action: {
+                label: 'Ver Cadastro Existente',
+                onClick: () => onConflictRef.current?.(existing),
+              },
               duration: 10000,
             })
           }
@@ -439,11 +457,12 @@ export function CreatePharmacyLabForm({
           const msg = `Este CNPJ já está cadastrado no sistema.`
           fieldErrors.tax_id = msg
           setConflictPartner(existing)
-          if (onConflict) {
+          if (onConflictRef.current) {
             toast.error(msg, {
+              id: `cnpj-conflict-${cleanCnpj}`,
               action: {
                 label: 'Ver Cadastro Existente',
-                onClick: () => onConflict(existing),
+                onClick: () => onConflictRef.current?.(existing),
               },
               duration: 10000,
             })
@@ -463,9 +482,13 @@ export function CreatePharmacyLabForm({
           const msg = `Este e-mail já está vinculado ao parceiro ${existing.business_name || existing.name}.`
           fieldErrors.email = msg
           setConflictPartner(existing)
-          if (onConflict) {
+          if (onConflictRef.current) {
             toast.error(`E-mail já cadastrado para ${existing.business_name || existing.name}.`, {
-              action: { label: 'Ver Cadastro Existente', onClick: () => onConflict(existing) },
+              id: `email-conflict-${email}`,
+              action: {
+                label: 'Ver Cadastro Existente',
+                onClick: () => onConflictRef.current?.(existing),
+              },
               duration: 10000,
             })
           }
@@ -491,7 +514,11 @@ export function CreatePharmacyLabForm({
             }
             const name = fieldNameMap[field] || field
             const cleanMsg =
-              typeof msg === 'string' && msg.startsWith('{') ? 'Valor inválido.' : msg
+              typeof msg === 'string'
+                ? msg.startsWith('{')
+                  ? 'Valor inválido.'
+                  : msg
+                : 'Valor inválido.'
             return `${name}: ${cleanMsg}`
           })
           .join('\n')
@@ -564,7 +591,6 @@ export function CreatePharmacyLabForm({
                 name="tax_id"
                 value={cnpj}
                 onChange={(e) => setCnpj(formatCNPJ(e.target.value))}
-                onBlur={handleCnpjBlur}
                 required
                 placeholder="00.000.000/0000-00"
                 maxLength={18}
