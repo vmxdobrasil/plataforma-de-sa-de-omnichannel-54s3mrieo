@@ -7,7 +7,7 @@ onRecordValidate((e) => {
       const rate = record.get('commission_rate')
       if (rate !== null && rate !== '' && Number(rate) !== 0) {
         const val = Number(rate)
-        if (val < 7.989 || val > 13.891) {
+        if (val < 7.99 || val > 13.89) {
           throw new BadRequestError('Dados inválidos', {
             commission_rate: new ValidationError(
               'invalid_range',
@@ -20,7 +20,7 @@ onRecordValidate((e) => {
       const pendingRate = record.get('pending_commission_rate')
       if (pendingRate !== null && pendingRate !== '' && Number(pendingRate) !== 0) {
         const pVal = Number(pendingRate)
-        if (pVal < 7.989 || pVal > 13.891) {
+        if (pVal < 7.99 || pVal > 13.89) {
           throw new BadRequestError('Dados inválidos', {
             pending_commission_rate: new ValidationError(
               'invalid_range',

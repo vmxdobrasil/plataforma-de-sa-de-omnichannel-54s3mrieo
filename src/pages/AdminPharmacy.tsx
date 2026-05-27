@@ -194,7 +194,7 @@ export default function AdminPharmacy() {
 
   const handleSaveCommission = async () => {
     const rate = parseFloat(commissionRate.toString().replace(',', '.'))
-    if (isNaN(rate) || rate < 7.989 || rate > 13.891) {
+    if (isNaN(rate) || rate < 7.99 || rate > 13.89) {
       toast.error('A taxa deve estar entre 7,99% e 13,89%')
       return
     }

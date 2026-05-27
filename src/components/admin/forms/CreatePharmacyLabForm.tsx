@@ -78,7 +78,7 @@ export function CreatePharmacyLabForm({
       const rateStr = formData.get('commission_rate') as string
       if (rateStr) {
         const rate = parseFloat(rateStr.replace(',', '.'))
-        if (isNaN(rate) || rate < 7.989 || rate > 13.891) {
+        if (isNaN(rate) || rate < 7.99 || rate > 13.89) {
           valid = false
         }
       } else if (!partner) {
@@ -147,7 +147,7 @@ export function CreatePharmacyLabForm({
           if (onConflict) {
             toast.error(msg, {
               action: {
-                label: 'Clique aqui para editar este cadastro',
+                label: 'Editar Cadastro Existente',
                 onClick: () => onConflict(existing),
               },
               duration: 10000,
@@ -184,7 +184,7 @@ export function CreatePharmacyLabForm({
           setErrors((prev) => ({ ...prev, email: msg }))
           if (onConflict) {
             toast.error(`E-mail já cadastrado para ${existing.business_name || existing.name}.`, {
-              action: { label: 'Clique aqui para editar', onClick: () => onConflict(existing) },
+              action: { label: 'Editar Cadastro Existente', onClick: () => onConflict(existing) },
               duration: 10000,
             })
           }
@@ -271,7 +271,7 @@ export function CreatePharmacyLabForm({
     const commissionStr = formData.get('commission_rate') as string
     if (commissionStr) {
       const rate = parseFloat(commissionStr.replace(',', '.'))
-      if (isNaN(rate) || rate < 7.989 || rate > 13.891) {
+      if (isNaN(rate) || rate < 7.99 || rate > 13.89) {
         toast.error('A taxa deve estar entre 7,99% e 13,89%')
         setErrors((prev) => ({
           ...prev,
@@ -444,7 +444,7 @@ export function CreatePharmacyLabForm({
           if (onConflict) {
             toast.error(msg, {
               action: {
-                label: 'Clique aqui para editar este cadastro',
+                label: 'Editar Cadastro Existente',
                 onClick: () => onConflict(existing),
               },
               duration: 10000,
@@ -467,7 +467,7 @@ export function CreatePharmacyLabForm({
           setConflictPartner(existing)
           if (onConflict) {
             toast.error(`E-mail já cadastrado para ${existing.business_name || existing.name}.`, {
-              action: { label: 'Clique aqui para editar', onClick: () => onConflict(existing) },
+              action: { label: 'Editar Cadastro Existente', onClick: () => onConflict(existing) },
               duration: 10000,
             })
           }
@@ -492,15 +492,23 @@ export function CreatePharmacyLabForm({
               state: 'Estado (UF)',
             }
             const name = fieldNameMap[field] || field
-            return `${name}: ${msg}`
+            const cleanMsg =
+              typeof msg === 'string' && msg.startsWith('{') ? 'Valor inválido.' : msg
+            return `${name}: ${cleanMsg}`
           })
           .join('\n')
-        toast.error('Corrija os erros para continuar:', {
+        toast.error('Corrija os erros para continuar', {
           description: errorMessages,
           duration: 5000,
         })
       } else {
-        toast.error(partner ? 'Erro ao atualizar parceiro.' : 'Erro ao cadastrar parceiro.')
+        const fallbackMsg =
+          err?.message && !err.message.startsWith('{')
+            ? err.message
+            : partner
+              ? 'Erro ao atualizar parceiro.'
+              : 'Erro ao cadastrar parceiro.'
+        toast.error(fallbackMsg)
       }
     } finally {
       setLoading(false)
@@ -574,7 +582,7 @@ export function CreatePharmacyLabForm({
                       className="w-fit"
                       onClick={() => onConflict(conflictPartner)}
                     >
-                      Visualizar Cadastro
+                      Editar Cadastro Existente
                     </Button>
                   )}
                 </div>
@@ -628,7 +636,7 @@ export function CreatePharmacyLabForm({
                       className="w-fit"
                       onClick={() => onConflict(conflictPartner)}
                     >
-                      Visualizar Cadastro
+                      Editar Cadastro Existente
                     </Button>
                   )}
                 </div>
