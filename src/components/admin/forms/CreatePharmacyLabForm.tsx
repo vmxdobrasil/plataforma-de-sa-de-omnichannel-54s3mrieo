@@ -19,9 +19,11 @@ import { useAuth } from '@/hooks/use-auth'
 export function CreatePharmacyLabForm({
   partner,
   onSuccess,
+  onConflict,
 }: {
   partner?: any
   onSuccess: () => void
+  onConflict?: (existingPartner: any) => void
 }) {
   const { user } = useAuth()
   const isMasterAdmin = user?.role === 'admin'
@@ -33,18 +35,6 @@ export function CreatePharmacyLabForm({
     partner?.avatar ? pb.files.getURL(partner, partner.avatar) : null,
   )
 
-  const [cep, setCep] = useState(partner?.address_zip_code || '')
-  const [street, setStreet] = useState(partner?.address_street || '')
-  const [neighborhood, setNeighborhood] = useState(partner?.address_neighborhood || '')
-  const [city, setCity] = useState(partner?.city || '')
-  const [stateUF, setStateUF] = useState(partner?.state || '')
-  const [cnpj, setCnpj] = useState(partner?.tax_id || '')
-  const [phone, setPhone] = useState(partner?.phone || '')
-
-  const formatCEP = (value: string) => {
-    return value.replace(/\D/g, '').replace(/^(\d{5})(\d{3}).*/, '$1-$2')
-  }
-
   const formatCNPJ = (value: string) => {
     return value
       .replace(/\D/g, '')
@@ -55,15 +45,32 @@ export function CreatePharmacyLabForm({
       .slice(0, 18)
   }
 
+  const [cep, setCep] = useState(partner?.address_zip_code || '')
+  const [street, setStreet] = useState(partner?.address_street || '')
+  const [neighborhood, setNeighborhood] = useState(partner?.address_neighborhood || '')
+  const [city, setCity] = useState(partner?.city || '')
+  const [stateUF, setStateUF] = useState(partner?.state || '')
+  const [cnpj, setCnpj] = useState(partner?.tax_id ? formatCNPJ(partner.tax_id) : '')
+  const [phone, setPhone] = useState(partner?.phone || '')
+
+  const formatCEP = (value: string) => {
+    return value.replace(/\D/g, '').replace(/^(\d{5})(\d{3}).*/, '$1-$2')
+  }
+
+  const [conflictPartner, setConflictPartner] = useState<any>(null)
+
   const handleCnpjBlur = async (e: React.FocusEvent<HTMLInputElement>) => {
     const val = e.target.value
-    if (val.replace(/\D/g, '').length === 14) {
+    const cleanCnpj = val.replace(/\D/g, '')
+    if (cleanCnpj.length === 14) {
       try {
-        const existing = await pb.collection('users').getFirstListItem(`tax_id="${val}"`)
+        const existing = await pb.collection('users').getFirstListItem(`tax_id="${cleanCnpj}"`)
         if (existing && existing.id !== partner?.id) {
-          setErrors((prev) => ({ ...prev, tax_id: 'Este CNPJ já está cadastrado no sistema.' }))
-          toast.error('Este CNPJ já está cadastrado no sistema.')
+          const msg = `Este CNPJ já está cadastrado no sistema para o parceiro ${existing.business_name || existing.name}.`
+          setConflictPartner(existing)
+          setErrors((prev) => ({ ...prev, tax_id: msg }))
         } else {
+          setConflictPartner(null)
           setErrors((prev) => {
             const newErrors = { ...prev }
             delete newErrors.tax_id
@@ -72,6 +79,7 @@ export function CreatePharmacyLabForm({
         }
       } catch (err) {
         // Not found, which means it's available
+        setConflictPartner(null)
         setErrors((prev) => {
           const newErrors = { ...prev }
           delete newErrors.tax_id
@@ -125,7 +133,11 @@ export function CreatePharmacyLabForm({
     if (commissionStr) {
       const rate = parseFloat(commissionStr)
       if (isNaN(rate) || rate < 7.99 || rate > 13.89) {
-        toast.error('A comissão deve estar entre 7.99% e 13.89%')
+        toast.error('A taxa de comissão deve estar entre 7,99% e 13,89%')
+        setErrors((prev) => ({
+          ...prev,
+          commission_rate: 'A taxa de comissão deve estar entre 7,99% e 13,89%',
+        }))
         setLoading(false)
         return
       }
@@ -137,6 +149,15 @@ export function CreatePharmacyLabForm({
       }
     } else if (!partner) {
       toast.error('A taxa de comissão é obrigatória')
+      setErrors((prev) => ({ ...prev, commission_rate: 'A taxa de comissão é obrigatória' }))
+      setLoading(false)
+      return
+    }
+
+    const cleanCnpj = cnpj.replace(/\D/g, '')
+    if (cleanCnpj.length !== 14) {
+      toast.error('CNPJ inválido.')
+      setErrors((prev) => ({ ...prev, tax_id: 'CNPJ deve conter 14 dígitos numéricos.' }))
       setLoading(false)
       return
     }
@@ -164,7 +185,7 @@ export function CreatePharmacyLabForm({
       }
     }
 
-    submitData.append('tax_id', cnpj)
+    submitData.append('tax_id', cleanCnpj)
 
     submitData.append('address_zip_code', cep)
     submitData.append('address_street', street)
@@ -175,9 +196,18 @@ export function CreatePharmacyLabForm({
     submitData.append('state', stateUF)
 
     const lat = formData.get('latitude')
-    if (lat) submitData.append('latitude', lat as string)
+    if (lat !== null && lat !== '') {
+      submitData.append('latitude', lat as string)
+    } else {
+      submitData.append('latitude', '')
+    }
+
     const lng = formData.get('longitude')
-    if (lng) submitData.append('longitude', lng as string)
+    if (lng !== null && lng !== '') {
+      submitData.append('longitude', lng as string)
+    } else {
+      submitData.append('longitude', '')
+    }
 
     const avatarFile = formData.get('avatar') as File
     if (avatarFile && avatarFile.size > 0) {
@@ -210,7 +240,15 @@ export function CreatePharmacyLabForm({
         fieldErrors.tax_id === 'The value must be unique.' ||
         err.message?.toLowerCase().includes('unique')
       ) {
-        fieldErrors.tax_id = 'Este CNPJ já está cadastrado no sistema.'
+        try {
+          const cleanCnpj = cnpj.replace(/\D/g, '')
+          const existing = await pb.collection('users').getFirstListItem(`tax_id="${cleanCnpj}"`)
+          const msg = `Este CNPJ já está cadastrado no sistema para o parceiro ${existing.business_name || existing.name}.`
+          fieldErrors.tax_id = msg
+          setConflictPartner(existing)
+        } catch (_) {
+          fieldErrors.tax_id = 'Este CNPJ já está cadastrado no sistema.'
+        }
       }
       setErrors(fieldErrors)
       toast.error(
@@ -243,20 +281,25 @@ export function CreatePharmacyLabForm({
             </div>
             <div className="space-y-2">
               <Label>Nome Fantasia (Apresentação) *</Label>
-              <Input name="name" defaultValue={partner?.name} required placeholder="Ex: MaxFarma" />
-              {errors.name && <p className="text-xs text-red-500">{errors.name}</p>}
-            </div>
-            <div className="space-y-2">
-              <Label>Razão Social *</Label>
               <Input
                 name="business_name"
                 defaultValue={partner?.business_name}
                 required
-                placeholder="Ex: Simões e Silva Ltda"
+                placeholder="Ex: MaxFarma"
               />
               {errors.business_name && (
                 <p className="text-xs text-red-500">{errors.business_name}</p>
               )}
+            </div>
+            <div className="space-y-2">
+              <Label>Razão Social *</Label>
+              <Input
+                name="name"
+                defaultValue={partner?.name}
+                required
+                placeholder="Ex: Simões e Silva Ltda"
+              />
+              {errors.name && <p className="text-xs text-red-500">{errors.name}</p>}
             </div>
             <div className="space-y-2">
               <Label>CNPJ *</Label>
@@ -269,7 +312,22 @@ export function CreatePharmacyLabForm({
                 placeholder="00.000.000/0000-00"
                 maxLength={18}
               />
-              {errors.tax_id && <p className="text-xs text-red-500">{errors.tax_id}</p>}
+              {errors.tax_id && (
+                <div className="flex flex-col gap-2 mt-1">
+                  <p className="text-xs text-red-500">{errors.tax_id}</p>
+                  {conflictPartner && onConflict && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="w-fit"
+                      onClick={() => onConflict(conflictPartner)}
+                    >
+                      Editar Registro Existente
+                    </Button>
+                  )}
+                </div>
+              )}
             </div>
             <div className="space-y-2">
               <Label>Logomarca (Avatar)</Label>
@@ -325,7 +383,10 @@ export function CreatePharmacyLabForm({
                 required
                 placeholder="Ex: 10.5"
               />
-              <p className="text-[10px] text-muted-foreground">Entre 7.99% e 13.89%</p>
+              <p className="text-[10px] text-muted-foreground">Entre 7,99% e 13,89%</p>
+              {errors.commission_rate && (
+                <p className="text-xs text-red-500">{errors.commission_rate}</p>
+              )}
             </div>
             <div className="space-y-2">
               <Label>

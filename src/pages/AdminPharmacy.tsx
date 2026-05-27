@@ -41,6 +41,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
 import { CreatePharmacyLabForm } from '@/components/admin/forms/CreatePharmacyLabForm'
 import { PharmacyDocuments } from '@/components/admin/PharmacyDocuments'
@@ -62,6 +69,8 @@ export default function AdminPharmacy() {
   const [searchPartner, setSearchPartner] = useState('')
   const [searchCity, setSearchCity] = useState('')
   const [searchNeighborhood, setSearchNeighborhood] = useState('')
+  const [searchRole, setSearchRole] = useState('all')
+  const [searchStatus, setSearchStatus] = useState('all')
 
   const [loadingProducts, setLoadingProducts] = useState(true)
   const [loadingPartners, setLoadingPartners] = useState(true)
@@ -97,20 +106,30 @@ export default function AdminPharmacy() {
   const loadPartners = async () => {
     try {
       setLoadingPartners(true)
-      let filter = `(role = "pharmacy" || role = "laboratory")`
+      let filter =
+        searchRole === 'all'
+          ? `(role = "pharmacy" || role = "laboratory")`
+          : `role = "${searchRole}"`
 
       const safePartner = searchPartner.replace(/["\\]/g, '')
       const safeCity = searchCity.replace(/["\\]/g, '')
       const safeNeigh = searchNeighborhood.replace(/["\\]/g, '')
 
       if (safePartner) {
-        filter += ` && (name ~ "${safePartner}" || business_name ~ "${safePartner}")`
+        filter += ` && (name ~ "${safePartner}" || business_name ~ "${safePartner}" || tax_id ~ "${safePartner}")`
       }
       if (safeCity) {
         filter += ` && city ~ "${safeCity}"`
       }
       if (safeNeigh) {
         filter += ` && address_neighborhood ~ "${safeNeigh}"`
+      }
+      if (searchStatus !== 'all') {
+        if (searchStatus === 'pending') {
+          filter += ` && (registration_status = "pending" || registration_status = "" || registration_status = null)`
+        } else {
+          filter += ` && registration_status = "${searchStatus}"`
+        }
       }
 
       const res = await pb.collection('users').getList(1, 50, {
@@ -135,7 +154,7 @@ export default function AdminPharmacy() {
       loadPartners()
     }, 300)
     return () => clearTimeout(delayDebounceFn)
-  }, [searchPartner, searchCity, searchNeighborhood])
+  }, [searchPartner, searchCity, searchNeighborhood, searchRole, searchStatus])
 
   useRealtime('users', () => loadPartners())
   useRealtime('pharmacy_products', () => loadProducts())
@@ -176,7 +195,7 @@ export default function AdminPharmacy() {
   const handleSaveCommission = async () => {
     const rate = parseFloat(commissionRate)
     if (isNaN(rate) || rate < 7.99 || rate > 13.89) {
-      toast.error('A comissão deve estar entre 7.99% e 13.89%')
+      toast.error('A taxa de comissão deve estar entre 7,99% e 13,89%')
       return
     }
 
@@ -277,74 +296,109 @@ export default function AdminPharmacy() {
 
         <TabsContent value="partners" className="space-y-4">
           <div className="flex flex-col gap-4 bg-primary/5 p-4 rounded-xl border border-primary/10 shadow-sm">
-            <div className="flex flex-col md:flex-row gap-4 items-center w-full">
-              <div className="relative flex-1 w-full">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 items-center w-full">
+              <div className="relative w-full sm:col-span-2 md:col-span-3 lg:col-span-2">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Nome fantasia ou razão social..."
+                  placeholder="Nome fantasia, razão social ou CNPJ..."
                   className="pl-9 bg-background"
                   value={searchPartner}
                   onChange={(e) => setSearchPartner(e.target.value)}
                 />
               </div>
-              <div className="relative flex-1 w-full">
+              <div className="relative w-full">
+                <Select value={searchRole} onValueChange={setSearchRole}>
+                  <SelectTrigger className="bg-background">
+                    <SelectValue placeholder="Tipo..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos Tipos</SelectItem>
+                    <SelectItem value="pharmacy">Farmácia</SelectItem>
+                    <SelectItem value="laboratory">Laboratório</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="relative w-full">
+                <Select value={searchStatus} onValueChange={setSearchStatus}>
+                  <SelectTrigger className="bg-background">
+                    <SelectValue placeholder="Status..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos Status</SelectItem>
+                    <SelectItem value="pending">Pendente</SelectItem>
+                    <SelectItem value="approved">Aprovado</SelectItem>
+                    <SelectItem value="rejected">Rejeitado</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="relative w-full">
                 <Input
-                  placeholder="Filtrar por cidade..."
+                  placeholder="Cidade..."
                   className="bg-background"
                   value={searchCity}
                   onChange={(e) => setSearchCity(e.target.value)}
                 />
               </div>
-              <div className="relative flex-1 w-full">
-                <Input
-                  placeholder="Filtrar por bairro..."
-                  className="bg-background"
-                  value={searchNeighborhood}
-                  onChange={(e) => setSearchNeighborhood(e.target.value)}
-                />
-              </div>
-              <Dialog
-                open={isPartnerDialogOpen}
-                onOpenChange={(open) => {
-                  setIsPartnerDialogOpen(open)
-                  if (!open) {
-                    setTimeout(() => setSelectedPartner(null), 300)
-                  }
-                }}
-              >
-                <DialogTrigger asChild>
-                  <Button className="w-full md:w-auto shrink-0">
-                    <Plus className="h-4 w-4 mr-2" /> Novo Parceiro
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-3xl">
-                  <DialogHeader>
-                    <DialogTitle>
-                      {selectedPartner ? 'Editar Parceiro' : 'Cadastrar Novo Parceiro'}
-                    </DialogTitle>
-                  </DialogHeader>
+              <div className="w-full flex items-center justify-end">
+                <Dialog
+                  open={isPartnerDialogOpen}
+                  onOpenChange={(open) => {
+                    setIsPartnerDialogOpen(open)
+                    if (!open) {
+                      setTimeout(() => setSelectedPartner(null), 300)
+                    }
+                  }}
+                >
+                  <DialogTrigger asChild>
+                    <Button className="w-full shrink-0">
+                      <Plus className="h-4 w-4 mr-2" /> Novo Parceiro
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-3xl">
+                    <DialogHeader>
+                      <DialogTitle>
+                        {selectedPartner ? 'Editar Parceiro' : 'Cadastrar Novo Parceiro'}
+                      </DialogTitle>
+                    </DialogHeader>
 
-                  {selectedPartner ? (
-                    <Tabs defaultValue="info" className="w-full mt-2">
-                      <TabsList className="mb-4 w-full grid grid-cols-2">
-                        <TabsTrigger value="info">Informações</TabsTrigger>
-                        <TabsTrigger value="documents">Documentos</TabsTrigger>
-                      </TabsList>
-                      <TabsContent value="info">
-                        <CreatePharmacyLabForm
-                          partner={selectedPartner}
-                          onSuccess={handlePartnerSuccess}
-                        />
-                      </TabsContent>
-                      <TabsContent value="documents">
-                        <PharmacyDocuments partner={selectedPartner} />
-                      </TabsContent>
-                    </Tabs>
-                  ) : (
-                    <CreatePharmacyLabForm onSuccess={handlePartnerSuccess} />
-                  )}
-                </DialogContent>
-              </Dialog>
+                    {selectedPartner ? (
+                      <Tabs defaultValue="info" className="w-full mt-2">
+                        <TabsList className="mb-4 w-full grid grid-cols-2">
+                          <TabsTrigger value="info">Informações</TabsTrigger>
+                          <TabsTrigger value="documents">Documentos</TabsTrigger>
+                        </TabsList>
+                        <TabsContent value="info">
+                          <CreatePharmacyLabForm
+                            partner={selectedPartner}
+                            onSuccess={handlePartnerSuccess}
+                            onConflict={(existing) => {
+                              setIsPartnerDialogOpen(false)
+                              setTimeout(() => {
+                                setSelectedPartner(existing)
+                                setIsPartnerDialogOpen(true)
+                              }, 300)
+                            }}
+                          />
+                        </TabsContent>
+                        <TabsContent value="documents">
+                          <PharmacyDocuments partner={selectedPartner} />
+                        </TabsContent>
+                      </Tabs>
+                    ) : (
+                      <CreatePharmacyLabForm
+                        onSuccess={handlePartnerSuccess}
+                        onConflict={(existing) => {
+                          setIsPartnerDialogOpen(false)
+                          setTimeout(() => {
+                            setSelectedPartner(existing)
+                            setIsPartnerDialogOpen(true)
+                          }, 300)
+                        }}
+                      />
+                    )}
+                  </DialogContent>
+                </Dialog>
+              </div>
             </div>
           </div>
 
@@ -390,7 +444,7 @@ export default function AdminPharmacy() {
                               Nome Fantasia
                             </span>
                             <span className="font-bold text-base text-foreground leading-tight">
-                              {p.name || '-'}
+                              {p.business_name || '-'}
                             </span>
                           </div>
                           <div>
@@ -398,7 +452,7 @@ export default function AdminPharmacy() {
                               Razão Social
                             </span>
                             <span className="text-xs font-medium text-muted-foreground leading-tight">
-                              {p.business_name || '-'}
+                              {p.name || '-'}
                             </span>
                           </div>
                           <div className="flex items-center gap-2 mt-1 flex-wrap">
@@ -410,7 +464,7 @@ export default function AdminPharmacy() {
                                 Aprovado
                               </Badge>
                             )}
-                            {p.registration_status === 'pending' && (
+                            {(p.registration_status === 'pending' || !p.registration_status) && (
                               <Badge className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100 text-[10px] h-5">
                                 Pendente
                               </Badge>
