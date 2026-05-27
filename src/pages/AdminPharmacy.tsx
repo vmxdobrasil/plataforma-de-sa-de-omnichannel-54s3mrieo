@@ -58,7 +58,35 @@ import { useRealtime } from '@/hooks/use-realtime'
 import { AdminHeader } from '@/components/admin/AdminHeader'
 import { useAuth } from '@/hooks/use-auth'
 
-export default function AdminPharmacy() {
+import React from 'react'
+
+class PharmacyErrorBoundary extends React.Component<
+  { children: React.ReactNode },
+  { hasError: boolean }
+> {
+  state = { hasError: false }
+  static getDerivedStateFromError() {
+    return { hasError: true }
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="p-8 text-center bg-card rounded-xl border border-destructive/20 shadow-sm flex flex-col items-center justify-center min-h-[300px]">
+          <AlertCircle className="h-12 w-12 text-destructive mb-4" />
+          <h2 className="text-xl font-bold mb-2">Ops! Algo deu errado</h2>
+          <p className="text-muted-foreground mb-6 max-w-md">
+            Ocorreu um erro inesperado ao processar os dados da farmácia. Não se preocupe, a sua
+            sessão continua ativa.
+          </p>
+          <Button onClick={() => window.location.reload()}>Recarregar</Button>
+        </div>
+      )
+    }
+    return this.props.children
+  }
+}
+
+function AdminPharmacyContent() {
   const { user } = useAuth()
   const isMasterAdmin = user?.role === 'admin'
   const canApprove = user?.role === 'admin' || user?.role === 'medical_director'
@@ -244,10 +272,13 @@ export default function AdminPharmacy() {
         })
         .catch(() => {})
 
-      toast.error(
+      const msg =
         e?.response?.data?.commission_rate?.message ||
-          e?.response?.data?.pending_commission_rate?.message ||
-          'Erro ao salvar comissão.',
+        e?.response?.data?.pending_commission_rate?.message ||
+        e?.message ||
+        'Erro ao salvar comissão.'
+      toast.error(
+        typeof msg === 'string' && !msg.startsWith('{') ? msg : 'Erro ao salvar comissão.',
       )
     }
   }
@@ -802,5 +833,13 @@ export default function AdminPharmacy() {
         </DialogContent>
       </Dialog>
     </div>
+  )
+}
+
+export default function AdminPharmacy() {
+  return (
+    <PharmacyErrorBoundary>
+      <AdminPharmacyContent />
+    </PharmacyErrorBoundary>
   )
 }

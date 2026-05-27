@@ -146,7 +146,7 @@ export function CreatePharmacyLabForm({
           if (onConflict) {
             toast.error(msg, {
               action: {
-                label: 'Ver Registro Existente',
+                label: 'Ver Cadastro Existente',
                 onClick: () => onConflict(existing),
               },
               duration: 10000,
@@ -183,7 +183,7 @@ export function CreatePharmacyLabForm({
           setErrors((prev) => ({ ...prev, email: msg }))
           if (onConflict) {
             toast.error(`E-mail já cadastrado para ${existing.business_name || existing.name}.`, {
-              action: { label: 'Ver Registro Existente', onClick: () => onConflict(existing) },
+              action: { label: 'Ver Cadastro Existente', onClick: () => onConflict(existing) },
               duration: 10000,
             })
           }
@@ -442,7 +442,7 @@ export function CreatePharmacyLabForm({
           if (onConflict) {
             toast.error(msg, {
               action: {
-                label: 'Ver Registro Existente',
+                label: 'Ver Cadastro Existente',
                 onClick: () => onConflict(existing),
               },
               duration: 10000,
@@ -465,7 +465,7 @@ export function CreatePharmacyLabForm({
           setConflictPartner(existing)
           if (onConflict) {
             toast.error(`E-mail já cadastrado para ${existing.business_name || existing.name}.`, {
-              action: { label: 'Ver Registro Existente', onClick: () => onConflict(existing) },
+              action: { label: 'Ver Cadastro Existente', onClick: () => onConflict(existing) },
               duration: 10000,
             })
           }
@@ -580,7 +580,7 @@ export function CreatePharmacyLabForm({
                       className="w-fit"
                       onClick={() => onConflict(conflictPartner)}
                     >
-                      Ver Registro Existente
+                      Ver Cadastro Existente
                     </Button>
                   )}
                 </div>
@@ -634,7 +634,7 @@ export function CreatePharmacyLabForm({
                       className="w-fit"
                       onClick={() => onConflict(conflictPartner)}
                     >
-                      Ver Registro Existente
+                      Ver Cadastro Existente
                     </Button>
                   )}
                 </div>
