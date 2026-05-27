@@ -226,6 +226,17 @@ export default function AdminPharmacy() {
       setCommissionDialogOpen(false)
       loadPartners()
     } catch (e: any) {
+      await pb
+        .collection('audit_logs')
+        .create({
+          user_id: user?.id,
+          action: 'update',
+          resource_type: 'users',
+          resource_id: commissionPartner.id,
+          details: { status: 'failed', error: e.message, type: 'commission_update' },
+        })
+        .catch(() => {})
+
       toast.error(
         e?.response?.data?.commission_rate?.message ||
           e?.response?.data?.pending_commission_rate?.message ||
@@ -254,7 +265,17 @@ export default function AdminPharmacy() {
       })
       toast.success('Comissão aprovada com sucesso!')
       loadPartners()
-    } catch (e) {
+    } catch (e: any) {
+      await pb
+        .collection('audit_logs')
+        .create({
+          user_id: user?.id,
+          action: 'update',
+          resource_type: 'users',
+          resource_id: partner.id,
+          details: { status: 'failed', error: e.message, type: 'commission_approval' },
+        })
+        .catch(() => {})
       toast.error('Erro ao aprovar comissão.')
     }
   }
@@ -278,7 +299,17 @@ export default function AdminPharmacy() {
       })
       toast.success(`Parceiro ${status === 'approved' ? 'aprovado' : 'rejeitado'} com sucesso!`)
       loadPartners()
-    } catch (e) {
+    } catch (e: any) {
+      await pb
+        .collection('audit_logs')
+        .create({
+          user_id: user?.id,
+          action: 'update',
+          resource_type: 'users',
+          resource_id: partner.id,
+          details: { status: 'failed', error: e.message, type: 'status_approval' },
+        })
+        .catch(() => {})
       toast.error('Erro ao atualizar status do parceiro.')
     }
   }

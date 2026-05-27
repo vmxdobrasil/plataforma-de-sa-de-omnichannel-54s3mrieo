@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -52,12 +52,39 @@ export function CreatePharmacyLabForm({
   const [stateUF, setStateUF] = useState(partner?.state || '')
   const [cnpj, setCnpj] = useState(partner?.tax_id ? formatCNPJ(partner.tax_id) : '')
   const [phone, setPhone] = useState(partner?.phone || '')
+  const [email, setEmail] = useState(partner?.email || '')
+  const [commissionRate, setCommissionRate] = useState(
+    partner?.commission_rate || partner?.pending_commission_rate || '',
+  )
 
   const formatCEP = (value: string) => {
     return value.replace(/\D/g, '').replace(/^(\d{5})(\d{3}).*/, '$1-$2')
   }
 
   const [conflictPartner, setConflictPartner] = useState<any>(null)
+  const formRef = useRef<HTMLFormElement>(null)
+  const [isFormValid, setIsFormValid] = useState(false)
+
+  const handleFormChange = () => {
+    if (formRef.current) {
+      let valid = formRef.current.checkValidity()
+      const formData = new FormData(formRef.current)
+      const rate = parseFloat(formData.get('commission_rate') as string)
+      if (isNaN(rate) || rate < 7.99 || rate > 13.89) {
+        valid = false
+      }
+      const cleanCnpj = formatCNPJ(formData.get('tax_id') as string).replace(/\D/g, '')
+      if (cleanCnpj.length !== 14) {
+        valid = false
+      }
+      setIsFormValid(valid)
+    }
+  }
+
+  // Initial check
+  useEffect(() => {
+    handleFormChange()
+  }, [])
 
   const handleCnpjBlur = async (e: React.FocusEvent<HTMLInputElement>) => {
     const val = e.target.value
@@ -66,7 +93,7 @@ export function CreatePharmacyLabForm({
       try {
         const existing = await pb.collection('users').getFirstListItem(`tax_id="${cleanCnpj}"`)
         if (existing && existing.id !== partner?.id) {
-          const msg = `Este CNPJ já está cadastrado para o parceiro ${existing.business_name || existing.name}.`
+          const msg = `Este CNPJ já está vinculado ao parceiro ${existing.business_name || existing.name}.`
           setConflictPartner(existing)
           setErrors((prev) => ({ ...prev, tax_id: msg }))
         } else {
@@ -83,6 +110,35 @@ export function CreatePharmacyLabForm({
         setErrors((prev) => {
           const newErrors = { ...prev }
           delete newErrors.tax_id
+          return newErrors
+        })
+      }
+    }
+  }
+
+  const handleEmailBlur = async (e: React.FocusEvent<HTMLInputElement>) => {
+    const val = e.target.value
+    if (val && val.includes('@')) {
+      try {
+        const existing = await pb.collection('users').getFirstListItem(`email="${val}"`)
+        if (existing && existing.id !== partner?.id) {
+          const msg = `Este e-mail já está vinculado ao parceiro ${existing.business_name || existing.name}.`
+          setConflictPartner(existing)
+          setErrors((prev) => ({ ...prev, email: msg }))
+        } else {
+          setConflictPartner(null)
+          setErrors((prev) => {
+            const newErrors = { ...prev }
+            delete newErrors.email
+            return newErrors
+          })
+        }
+      } catch (err) {
+        // Not found, which means it's available
+        setConflictPartner(null)
+        setErrors((prev) => {
+          const newErrors = { ...prev }
+          delete newErrors.email
           return newErrors
         })
       }
@@ -214,7 +270,7 @@ export function CreatePharmacyLabForm({
       submitData.append('avatar', avatarFile)
     }
 
-    if (errors.tax_id) {
+    if (errors.tax_id || errors.email) {
       toast.error('Corrija os erros antes de enviar.')
       setLoading(false)
       return
@@ -227,13 +283,38 @@ export function CreatePharmacyLabForm({
     try {
       if (partner) {
         await pb.collection('users').update(partner.id, submitData)
+        await pb.collection('audit_logs').create({
+          user_id: user?.id,
+          action: 'update',
+          resource_type: 'users',
+          resource_id: partner.id,
+          details: { status: 'success', type: 'partner_update' },
+        })
         toast.success('Parceiro atualizado com sucesso!')
       } else {
-        await pb.collection('users').create(submitData)
+        const newPartner = await pb.collection('users').create(submitData)
+        await pb.collection('audit_logs').create({
+          user_id: user?.id,
+          action: 'create',
+          resource_type: 'users',
+          resource_id: newPartner.id,
+          details: { status: 'success', type: 'partner_registration' },
+        })
         toast.success('Parceiro cadastrado com sucesso!')
       }
       onSuccess()
     } catch (err: any) {
+      await pb
+        .collection('audit_logs')
+        .create({
+          user_id: user?.id,
+          action: partner ? 'update' : 'create',
+          resource_type: 'users',
+          resource_id: partner?.id || '',
+          details: { status: 'failed', error: err.message, type: 'partner_registration' },
+        })
+        .catch(() => {})
+
       const fieldErrors = extractFieldErrors(err)
       if (
         fieldErrors.tax_id?.toLowerCase().includes('unique') ||
@@ -243,7 +324,7 @@ export function CreatePharmacyLabForm({
         try {
           const cleanCnpj = cnpj.replace(/\D/g, '')
           const existing = await pb.collection('users').getFirstListItem(`tax_id="${cleanCnpj}"`)
-          const msg = `Este CNPJ já está cadastrado para o parceiro ${existing.business_name || existing.name}.`
+          const msg = `Este CNPJ já está vinculado ao parceiro ${existing.business_name || existing.name}.`
           fieldErrors.tax_id = msg
           setConflictPartner(existing)
         } catch (_) {
@@ -253,8 +334,8 @@ export function CreatePharmacyLabForm({
       setErrors(fieldErrors)
       toast.error(
         partner
-          ? 'Erro ao atualizar parceiro. Verifique os campos.'
-          : 'Erro ao cadastrar parceiro. Verifique os campos.',
+          ? 'Erro ao atualizar parceiro. Verifique os campos com erro.'
+          : 'Erro ao cadastrar parceiro. Verifique os campos com erro.',
       )
     } finally {
       setLoading(false)
@@ -263,7 +344,12 @@ export function CreatePharmacyLabForm({
 
   return (
     <ScrollArea className="max-h-[70vh] pr-4">
-      <form onSubmit={handleSubmit} className="space-y-6 py-2 px-1">
+      <form
+        ref={formRef}
+        onChange={handleFormChange}
+        onSubmit={handleSubmit}
+        className="space-y-6 py-2 px-1"
+      >
         <div className="space-y-4">
           <h3 className="font-semibold text-lg border-b pb-2">Informações Principais</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -323,7 +409,7 @@ export function CreatePharmacyLabForm({
                       className="w-fit"
                       onClick={() => onConflict(conflictPartner)}
                     >
-                      Editar Registro Existente
+                      Visualizar Cadastro
                     </Button>
                   )}
                 </div>
@@ -358,8 +444,30 @@ export function CreatePharmacyLabForm({
             </div>
             <div className="space-y-2">
               <Label>E-mail *</Label>
-              <Input type="email" name="email" defaultValue={partner?.email} required />
-              {errors.email && <p className="text-xs text-red-500">{errors.email}</p>}
+              <Input
+                type="email"
+                name="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                onBlur={handleEmailBlur}
+                required
+              />
+              {errors.email && (
+                <div className="flex flex-col gap-2 mt-1">
+                  <p className="text-xs text-red-500">{errors.email}</p>
+                  {conflictPartner && onConflict && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="w-fit"
+                      onClick={() => onConflict(conflictPartner)}
+                    >
+                      Visualizar Cadastro
+                    </Button>
+                  )}
+                </div>
+              )}
             </div>
             <div className="space-y-2">
               <Label>Telefone *</Label>
@@ -379,9 +487,12 @@ export function CreatePharmacyLabForm({
                 type="number"
                 step="0.01"
                 name="commission_rate"
-                defaultValue={partner?.commission_rate || partner?.pending_commission_rate}
+                value={commissionRate}
+                onChange={(e) => setCommissionRate(e.target.value)}
                 required
                 placeholder="Ex: 10.5"
+                min="7.99"
+                max="13.89"
               />
               <p className="text-[10px] text-muted-foreground">Entre 7,99% e 13,89%</p>
               {errors.commission_rate && (
@@ -489,8 +600,8 @@ export function CreatePharmacyLabForm({
           </div>
         </div>
 
-        <Button type="submit" className="w-full mt-4" disabled={loading}>
-          {loading ? 'Salvando...' : partner ? 'Salvar Alterações' : 'Cadastrar Parceiro'}
+        <Button type="submit" className="w-full mt-4" disabled={loading || !isFormValid}>
+          {loading ? 'Salvando...' : partner ? 'Salvar Alterações' : 'Confirmar'}
         </Button>
       </form>
     </ScrollArea>
