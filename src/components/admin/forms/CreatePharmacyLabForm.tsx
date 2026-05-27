@@ -78,7 +78,7 @@ export function CreatePharmacyLabForm({
       const rateStr = formData.get('commission_rate') as string
       if (rateStr) {
         const rate = parseFloat(rateStr.replace(',', '.'))
-        if (isNaN(rate) || rate < 7.9899 || rate > 13.8901) {
+        if (isNaN(rate) || rate < 7.989 || rate > 13.891) {
           valid = false
         }
       } else if (!partner) {
@@ -141,12 +141,15 @@ export function CreatePharmacyLabForm({
         const existing = await pb.collection('users').getFirstListItem(`tax_id="${cleanCnpj}"`)
         if (existing && existing.id !== partner?.id) {
           const partnerName = existing.business_name || existing.name || 'Desconhecido'
-          const msg = `Este CNPJ ${formatCNPJ(cleanCnpj)} já está cadastrado para o parceiro ${partnerName}`
+          const msg = `Este CNPJ já está cadastrado para ${partnerName}.`
           setConflictPartner(existing)
           setErrors((prev) => ({ ...prev, tax_id: msg }))
           if (onConflict) {
             toast.error(msg, {
-              action: { label: 'Clique aqui para editar', onClick: () => onConflict(existing) },
+              action: {
+                label: 'Clique aqui para editar este cadastro',
+                onClick: () => onConflict(existing),
+              },
               duration: 10000,
             })
           }
@@ -268,7 +271,7 @@ export function CreatePharmacyLabForm({
     const commissionStr = formData.get('commission_rate') as string
     if (commissionStr) {
       const rate = parseFloat(commissionStr.replace(',', '.'))
-      if (isNaN(rate) || rate < 7.9899 || rate > 13.8901) {
+      if (isNaN(rate) || rate < 7.989 || rate > 13.891) {
         toast.error('A taxa deve estar entre 7,99% e 13,89%')
         setErrors((prev) => ({
           ...prev,
@@ -435,12 +438,15 @@ export function CreatePharmacyLabForm({
           const cleanCnpj = cnpj.replace(/\D/g, '')
           const existing = await pb.collection('users').getFirstListItem(`tax_id="${cleanCnpj}"`)
           const partnerName = existing.business_name || existing.name || 'Desconhecido'
-          const msg = `Este CNPJ ${formatCNPJ(cleanCnpj)} já está cadastrado para o parceiro ${partnerName}`
+          const msg = `Este CNPJ já está cadastrado para ${partnerName}.`
           fieldErrors.tax_id = msg
           setConflictPartner(existing)
           if (onConflict) {
             toast.error(msg, {
-              action: { label: 'Clique aqui para editar', onClick: () => onConflict(existing) },
+              action: {
+                label: 'Clique aqui para editar este cadastro',
+                onClick: () => onConflict(existing),
+              },
               duration: 10000,
             })
           }

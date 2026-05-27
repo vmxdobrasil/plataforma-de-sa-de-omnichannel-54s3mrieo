@@ -194,7 +194,7 @@ export default function AdminPharmacy() {
 
   const handleSaveCommission = async () => {
     const rate = parseFloat(commissionRate.toString().replace(',', '.'))
-    if (isNaN(rate) || rate < 7.9899 || rate > 13.8901) {
+    if (isNaN(rate) || rate < 7.989 || rate > 13.891) {
       toast.error('A taxa deve estar entre 7,99% e 13,89%')
       return
     }
@@ -521,6 +521,11 @@ export default function AdminPharmacy() {
                               <span className="text-[10px] text-muted-foreground">
                                 CNPJ: {p.tax_id}
                               </span>
+                            )}
+                            {p.is_blocked && (
+                              <Badge className="bg-red-500 text-white hover:bg-red-600 text-[10px] h-5 ml-2">
+                                Bloqueado
+                              </Badge>
                             )}
                           </div>
                           {p.pending_commission_rate ? (
