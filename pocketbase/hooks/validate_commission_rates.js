@@ -4,10 +4,10 @@ onRecordValidate((e) => {
   if (record.collection().name === 'users') {
     const role = record.getString('role')
     if (role === 'pharmacy' || role === 'laboratory') {
-      const rateStr = record.getString('commission_rate')
-      if (rateStr !== '' && rateStr !== '0') {
-        const rate = record.getFloat('commission_rate')
-        if (rate < 7.99 || rate > 13.89) {
+      const rate = record.get('commission_rate')
+      if (rate !== null && rate !== '') {
+        const val = Number(rate)
+        if (val > 0 && (val < 7.9899 || val > 13.8901)) {
           throw new BadRequestError('Dados inválidos', {
             commission_rate: new ValidationError(
               'invalid_range',
@@ -17,10 +17,10 @@ onRecordValidate((e) => {
         }
       }
 
-      const pendingRateStr = record.getString('pending_commission_rate')
-      if (pendingRateStr !== '' && pendingRateStr !== '0') {
-        const pendingRate = record.getFloat('pending_commission_rate')
-        if (pendingRate < 7.99 || pendingRate > 13.89) {
+      const pendingRate = record.get('pending_commission_rate')
+      if (pendingRate !== null && pendingRate !== '') {
+        const pVal = Number(pendingRate)
+        if (pVal > 0 && (pVal < 7.9899 || pVal > 13.8901)) {
           throw new BadRequestError('Dados inválidos', {
             pending_commission_rate: new ValidationError(
               'invalid_range',

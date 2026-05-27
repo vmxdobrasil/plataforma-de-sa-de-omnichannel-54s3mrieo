@@ -76,7 +76,7 @@ export function CreatePharmacyLabForm({
       const rateStr = formData.get('commission_rate') as string
       if (rateStr) {
         const rate = parseFloat(rateStr.replace(',', '.'))
-        if (isNaN(rate) || rate < 7.99 || rate > 13.89) {
+        if (isNaN(rate) || rate < 7.9899 || rate > 13.8901) {
           valid = false
         }
       } else if (!partner) {
@@ -86,8 +86,8 @@ export function CreatePharmacyLabForm({
       if (cleanCnpj.length !== 14) {
         valid = false
       }
-      const uf = stateUF
-        ?.trim()
+      const uf = (stateUF || '')
+        .trim()
         .toUpperCase()
         .replace(/[^A-Z]/g, '')
       const validUFs = [
@@ -266,7 +266,7 @@ export function CreatePharmacyLabForm({
     const commissionStr = formData.get('commission_rate') as string
     if (commissionStr) {
       const rate = parseFloat(commissionStr.replace(',', '.'))
-      if (isNaN(rate) || rate < 7.99 || rate > 13.89) {
+      if (isNaN(rate) || rate < 7.9899 || rate > 13.8901) {
         toast.error('A taxa deve estar entre 7,99% e 13,89%')
         setErrors((prev) => ({
           ...prev,
@@ -325,7 +325,7 @@ export function CreatePharmacyLabForm({
     submitData.append('address_street', street)
     submitData.append('address_number', formData.get('address_number') as string)
     submitData.append('address_neighborhood', neighborhood)
-    const uf = stateUF
+    const uf = (stateUF || '')
       .trim()
       .toUpperCase()
       .replace(/[^A-Z]/g, '')
@@ -652,7 +652,7 @@ export function CreatePharmacyLabForm({
                 placeholder="Ex: 13,88"
               />
               <p className="text-[10px] text-muted-foreground">
-                A taxa deve estar entre 7,99% e 13,89%
+                A taxa deve estar entre 7,99% e 13,89% (ex: 13,88)
               </p>
               {errors.commission_rate && (
                 <p className="text-xs text-red-500">{errors.commission_rate}</p>

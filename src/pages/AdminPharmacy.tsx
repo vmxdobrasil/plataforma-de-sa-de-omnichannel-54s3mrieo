@@ -188,13 +188,13 @@ export default function AdminPharmacy() {
 
   const openEditCommission = (partner: any) => {
     setCommissionPartner(partner)
-    setCommissionRate(partner.commission_rate?.toString() || '')
+    setCommissionRate(partner.commission_rate?.toString().replace('.', ',') || '')
     setCommissionDialogOpen(true)
   }
 
   const handleSaveCommission = async () => {
-    const rate = parseFloat(commissionRate)
-    if (isNaN(rate) || rate < 7.99 || rate > 13.89) {
+    const rate = parseFloat(commissionRate.toString().replace(',', '.'))
+    if (isNaN(rate) || rate < 7.9899 || rate > 13.8901) {
       toast.error('A taxa deve estar entre 7,99% e 13,89%')
       return
     }
@@ -725,11 +725,13 @@ export default function AdminPharmacy() {
             <div className="space-y-2">
               <Label>Nova Taxa (%)</Label>
               <Input
-                type="number"
-                step="0.01"
+                type="text"
                 value={commissionRate}
-                onChange={(e) => setCommissionRate(e.target.value)}
-                placeholder="Ex: 10.5"
+                onChange={(e) => {
+                  const val = e.target.value.replace(/[^0-9.,]/g, '')
+                  setCommissionRate(val)
+                }}
+                placeholder="Ex: 13,88"
               />
               <p className="text-xs text-muted-foreground">
                 A taxa deve estar entre 7,99% e 13,89%.
