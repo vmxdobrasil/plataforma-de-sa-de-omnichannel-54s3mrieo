@@ -79,7 +79,7 @@ export function CreatePharmacyLabForm({
       if (cleanCnpj.length !== 14) {
         valid = false
       }
-      const uf = (formData.get('state') as string)
+      const uf = stateUF
         ?.trim()
         .toUpperCase()
         .replace(/[^A-Z]/g, '')
@@ -131,11 +131,11 @@ export function CreatePharmacyLabForm({
       try {
         const existing = await pb.collection('users').getFirstListItem(`tax_id="${cleanCnpj}"`)
         if (existing && existing.id !== partner?.id) {
-          const msg = `Este CNPJ já está vinculado ao parceiro ${existing.business_name || existing.name}.`
+          const msg = `O CNPJ ${formatCNPJ(cleanCnpj)} já está cadastrado para o parceiro ${existing.business_name || existing.name}`
           setConflictPartner(existing)
           setErrors((prev) => ({ ...prev, tax_id: msg }))
           if (onConflict) {
-            toast.error(`CNPJ já cadastrado para ${existing.business_name || existing.name}.`, {
+            toast.error(msg, {
               action: { label: 'Clique aqui para editar', onClick: () => onConflict(existing) },
               duration: 10000,
             })
@@ -259,10 +259,10 @@ export function CreatePharmacyLabForm({
     if (commissionStr) {
       const rate = parseFloat(commissionStr)
       if (isNaN(rate) || rate < 7.99 || rate > 13.89) {
-        toast.error('A taxa deve estar entre 7.99% e 13.89%')
+        toast.error('A taxa de comissão deve estar entre 7,99% e 13,89%')
         setErrors((prev) => ({
           ...prev,
-          commission_rate: 'A taxa deve estar entre 7.99% e 13.89%',
+          commission_rate: 'A taxa de comissão deve estar entre 7,99% e 13,89%',
         }))
         setLoading(false)
         return
@@ -424,11 +424,11 @@ export function CreatePharmacyLabForm({
         try {
           const cleanCnpj = cnpj.replace(/\D/g, '')
           const existing = await pb.collection('users').getFirstListItem(`tax_id="${cleanCnpj}"`)
-          const msg = `Este CNPJ já está vinculado ao parceiro ${existing.business_name || existing.name}.`
+          const msg = `O CNPJ ${formatCNPJ(cleanCnpj)} já está cadastrado para o parceiro ${existing.business_name || existing.name}`
           fieldErrors.tax_id = msg
           setConflictPartner(existing)
           if (onConflict) {
-            toast.error(`CNPJ já cadastrado para ${existing.business_name || existing.name}.`, {
+            toast.error(msg, {
               action: { label: 'Clique aqui para editar', onClick: () => onConflict(existing) },
               duration: 10000,
             })
@@ -622,7 +622,9 @@ export function CreatePharmacyLabForm({
                 min="7.99"
                 max="13.89"
               />
-              <p className="text-[10px] text-muted-foreground">Entre 7,99% e 13,89%</p>
+              <p className="text-[10px] text-muted-foreground">
+                A taxa de comissão deve estar entre 7,99% e 13,89%
+              </p>
               {errors.commission_rate && (
                 <p className="text-xs text-red-500">{errors.commission_rate}</p>
               )}
@@ -713,14 +715,51 @@ export function CreatePharmacyLabForm({
             </div>
             <div className="space-y-2">
               <Label>Estado (UF) *</Label>
-              <Input
-                name="state"
+              <Select
                 value={stateUF}
-                onChange={(e) => setStateUF(e.target.value.toUpperCase())}
+                onValueChange={(val) => setStateUF(val)}
                 required
-                maxLength={2}
-                placeholder="Ex: SP"
-              />
+                name="state"
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="UF..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {[
+                    'AC',
+                    'AL',
+                    'AP',
+                    'AM',
+                    'BA',
+                    'CE',
+                    'DF',
+                    'ES',
+                    'GO',
+                    'MA',
+                    'MT',
+                    'MS',
+                    'MG',
+                    'PA',
+                    'PB',
+                    'PR',
+                    'PE',
+                    'PI',
+                    'RJ',
+                    'RN',
+                    'RS',
+                    'RO',
+                    'RR',
+                    'SC',
+                    'SP',
+                    'SE',
+                    'TO',
+                  ].map((uf) => (
+                    <SelectItem key={uf} value={uf}>
+                      {uf}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               {errors.state && <p className="text-xs text-red-500">{errors.state}</p>}
             </div>
           </div>
