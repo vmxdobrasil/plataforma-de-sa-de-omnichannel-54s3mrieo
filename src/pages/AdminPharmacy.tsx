@@ -264,6 +264,18 @@ export default function AdminPharmacy() {
       await pb.collection('users').update(partner.id, {
         registration_status: status,
       })
+      await pb.collection('audit_logs').create({
+        user_id: user?.id,
+        action: 'update',
+        resource_type: 'users',
+        resource_id: partner.id,
+        details: {
+          field: 'registration_status',
+          old_value: partner.registration_status,
+          new_value: status,
+          approved_by: user?.id,
+        },
+      })
       toast.success(`Parceiro ${status === 'approved' ? 'aprovado' : 'rejeitado'} com sucesso!`)
       loadPartners()
     } catch (e) {

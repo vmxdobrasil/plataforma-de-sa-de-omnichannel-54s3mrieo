@@ -66,7 +66,7 @@ export function CreatePharmacyLabForm({
       try {
         const existing = await pb.collection('users').getFirstListItem(`tax_id="${cleanCnpj}"`)
         if (existing && existing.id !== partner?.id) {
-          const msg = `Este CNPJ já está cadastrado no sistema para o parceiro ${existing.business_name || existing.name}.`
+          const msg = `Este CNPJ já está cadastrado para o parceiro ${existing.business_name || existing.name}.`
           setConflictPartner(existing)
           setErrors((prev) => ({ ...prev, tax_id: msg }))
         } else {
@@ -243,11 +243,11 @@ export function CreatePharmacyLabForm({
         try {
           const cleanCnpj = cnpj.replace(/\D/g, '')
           const existing = await pb.collection('users').getFirstListItem(`tax_id="${cleanCnpj}"`)
-          const msg = `Este CNPJ já está cadastrado no sistema para o parceiro ${existing.business_name || existing.name}.`
+          const msg = `Este CNPJ já está cadastrado para o parceiro ${existing.business_name || existing.name}.`
           fieldErrors.tax_id = msg
           setConflictPartner(existing)
         } catch (_) {
-          fieldErrors.tax_id = 'Este CNPJ já está cadastrado no sistema.'
+          fieldErrors.tax_id = 'Este CNPJ já está cadastrado.'
         }
       }
       setErrors(fieldErrors)
