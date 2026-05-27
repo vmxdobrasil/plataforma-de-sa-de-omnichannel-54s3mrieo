@@ -50,7 +50,7 @@ export function CreatePharmacyLabForm({
   const [street, setStreet] = useState(partner?.address_street || '')
   const [neighborhood, setNeighborhood] = useState(partner?.address_neighborhood || '')
   const [city, setCity] = useState(partner?.city || '')
-  const [stateUF, setStateUF] = useState(partner?.state || '')
+  const [stateUF, setStateUF] = useState((partner?.state || '').toUpperCase())
   const [cnpj, setCnpj] = useState(partner?.tax_id ? formatCNPJ(partner.tax_id) : '')
   const [phone, setPhone] = useState(partner?.phone || '')
   const [email, setEmail] = useState(partner?.email || '')
@@ -79,6 +79,39 @@ export function CreatePharmacyLabForm({
       if (cleanCnpj.length !== 14) {
         valid = false
       }
+      const uf = (formData.get('state') as string)?.trim().toUpperCase()
+      const validUFs = [
+        'AC',
+        'AL',
+        'AP',
+        'AM',
+        'BA',
+        'CE',
+        'DF',
+        'ES',
+        'GO',
+        'MA',
+        'MT',
+        'MS',
+        'MG',
+        'PA',
+        'PB',
+        'PR',
+        'PE',
+        'PI',
+        'RJ',
+        'RN',
+        'RS',
+        'RO',
+        'RR',
+        'SC',
+        'SP',
+        'SE',
+        'TO',
+      ]
+      if (!uf || !validUFs.includes(uf)) {
+        valid = false
+      }
       setIsFormValid(valid)
     }
   }
@@ -86,7 +119,7 @@ export function CreatePharmacyLabForm({
   // Initial check
   useEffect(() => {
     handleFormChange()
-  }, [])
+  }, [stateUF, city, neighborhood, street, cep, commissionRate, cnpj, phone, email, role])
 
   const handleCnpjBlur = async (e: React.FocusEvent<HTMLInputElement>) => {
     const val = e.target.value
@@ -172,7 +205,8 @@ export function CreatePharmacyLabForm({
           setStreet(data.logradouro || '')
           setNeighborhood(data.bairro || '')
           setCity(data.localidade || '')
-          setStateUF(data.uf || '')
+          setStateUF((data.uf || '').toUpperCase())
+          setTimeout(handleFormChange, 0)
         } else {
           toast.error('CEP não encontrado. Por favor, preencha o endereço manualmente.')
         }
@@ -268,9 +302,49 @@ export function CreatePharmacyLabForm({
     submitData.append('address_street', street)
     submitData.append('address_number', formData.get('address_number') as string)
     submitData.append('address_neighborhood', neighborhood)
+    const uf = stateUF.trim().toUpperCase()
+    const validUFs = [
+      'AC',
+      'AL',
+      'AP',
+      'AM',
+      'BA',
+      'CE',
+      'DF',
+      'ES',
+      'GO',
+      'MA',
+      'MT',
+      'MS',
+      'MG',
+      'PA',
+      'PB',
+      'PR',
+      'PE',
+      'PI',
+      'RJ',
+      'RN',
+      'RS',
+      'RO',
+      'RR',
+      'SC',
+      'SP',
+      'SE',
+      'TO',
+    ]
+    if (!validUFs.includes(uf)) {
+      toast.error('Estado (UF) inválido.')
+      setErrors((prev) => ({
+        ...prev,
+        state: 'Invalid State acronym. Use a sigla válida (ex: GO, SP).',
+      }))
+      setLoading(false)
+      return
+    }
+
     submitData.append('address_complement', formData.get('address_complement') as string)
     submitData.append('city', city)
-    submitData.append('state', stateUF)
+    submitData.append('state', uf)
 
     const avatarFile = formData.get('avatar') as File
     if (avatarFile && avatarFile.size > 0) {
