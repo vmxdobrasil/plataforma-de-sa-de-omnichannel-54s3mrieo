@@ -14,7 +14,17 @@ export function extractFieldErrors(error: unknown): FieldErrors {
       'message' in detail &&
       typeof (detail as { message: unknown }).message === 'string'
     ) {
-      errors[field] = (detail as { message: string }).message
+      let msg = (detail as { message: string }).message
+      if (msg === 'Value must be unique.') {
+        msg = 'Este valor já está cadastrado.'
+      } else if (msg === 'Cannot be blank.') {
+        msg = 'Campo obrigatório.'
+      } else if (msg === 'Invalid email format.') {
+        msg = 'Formato de e-mail inválido.'
+      } else if (msg.includes('maximum allowed file size')) {
+        msg = 'Arquivo muito grande.'
+      }
+      errors[field] = msg
     }
   }
   return errors

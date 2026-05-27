@@ -153,7 +153,7 @@ export function CreatePharmacyLabForm({
   }, [cnpj, partner?.id])
 
   const handleEmailBlur = async (e: React.FocusEvent<HTMLInputElement>) => {
-    const val = e.target.value
+    const val = e.target.value.trim().toLowerCase()
     if (val && val.includes('@')) {
       try {
         const existing = await pb.collection('users').getFirstListItem(`email="${val}"`)
@@ -283,7 +283,7 @@ export function CreatePharmacyLabForm({
     submitData.append('business_name', formData.get('business_name') as string)
 
     if (formData.get('email')) {
-      submitData.append('email', formData.get('email') as string)
+      submitData.append('email', (formData.get('email') as string).trim().toLowerCase())
     }
 
     if (!partner) {
@@ -420,7 +420,13 @@ export function CreatePharmacyLabForm({
                 required
                 placeholder="00.000.000/0000-00"
                 maxLength={18}
-                className={conflictPartner ? 'border-amber-500 bg-amber-50/50' : ''}
+                className={
+                  conflictPartner
+                    ? 'border-amber-500 bg-amber-50/50'
+                    : errors.tax_id
+                      ? 'border-red-500 bg-red-50/50'
+                      : ''
+                }
               />
               {conflictPartner ? (
                 <Alert className="bg-amber-50 border-amber-200 mt-2 animate-in fade-in slide-in-from-top-2">
@@ -504,6 +510,7 @@ export function CreatePharmacyLabForm({
                 onChange={(e) => setEmail(e.target.value)}
                 onBlur={handleEmailBlur}
                 required
+                className={errors.email ? 'border-red-500 bg-red-50/50' : ''}
               />
               {errors.email && <p className="text-xs text-red-500">{errors.email}</p>}
             </div>

@@ -31,7 +31,7 @@ export function EditCompanyForm({ company, onSuccess }: { company: any; onSucces
 
     submitData.append('name', formData.get('name') as string)
     submitData.append('business_name', formData.get('business_name') as string)
-    submitData.append('tax_id', formData.get('tax_id') as string)
+    submitData.append('tax_id', (formData.get('tax_id') as string).replace(/\D/g, ''))
     submitData.append('allowance_type', allowanceType)
     submitData.append('auto_renew_benefits', autoRenew ? 'true' : 'false')
 
@@ -83,7 +83,13 @@ export function EditCompanyForm({ company, onSuccess }: { company: any; onSucces
             </div>
             <div className="space-y-2">
               <Label>CNPJ *</Label>
-              <Input name="tax_id" defaultValue={company.tax_id} required />
+              <Input
+                name="tax_id"
+                defaultValue={company.tax_id}
+                required
+                className={errors.tax_id ? 'border-red-500 bg-red-50/50' : ''}
+              />
+              {errors.tax_id && <p className="text-xs text-red-500">{errors.tax_id}</p>}
             </div>
             <div className="space-y-2">
               <Label>Logo da Empresa (Nova)</Label>

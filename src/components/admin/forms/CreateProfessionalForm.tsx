@@ -20,7 +20,7 @@ export function CreateProfessionalForm({ onSuccess }: { onSuccess: () => void })
     const data = {
       role: 'professional',
       name: formData.get('name'),
-      email: formData.get('email'),
+      email: (formData.get('email') as string).trim().toLowerCase(),
       password: formData.get('password'),
       passwordConfirm: formData.get('password'),
       specialty: formData.get('specialty'),
@@ -55,7 +55,12 @@ export function CreateProfessionalForm({ onSuccess }: { onSuccess: () => void })
           </div>
           <div className="space-y-2">
             <Label>E-mail *</Label>
-            <Input type="email" name="email" required />
+            <Input
+              type="email"
+              name="email"
+              required
+              className={errors.email ? 'border-red-500 bg-red-50/50' : ''}
+            />
             {errors.email && <p className="text-xs text-red-500">{errors.email}</p>}
           </div>
           <div className="space-y-2">

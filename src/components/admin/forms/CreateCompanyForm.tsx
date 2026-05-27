@@ -30,10 +30,10 @@ export function CreateCompanyForm({ onSuccess }: { onSuccess: () => void }) {
     submitData.append('role', 'company')
     submitData.append('name', formData.get('name') as string)
     submitData.append('business_name', formData.get('business_name') as string)
-    submitData.append('email', formData.get('email') as string)
+    submitData.append('email', (formData.get('email') as string).trim().toLowerCase())
     submitData.append('password', formData.get('password') as string)
     submitData.append('passwordConfirm', formData.get('password') as string)
-    submitData.append('tax_id', formData.get('tax_id') as string)
+    submitData.append('tax_id', (formData.get('tax_id') as string).replace(/\D/g, ''))
     submitData.append('allowance_type', allowanceType)
 
     submitData.append('address_zip_code', formData.get('address_zip_code') as string)
@@ -87,7 +87,12 @@ export function CreateCompanyForm({ onSuccess }: { onSuccess: () => void }) {
             </div>
             <div className="space-y-2">
               <Label>CNPJ *</Label>
-              <Input name="tax_id" required />
+              <Input
+                name="tax_id"
+                required
+                className={errors.tax_id ? 'border-red-500 bg-red-50/50' : ''}
+              />
+              {errors.tax_id && <p className="text-xs text-red-500">{errors.tax_id}</p>}
             </div>
             <div className="space-y-2">
               <Label>Logo da Empresa</Label>
@@ -95,7 +100,12 @@ export function CreateCompanyForm({ onSuccess }: { onSuccess: () => void }) {
             </div>
             <div className="space-y-2">
               <Label>E-mail Corporativo *</Label>
-              <Input type="email" name="email" required />
+              <Input
+                type="email"
+                name="email"
+                required
+                className={errors.email ? 'border-red-500 bg-red-50/50' : ''}
+              />
               {errors.email && <p className="text-xs text-red-500">{errors.email}</p>}
             </div>
             <div className="space-y-2">
