@@ -69,6 +69,7 @@ export function CreatePharmacyLabForm({
 
   const [isFetchingCep, setIsFetchingCep] = useState(false)
   const [conflictPartner, setConflictPartner] = useState<any>(null)
+  const [conflictReason, setConflictReason] = useState<'tax_id' | 'email' | null>(null)
   const formRef = useRef<HTMLFormElement>(null)
   const [isFormValid, setIsFormValid] = useState(false)
 
@@ -134,21 +135,31 @@ export function CreatePharmacyLabForm({
           const existing = await pb.collection('users').getFirstListItem(`tax_id="${cleanCnpj}"`)
           if (existing && existing.id !== partner?.id) {
             setConflictPartner(existing)
+            setConflictReason('tax_id')
             setErrors((prev) => {
               const newErrors = { ...prev }
               delete newErrors.tax_id
               return newErrors
             })
           } else {
-            setConflictPartner(null)
+            if (conflictReason === 'tax_id') {
+              setConflictPartner(null)
+              setConflictReason(null)
+            }
           }
         } catch (err) {
-          setConflictPartner(null)
+          if (conflictReason === 'tax_id') {
+            setConflictPartner(null)
+            setConflictReason(null)
+          }
         }
       }
       checkCnpj()
     } else {
-      setConflictPartner(null)
+      if (conflictReason === 'tax_id') {
+        setConflictPartner(null)
+        setConflictReason(null)
+      }
     }
   }, [cnpj, partner?.id])
 
@@ -158,9 +169,18 @@ export function CreatePharmacyLabForm({
       try {
         const existing = await pb.collection('users').getFirstListItem(`email="${val}"`)
         if (existing && existing.id !== partner?.id) {
-          const msg = `E-mail em uso por ${existing.business_name || existing.name}.`
-          setErrors((prev) => ({ ...prev, email: msg }))
+          setConflictPartner(existing)
+          setConflictReason('email')
+          setErrors((prev) => {
+            const newErrors = { ...prev }
+            delete newErrors.email
+            return newErrors
+          })
         } else {
+          if (conflictReason === 'email') {
+            setConflictPartner(null)
+            setConflictReason(null)
+          }
           setErrors((prev) => {
             const newErrors = { ...prev }
             delete newErrors.email
@@ -168,11 +188,20 @@ export function CreatePharmacyLabForm({
           })
         }
       } catch (err) {
+        if (conflictReason === 'email') {
+          setConflictPartner(null)
+          setConflictReason(null)
+        }
         setErrors((prev) => {
           const newErrors = { ...prev }
           delete newErrors.email
           return newErrors
         })
+      }
+    } else {
+      if (conflictReason === 'email') {
+        setConflictPartner(null)
+        setConflictReason(null)
       }
     }
   }
@@ -230,7 +259,7 @@ export function CreatePharmacyLabForm({
     e.preventDefault()
 
     if (conflictPartner && conflictPartner.id !== partner?.id) {
-      toast.error('CNPJ já cadastrado. Carregue o cadastro existente para editar.')
+      toast.error('Valor já cadastrado. Carregue o cadastro existente para editar.')
       return
     }
 
@@ -380,6 +409,30 @@ export function CreatePharmacyLabForm({
       const fieldErrors = extractFieldErrors(err)
       setErrors(fieldErrors)
 
+      const isUniqueError = (msg?: string) =>
+        msg?.toLowerCase().includes('unique') || msg?.toLowerCase().includes('únic')
+
+      if (fieldErrors.tax_id && isUniqueError(fieldErrors.tax_id)) {
+        setConflictReason('tax_id')
+        pb.collection('users')
+          .getFirstListItem(`tax_id="${cleanCnpj}"`)
+          .then((existing) => {
+            if (existing && existing.id !== partner?.id) setConflictPartner(existing)
+          })
+          .catch(() => {})
+      } else if (fieldErrors.email && isUniqueError(fieldErrors.email)) {
+        setConflictReason('email')
+        const val = email.trim().toLowerCase()
+        if (val) {
+          pb.collection('users')
+            .getFirstListItem(`email="${val}"`)
+            .then((existing) => {
+              if (existing && existing.id !== partner?.id) setConflictPartner(existing)
+            })
+            .catch(() => {})
+        }
+      }
+
       const msg = fieldErrors.tax_id || fieldErrors.email || err.message || 'Erro ao salvar.'
       toast.error(typeof msg === 'string' && !msg.startsWith('{') ? msg : 'Erro ao validar dados.')
     } finally {
@@ -395,6 +448,33 @@ export function CreatePharmacyLabForm({
         onSubmit={handleSubmit}
         className="space-y-6 py-2 px-1"
       >
+        {conflictPartner && conflictPartner.id !== partner?.id && (
+          <Alert className="bg-amber-50 border-amber-200 mb-6 animate-in fade-in slide-in-from-top-2">
+            <AlertCircle className="h-4 w-4 text-amber-600" />
+            <AlertTitle className="text-amber-800">Conflito de Cadastro</AlertTitle>
+            <AlertDescription className="text-amber-700 text-sm mt-1">
+              Esse valor já está cadastrado. Deseja carregar o cadastro existente?
+              <br />
+              (Encontramos um registro existente para{' '}
+              <strong>{conflictPartner.name || conflictPartner.business_name}</strong> com este{' '}
+              {conflictReason === 'tax_id' ? 'CNPJ' : 'E-mail'})
+              <div className="mt-3">
+                <Button
+                  type="button"
+                  variant="default"
+                  size="sm"
+                  className="bg-amber-600 hover:bg-amber-700 text-white"
+                  onClick={() => {
+                    if (onConflictRef.current) onConflictRef.current(conflictPartner)
+                  }}
+                >
+                  Carregar Cadastro Existente
+                </Button>
+              </div>
+            </AlertDescription>
+          </Alert>
+        )}
+
         <div className="space-y-4">
           <h3 className="font-semibold text-lg border-b pb-2">Informações Principais</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -421,38 +501,14 @@ export function CreatePharmacyLabForm({
                 placeholder="00.000.000/0000-00"
                 maxLength={18}
                 className={
-                  conflictPartner
+                  conflictReason === 'tax_id'
                     ? 'border-amber-500 bg-amber-50/50'
                     : errors.tax_id
                       ? 'border-red-500 bg-red-50/50'
                       : ''
                 }
               />
-              {conflictPartner ? (
-                <Alert className="bg-amber-50 border-amber-200 mt-2 animate-in fade-in slide-in-from-top-2">
-                  <AlertCircle className="h-4 w-4 text-amber-600" />
-                  <AlertTitle className="text-amber-800">CNPJ já cadastrado</AlertTitle>
-                  <AlertDescription className="text-amber-700 text-sm mt-1">
-                    Encontramos um registro existente para{' '}
-                    <strong>{conflictPartner.name || conflictPartner.business_name}</strong>.
-                    <div className="mt-3">
-                      <Button
-                        type="button"
-                        variant="default"
-                        size="sm"
-                        className="bg-amber-600 hover:bg-amber-700 text-white"
-                        onClick={() => {
-                          if (onConflictRef.current) onConflictRef.current(conflictPartner)
-                        }}
-                      >
-                        Carregar Cadastro Existente
-                      </Button>
-                    </div>
-                  </AlertDescription>
-                </Alert>
-              ) : errors.tax_id ? (
-                <p className="text-xs text-red-500">{errors.tax_id}</p>
-              ) : null}
+              {errors.tax_id && <p className="text-xs text-red-500">{errors.tax_id}</p>}
             </div>
 
             <div className="space-y-2">
@@ -510,7 +566,13 @@ export function CreatePharmacyLabForm({
                 onChange={(e) => setEmail(e.target.value)}
                 onBlur={handleEmailBlur}
                 required
-                className={errors.email ? 'border-red-500 bg-red-50/50' : ''}
+                className={
+                  conflictReason === 'email'
+                    ? 'border-amber-500 bg-amber-50/50'
+                    : errors.email
+                      ? 'border-red-500 bg-red-50/50'
+                      : ''
+                }
               />
               {errors.email && <p className="text-xs text-red-500">{errors.email}</p>}
             </div>
