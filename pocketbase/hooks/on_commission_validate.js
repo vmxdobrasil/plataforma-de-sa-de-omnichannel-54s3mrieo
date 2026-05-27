@@ -4,10 +4,10 @@ onRecordValidate((e) => {
   if (record.collection().name === 'users') {
     const role = record.getString('role')
     if (role === 'pharmacy' || role === 'laboratory') {
-      const rateStr = record.getString('commission_rate')
-      if (rateStr !== '') {
-        const rate = record.getFloat('commission_rate')
-        if (rate < 7.99 || rate > 13.89) {
+      const rate = record.get('commission_rate')
+      if (rate !== null && rate !== '') {
+        const numRate = Number(rate)
+        if (numRate > 0 && (numRate < 7.99 || numRate > 13.89)) {
           throw new BadRequestError('Dados inválidos', {
             commission_rate: new ValidationError(
               'invalid_range',
@@ -17,14 +17,14 @@ onRecordValidate((e) => {
         }
       }
 
-      const pendingRateStr = record.getString('pending_commission_rate')
-      if (pendingRateStr !== '') {
-        const pendingRate = record.getFloat('pending_commission_rate')
-        if (pendingRate < 7.99 || pendingRate > 13.89) {
+      const pendingRate = record.get('pending_commission_rate')
+      if (pendingRate !== null && pendingRate !== '') {
+        const numPendingRate = Number(pendingRate)
+        if (numPendingRate > 0 && (numPendingRate < 7.99 || numPendingRate > 13.89)) {
           throw new BadRequestError('Dados inválidos', {
             pending_commission_rate: new ValidationError(
               'invalid_range',
-              'A taxa de comissão deve estar entre 7,99% e 13,89%',
+              'A taxa de comissão pendente deve estar entre 7,99% e 13,89%',
             ),
           })
         }

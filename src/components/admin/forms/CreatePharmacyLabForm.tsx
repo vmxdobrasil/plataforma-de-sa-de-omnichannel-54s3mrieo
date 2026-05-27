@@ -79,7 +79,10 @@ export function CreatePharmacyLabForm({
       if (cleanCnpj.length !== 14) {
         valid = false
       }
-      const uf = (formData.get('state') as string)?.trim().toUpperCase()
+      const uf = (formData.get('state') as string)
+        ?.trim()
+        .toUpperCase()
+        .replace(/[^A-Z]/g, '')
       const validUFs = [
         'AC',
         'AL',
@@ -131,6 +134,12 @@ export function CreatePharmacyLabForm({
           const msg = `Este CNPJ já está vinculado ao parceiro ${existing.business_name || existing.name}.`
           setConflictPartner(existing)
           setErrors((prev) => ({ ...prev, tax_id: msg }))
+          if (onConflict) {
+            toast.error(`CNPJ já cadastrado para ${existing.business_name || existing.name}.`, {
+              action: { label: 'Clique aqui para editar', onClick: () => onConflict(existing) },
+              duration: 10000,
+            })
+          }
         } else {
           setConflictPartner(null)
           setErrors((prev) => {
@@ -160,6 +169,12 @@ export function CreatePharmacyLabForm({
           const msg = `Este e-mail já está vinculado ao parceiro ${existing.business_name || existing.name}.`
           setConflictPartner(existing)
           setErrors((prev) => ({ ...prev, email: msg }))
+          if (onConflict) {
+            toast.error(`E-mail já cadastrado para ${existing.business_name || existing.name}.`, {
+              action: { label: 'Clique aqui para editar', onClick: () => onConflict(existing) },
+              duration: 10000,
+            })
+          }
         } else {
           setConflictPartner(null)
           setErrors((prev) => {
@@ -302,7 +317,10 @@ export function CreatePharmacyLabForm({
     submitData.append('address_street', street)
     submitData.append('address_number', formData.get('address_number') as string)
     submitData.append('address_neighborhood', neighborhood)
-    const uf = stateUF.trim().toUpperCase()
+    const uf = stateUF
+      .trim()
+      .toUpperCase()
+      .replace(/[^A-Z]/g, '')
     const validUFs = [
       'AC',
       'AL',
@@ -333,10 +351,10 @@ export function CreatePharmacyLabForm({
       'TO',
     ]
     if (!validUFs.includes(uf)) {
-      toast.error('Estado (UF) inválido.')
+      toast.error('Estado (UF) inválido. Use uma sigla válida (ex: GO, SP).')
       setErrors((prev) => ({
         ...prev,
-        state: 'Invalid State acronym. Use a sigla válida (ex: GO, SP).',
+        state: 'Use uma sigla válida (ex: GO, SP).',
       }))
       setLoading(false)
       return
@@ -409,6 +427,12 @@ export function CreatePharmacyLabForm({
           const msg = `Este CNPJ já está vinculado ao parceiro ${existing.business_name || existing.name}.`
           fieldErrors.tax_id = msg
           setConflictPartner(existing)
+          if (onConflict) {
+            toast.error(`CNPJ já cadastrado para ${existing.business_name || existing.name}.`, {
+              action: { label: 'Clique aqui para editar', onClick: () => onConflict(existing) },
+              duration: 10000,
+            })
+          }
         } catch (_) {
           fieldErrors.tax_id = 'Este CNPJ já está cadastrado.'
         }
@@ -424,6 +448,12 @@ export function CreatePharmacyLabForm({
           const msg = `Este e-mail já está vinculado ao parceiro ${existing.business_name || existing.name}.`
           fieldErrors.email = msg
           setConflictPartner(existing)
+          if (onConflict) {
+            toast.error(`E-mail já cadastrado para ${existing.business_name || existing.name}.`, {
+              action: { label: 'Clique aqui para editar', onClick: () => onConflict(existing) },
+              duration: 10000,
+            })
+          }
         } catch (_) {
           fieldErrors.email = 'Este e-mail já está cadastrado.'
         }

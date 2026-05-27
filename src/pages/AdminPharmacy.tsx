@@ -89,7 +89,7 @@ export default function AdminPharmacy() {
       setLoadingProducts(true)
       const safeTerm = searchTerm.replace(/["\\]/g, '')
       const filter = safeTerm ? `name ~ "${safeTerm}" || description ~ "${safeTerm}"` : ''
-      const res = await pb.collection('pharmacy_products').getList(1, 50, {
+      const res = await pb.collection('pharmacy_products').getList(1, 500, {
         filter,
         sort: '-created',
         expand: 'pharmacy_id',
@@ -132,7 +132,7 @@ export default function AdminPharmacy() {
         }
       }
 
-      const res = await pb.collection('users').getList(1, 50, {
+      const res = await pb.collection('users').getList(1, 500, {
         filter,
         sort: '-created',
       })
