@@ -7,11 +7,11 @@ onRecordValidate((e) => {
       const rate = record.get('commission_rate')
       if (rate !== null && rate !== '') {
         const numRate = Number(rate)
-        if (numRate > 0 && (numRate < 7.99 || numRate > 13.89)) {
+        if (numRate < 7.99 || numRate > 13.89) {
           throw new BadRequestError('Dados inválidos', {
             commission_rate: new ValidationError(
               'invalid_range',
-              'A taxa de comissão deve estar entre 7,99% e 13,89%',
+              'A taxa deve estar entre 7,99% e 13,89%',
             ),
           })
         }
@@ -20,11 +20,11 @@ onRecordValidate((e) => {
       const pendingRate = record.get('pending_commission_rate')
       if (pendingRate !== null && pendingRate !== '') {
         const numPendingRate = Number(pendingRate)
-        if (numPendingRate > 0 && (numPendingRate < 7.99 || numPendingRate > 13.89)) {
+        if (numPendingRate < 7.99 || numPendingRate > 13.89) {
           throw new BadRequestError('Dados inválidos', {
             pending_commission_rate: new ValidationError(
               'invalid_range',
-              'A taxa de comissão deve estar entre 7,99% e 13,89%',
+              'A taxa deve estar entre 7,99% e 13,89%',
             ),
           })
         }

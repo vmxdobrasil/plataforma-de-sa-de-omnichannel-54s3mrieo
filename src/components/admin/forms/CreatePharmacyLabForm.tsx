@@ -71,8 +71,13 @@ export function CreatePharmacyLabForm({
     if (formRef.current) {
       let valid = formRef.current.checkValidity()
       const formData = new FormData(formRef.current)
-      const rate = parseFloat(formData.get('commission_rate') as string)
-      if (isNaN(rate) || rate < 7.99 || rate > 13.89) {
+      const rateStr = formData.get('commission_rate') as string
+      if (rateStr) {
+        const rate = parseFloat(rateStr)
+        if (isNaN(rate) || rate < 7.99 || rate > 13.89) {
+          valid = false
+        }
+      } else if (!partner) {
         valid = false
       }
       const cleanCnpj = formatCNPJ(formData.get('tax_id') as string).replace(/\D/g, '')
@@ -131,7 +136,8 @@ export function CreatePharmacyLabForm({
       try {
         const existing = await pb.collection('users').getFirstListItem(`tax_id="${cleanCnpj}"`)
         if (existing && existing.id !== partner?.id) {
-          const msg = `O CNPJ ${formatCNPJ(cleanCnpj)} já está cadastrado para o parceiro ${existing.business_name || existing.name}`
+          const partnerName = existing.business_name || existing.name || 'Desconhecido'
+          const msg = `Este CNPJ já está cadastrado para o parceiro ${partnerName}`
           setConflictPartner(existing)
           setErrors((prev) => ({ ...prev, tax_id: msg }))
           if (onConflict) {
@@ -259,10 +265,10 @@ export function CreatePharmacyLabForm({
     if (commissionStr) {
       const rate = parseFloat(commissionStr)
       if (isNaN(rate) || rate < 7.99 || rate > 13.89) {
-        toast.error('A taxa de comissão deve estar entre 7,99% e 13,89%')
+        toast.error('A taxa deve estar entre 7,99% e 13,89%')
         setErrors((prev) => ({
           ...prev,
-          commission_rate: 'A taxa de comissão deve estar entre 7,99% e 13,89%',
+          commission_rate: 'A taxa deve estar entre 7,99% e 13,89%',
         }))
         setLoading(false)
         return
@@ -424,7 +430,8 @@ export function CreatePharmacyLabForm({
         try {
           const cleanCnpj = cnpj.replace(/\D/g, '')
           const existing = await pb.collection('users').getFirstListItem(`tax_id="${cleanCnpj}"`)
-          const msg = `O CNPJ ${formatCNPJ(cleanCnpj)} já está cadastrado para o parceiro ${existing.business_name || existing.name}`
+          const partnerName = existing.business_name || existing.name || 'Desconhecido'
+          const msg = `Este CNPJ já está cadastrado para o parceiro ${partnerName}`
           fieldErrors.tax_id = msg
           setConflictPartner(existing)
           if (onConflict) {
@@ -461,7 +468,26 @@ export function CreatePharmacyLabForm({
 
       setErrors(fieldErrors)
       if (Object.keys(fieldErrors).length > 0) {
-        toast.error('Verifique os campos destacados com erro no formulário.')
+        const errorMessages = Object.entries(fieldErrors)
+          .map(([field, msg]) => {
+            const fieldNameMap: Record<string, string> = {
+              tax_id: 'CNPJ',
+              email: 'E-mail',
+              commission_rate: 'Taxa de Comissão',
+              name: 'Razão Social',
+              business_name: 'Nome Fantasia',
+              address_zip_code: 'CEP',
+              phone: 'Telefone',
+              state: 'Estado (UF)',
+            }
+            const name = fieldNameMap[field] || field
+            return `${name}: ${msg}`
+          })
+          .join('\n')
+        toast.error('Corrija os erros para continuar:', {
+          description: errorMessages,
+          duration: 5000,
+        })
       } else {
         toast.error(partner ? 'Erro ao atualizar parceiro.' : 'Erro ao cadastrar parceiro.')
       }
@@ -623,7 +649,7 @@ export function CreatePharmacyLabForm({
                 max="13.89"
               />
               <p className="text-[10px] text-muted-foreground">
-                A taxa de comissão deve estar entre 7,99% e 13,89%
+                A taxa deve estar entre 7,99% e 13,89%
               </p>
               {errors.commission_rate && (
                 <p className="text-xs text-red-500">{errors.commission_rate}</p>
@@ -716,7 +742,7 @@ export function CreatePharmacyLabForm({
             <div className="space-y-2">
               <Label>Estado (UF) *</Label>
               <Select
-                value={stateUF}
+                value={stateUF || undefined}
                 onValueChange={(val) => setStateUF(val)}
                 required
                 name="state"
