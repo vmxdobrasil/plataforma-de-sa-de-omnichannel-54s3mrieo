@@ -7,14 +7,6 @@ export function extractFieldErrors(error: unknown): FieldErrors {
   const data = error.response?.data
   if (!data || typeof data !== 'object') return {}
   const errors: FieldErrors = {}
-
-  const translations: Record<string, string> = {
-    'Cannot be blank.': 'Este campo é obrigatório.',
-    'Must be a valid email address.': 'Formato de e-mail inválido.',
-    'The value must be unique.': 'Este valor já está em uso.',
-    'Invalid value.': 'Valor inválido.',
-  }
-
   for (const [field, detail] of Object.entries(data)) {
     if (
       detail &&
@@ -22,8 +14,7 @@ export function extractFieldErrors(error: unknown): FieldErrors {
       'message' in detail &&
       typeof (detail as { message: unknown }).message === 'string'
     ) {
-      const msg = (detail as { message: string }).message
-      errors[field] = translations[msg] || msg
+      errors[field] = (detail as { message: string }).message
     }
   }
   return errors

@@ -14,6 +14,7 @@ import { toast } from 'sonner'
 import { extractFieldErrors } from '@/lib/pocketbase/errors'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
+import { Loader2 } from 'lucide-react'
 import { useAuth } from '@/hooks/use-auth'
 
 export function CreatePharmacyLabForm({
@@ -61,6 +62,7 @@ export function CreatePharmacyLabForm({
     return value.replace(/\D/g, '').replace(/^(\d{5})(\d{3}).*/, '$1-$2')
   }
 
+  const [isFetchingCep, setIsFetchingCep] = useState(false)
   const [conflictPartner, setConflictPartner] = useState<any>(null)
   const formRef = useRef<HTMLFormElement>(null)
   const [isFormValid, setIsFormValid] = useState(false)
@@ -159,9 +161,10 @@ export function CreatePharmacyLabForm({
       .replace(/-$/, '')
   }
 
-  const handleCepBlur = async (e: React.FocusEvent<HTMLInputElement>) => {
-    const cleanCep = e.target.value.replace(/\D/g, '')
+  const fetchCepData = async (cepValue: string) => {
+    const cleanCep = cepValue.replace(/\D/g, '')
     if (cleanCep.length === 8) {
+      setIsFetchingCep(true)
       try {
         const res = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`)
         const data = await res.json()
@@ -170,11 +173,29 @@ export function CreatePharmacyLabForm({
           setNeighborhood(data.bairro || '')
           setCity(data.localidade || '')
           setStateUF(data.uf || '')
+        } else {
+          toast.error('CEP não encontrado. Por favor, preencha o endereço manualmente.')
         }
       } catch (err) {
         console.error('Error fetching CEP:', err)
+        toast.error('Erro ao buscar CEP. Por favor, preencha o endereço manualmente.')
+      } finally {
+        setIsFetchingCep(false)
       }
     }
+  }
+
+  const handleCepChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatCEP(e.target.value)
+    setCep(formatted)
+    const cleanCep = formatted.replace(/\D/g, '')
+    if (cleanCep.length === 8) {
+      fetchCepData(cleanCep)
+    }
+  }
+
+  const handleCepBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    fetchCepData(e.target.value)
   }
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -517,15 +538,21 @@ export function CreatePharmacyLabForm({
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label>CEP *</Label>
-              <Input
-                name="address_zip_code"
-                value={cep}
-                onChange={(e) => setCep(formatCEP(e.target.value))}
-                onBlur={handleCepBlur}
-                required
-                placeholder="00000-000"
-                maxLength={9}
-              />
+              <div className="relative">
+                <Input
+                  name="address_zip_code"
+                  value={cep}
+                  onChange={handleCepChange}
+                  onBlur={handleCepBlur}
+                  required
+                  placeholder="00000-000"
+                  maxLength={9}
+                  className={isFetchingCep ? 'pr-9' : ''}
+                />
+                {isFetchingCep && (
+                  <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
+                )}
+              </div>
               {errors.address_zip_code && (
                 <p className="text-xs text-red-500">{errors.address_zip_code}</p>
               )}
