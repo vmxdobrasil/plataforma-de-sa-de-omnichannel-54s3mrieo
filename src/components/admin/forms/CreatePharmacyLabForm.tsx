@@ -31,7 +31,9 @@ export function CreatePharmacyLabForm({
 
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
-  const [role, setRole] = useState(partner?.role || 'pharmacy')
+  const initialRole =
+    partner?.role === 'pharmacy' || partner?.role === 'laboratory' ? partner.role : 'pharmacy'
+  const [role, setRole] = useState(initialRole)
   const [avatarPreview, setAvatarPreview] = useState<string | null>(
     partner?.avatar ? pb.files.getURL(partner, partner.avatar) : null,
   )
@@ -139,7 +141,7 @@ export function CreatePharmacyLabForm({
         const existing = await pb.collection('users').getFirstListItem(`tax_id="${cleanCnpj}"`)
         if (existing && existing.id !== partner?.id) {
           const partnerName = existing.business_name || existing.name || 'Desconhecido'
-          const msg = `Este CNPJ já está cadastrado para o parceiro ${partnerName}`
+          const msg = `Este CNPJ ${formatCNPJ(cleanCnpj)} já está cadastrado para o parceiro ${partnerName}`
           setConflictPartner(existing)
           setErrors((prev) => ({ ...prev, tax_id: msg }))
           if (onConflict) {
@@ -433,7 +435,7 @@ export function CreatePharmacyLabForm({
           const cleanCnpj = cnpj.replace(/\D/g, '')
           const existing = await pb.collection('users').getFirstListItem(`tax_id="${cleanCnpj}"`)
           const partnerName = existing.business_name || existing.name || 'Desconhecido'
-          const msg = `Este CNPJ já está cadastrado para o parceiro ${partnerName}`
+          const msg = `Este CNPJ ${formatCNPJ(cleanCnpj)} já está cadastrado para o parceiro ${partnerName}`
           fieldErrors.tax_id = msg
           setConflictPartner(existing)
           if (onConflict) {
