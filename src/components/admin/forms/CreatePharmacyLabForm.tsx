@@ -140,14 +140,13 @@ export function CreatePharmacyLabForm({
       try {
         const existing = await pb.collection('users').getFirstListItem(`tax_id="${cleanCnpj}"`)
         if (existing && existing.id !== partner?.id) {
-          const partnerName = existing.business_name || existing.name || 'Desconhecido'
-          const msg = `Este CNPJ já está cadastrado para ${partnerName}.`
+          const msg = `Este CNPJ já está cadastrado no sistema.`
           setConflictPartner(existing)
           setErrors((prev) => ({ ...prev, tax_id: msg }))
           if (onConflict) {
             toast.error(msg, {
               action: {
-                label: 'Editar Cadastro Existente',
+                label: 'Ver Registro Existente',
                 onClick: () => onConflict(existing),
               },
               duration: 10000,
@@ -184,7 +183,7 @@ export function CreatePharmacyLabForm({
           setErrors((prev) => ({ ...prev, email: msg }))
           if (onConflict) {
             toast.error(`E-mail já cadastrado para ${existing.business_name || existing.name}.`, {
-              action: { label: 'Editar Cadastro Existente', onClick: () => onConflict(existing) },
+              action: { label: 'Ver Registro Existente', onClick: () => onConflict(existing) },
               duration: 10000,
             })
           }
@@ -437,14 +436,13 @@ export function CreatePharmacyLabForm({
         try {
           const cleanCnpj = cnpj.replace(/\D/g, '')
           const existing = await pb.collection('users').getFirstListItem(`tax_id="${cleanCnpj}"`)
-          const partnerName = existing.business_name || existing.name || 'Desconhecido'
-          const msg = `Este CNPJ já está cadastrado para ${partnerName}.`
+          const msg = `Este CNPJ já está cadastrado no sistema.`
           fieldErrors.tax_id = msg
           setConflictPartner(existing)
           if (onConflict) {
             toast.error(msg, {
               action: {
-                label: 'Editar Cadastro Existente',
+                label: 'Ver Registro Existente',
                 onClick: () => onConflict(existing),
               },
               duration: 10000,
@@ -467,7 +465,7 @@ export function CreatePharmacyLabForm({
           setConflictPartner(existing)
           if (onConflict) {
             toast.error(`E-mail já cadastrado para ${existing.business_name || existing.name}.`, {
-              action: { label: 'Editar Cadastro Existente', onClick: () => onConflict(existing) },
+              action: { label: 'Ver Registro Existente', onClick: () => onConflict(existing) },
               duration: 10000,
             })
           }
@@ -582,7 +580,7 @@ export function CreatePharmacyLabForm({
                       className="w-fit"
                       onClick={() => onConflict(conflictPartner)}
                     >
-                      Editar Cadastro Existente
+                      Ver Registro Existente
                     </Button>
                   )}
                 </div>
@@ -636,7 +634,7 @@ export function CreatePharmacyLabForm({
                       className="w-fit"
                       onClick={() => onConflict(conflictPartner)}
                     >
-                      Editar Cadastro Existente
+                      Ver Registro Existente
                     </Button>
                   )}
                 </div>

@@ -21,6 +21,7 @@ import {
   Percent,
   Check,
   X,
+  AlertCircle,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -74,6 +75,8 @@ export default function AdminPharmacy() {
 
   const [loadingProducts, setLoadingProducts] = useState(true)
   const [loadingPartners, setLoadingPartners] = useState(true)
+  const [fetchError, setFetchError] = useState(false)
+  const [fetchProductsError, setFetchProductsError] = useState(false)
   const [isPartnerDialogOpen, setIsPartnerDialogOpen] = useState(false)
   const [selectedPartner, setSelectedPartner] = useState<any>(null)
 
@@ -86,6 +89,7 @@ export default function AdminPharmacy() {
 
   const loadProducts = async () => {
     try {
+      setFetchProductsError(false)
       setLoadingProducts(true)
       const safeTerm = searchTerm.replace(/["\\]/g, '')
       const filter = safeTerm ? `name ~ "${safeTerm}" || description ~ "${safeTerm}"` : ''
@@ -94,9 +98,10 @@ export default function AdminPharmacy() {
         sort: '-created',
         expand: 'pharmacy_id',
       })
-      setProducts(res.items)
+      setProducts(res?.items || [])
     } catch (error) {
       console.error(error)
+      setFetchProductsError(true)
       toast.error('Erro ao carregar produtos de farmácia.')
     } finally {
       setLoadingProducts(false)
@@ -105,6 +110,7 @@ export default function AdminPharmacy() {
 
   const loadPartners = async () => {
     try {
+      setFetchError(false)
       setLoadingPartners(true)
       let filter =
         searchRole === 'all'
@@ -136,9 +142,10 @@ export default function AdminPharmacy() {
         filter,
         sort: '-created',
       })
-      setPartners(res.items)
+      setPartners(res?.items || [])
     } catch (error) {
       console.error(error)
+      setFetchError(true)
       toast.error('Erro ao carregar parceiros.')
     } finally {
       setLoadingPartners(false)
@@ -457,7 +464,24 @@ export default function AdminPharmacy() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {loadingPartners ? (
+                {fetchError ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center py-8 text-destructive">
+                      <div className="flex flex-col items-center justify-center gap-2">
+                        <AlertCircle className="h-8 w-8" />
+                        <p>Ocorreu um erro ao carregar os parceiros.</p>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={loadPartners}
+                          className="mt-2 text-foreground"
+                        >
+                          Tentar Novamente
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ) : loadingPartners ? (
                   <TableRow>
                     <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
                       Carregando...
@@ -648,7 +672,24 @@ export default function AdminPharmacy() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {loadingProducts ? (
+                {fetchProductsError ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center py-8 text-destructive">
+                      <div className="flex flex-col items-center justify-center gap-2">
+                        <AlertCircle className="h-8 w-8" />
+                        <p>Ocorreu um erro ao carregar os produtos.</p>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={loadProducts}
+                          className="mt-2 text-foreground"
+                        >
+                          Tentar Novamente
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ) : loadingProducts ? (
                   <TableRow>
                     <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
                       Carregando...
