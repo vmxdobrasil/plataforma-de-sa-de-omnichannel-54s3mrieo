@@ -5,7 +5,7 @@ onRecordValidate((e) => {
     const role = record.getString('role')
     if (role === 'pharmacy' || role === 'laboratory') {
       const rate = record.get('commission_rate')
-      if (rate !== null && rate !== '') {
+      if (rate !== null && rate !== '' && rate !== 0) {
         const numRate = Number(rate)
         if (numRate < 7.99 || numRate > 13.89) {
           throw new BadRequestError('Dados inválidos', {
@@ -18,7 +18,7 @@ onRecordValidate((e) => {
       }
 
       const pendingRate = record.get('pending_commission_rate')
-      if (pendingRate !== null && pendingRate !== '') {
+      if (pendingRate !== null && pendingRate !== '' && pendingRate !== 0) {
         const numPendingRate = Number(pendingRate)
         if (numPendingRate < 7.99 || numPendingRate > 13.89) {
           throw new BadRequestError('Dados inválidos', {

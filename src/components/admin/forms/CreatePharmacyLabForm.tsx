@@ -55,7 +55,9 @@ export function CreatePharmacyLabForm({
   const [phone, setPhone] = useState(partner?.phone || '')
   const [email, setEmail] = useState(partner?.email || '')
   const [commissionRate, setCommissionRate] = useState(
-    partner?.commission_rate || partner?.pending_commission_rate || '',
+    partner?.commission_rate?.toString().replace('.', ',') ||
+      partner?.pending_commission_rate?.toString().replace('.', ',') ||
+      '',
   )
 
   const formatCEP = (value: string) => {
@@ -73,7 +75,7 @@ export function CreatePharmacyLabForm({
       const formData = new FormData(formRef.current)
       const rateStr = formData.get('commission_rate') as string
       if (rateStr) {
-        const rate = parseFloat(rateStr)
+        const rate = parseFloat(rateStr.replace(',', '.'))
         if (isNaN(rate) || rate < 7.99 || rate > 13.89) {
           valid = false
         }
@@ -263,7 +265,7 @@ export function CreatePharmacyLabForm({
 
     const commissionStr = formData.get('commission_rate') as string
     if (commissionStr) {
-      const rate = parseFloat(commissionStr)
+      const rate = parseFloat(commissionStr.replace(',', '.'))
       if (isNaN(rate) || rate < 7.99 || rate > 13.89) {
         toast.error('A taxa deve estar entre 7,99% e 13,89%')
         setErrors((prev) => ({
@@ -474,6 +476,7 @@ export function CreatePharmacyLabForm({
               tax_id: 'CNPJ',
               email: 'E-mail',
               commission_rate: 'Taxa de Comissão',
+              pending_commission_rate: 'Taxa de Comissão (Pendente)',
               name: 'Razão Social',
               business_name: 'Nome Fantasia',
               address_zip_code: 'CEP',
@@ -638,21 +641,24 @@ export function CreatePharmacyLabForm({
             <div className="space-y-2">
               <Label>Taxa de Comissão (%) *</Label>
               <Input
-                type="number"
-                step="0.01"
+                type="text"
                 name="commission_rate"
                 value={commissionRate}
-                onChange={(e) => setCommissionRate(e.target.value)}
+                onChange={(e) => {
+                  const val = e.target.value.replace(/[^0-9.,]/g, '')
+                  setCommissionRate(val)
+                }}
                 required
-                placeholder="Ex: 10.5"
-                min="7.99"
-                max="13.89"
+                placeholder="Ex: 13,88"
               />
               <p className="text-[10px] text-muted-foreground">
                 A taxa deve estar entre 7,99% e 13,89%
               </p>
               {errors.commission_rate && (
                 <p className="text-xs text-red-500">{errors.commission_rate}</p>
+              )}
+              {errors.pending_commission_rate && (
+                <p className="text-xs text-red-500">{errors.pending_commission_rate}</p>
               )}
             </div>
             <div className="space-y-2">
