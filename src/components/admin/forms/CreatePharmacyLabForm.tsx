@@ -143,7 +143,9 @@ export function CreatePharmacyLabForm({
     if (cleanCnpj.length === 14) {
       const checkCnpj = async () => {
         try {
-          const existing = await pb.collection('users').getFirstListItem(`tax_id="${cleanCnpj}"`)
+          const existing = await pb
+            .collection('users')
+            .getFirstListItem(`tax_id="${cleanCnpj}" || tax_id="${cnpj}"`)
           if (existing && existing.id !== partner?.id) {
             const msg = `Este CNPJ já está cadastrado no sistema.`
             setConflictPartner(existing)
@@ -152,7 +154,7 @@ export function CreatePharmacyLabForm({
               toast.error(msg, {
                 id: `cnpj-conflict-${cleanCnpj}`,
                 action: {
-                  label: 'Ver Cadastro Existente',
+                  label: 'Acessar Cadastro Existente',
                   onClick: () => onConflictRef.current?.(existing),
                 },
                 duration: 10000,
@@ -199,7 +201,7 @@ export function CreatePharmacyLabForm({
             toast.error(`E-mail já cadastrado para ${existing.business_name || existing.name}.`, {
               id: `email-conflict-${val}`,
               action: {
-                label: 'Ver Cadastro Existente',
+                label: 'Acessar Cadastro Existente',
                 onClick: () => onConflictRef.current?.(existing),
               },
               duration: 10000,
@@ -453,7 +455,9 @@ export function CreatePharmacyLabForm({
       ) {
         try {
           const cleanCnpj = cnpj.replace(/\D/g, '')
-          const existing = await pb.collection('users').getFirstListItem(`tax_id="${cleanCnpj}"`)
+          const existing = await pb
+            .collection('users')
+            .getFirstListItem(`tax_id="${cleanCnpj}" || tax_id="${cnpj}"`)
           const msg = `Este CNPJ já está cadastrado no sistema.`
           fieldErrors.tax_id = msg
           setConflictPartner(existing)
@@ -461,14 +465,14 @@ export function CreatePharmacyLabForm({
             toast.error(msg, {
               id: `cnpj-conflict-${cleanCnpj}`,
               action: {
-                label: 'Ver Cadastro Existente',
+                label: 'Acessar Cadastro Existente',
                 onClick: () => onConflictRef.current?.(existing),
               },
               duration: 10000,
             })
           }
         } catch (_) {
-          fieldErrors.tax_id = 'Este CNPJ já está cadastrado.'
+          fieldErrors.tax_id = 'Este CNPJ já está cadastrado no sistema.'
         }
       }
 
@@ -486,7 +490,7 @@ export function CreatePharmacyLabForm({
             toast.error(`E-mail já cadastrado para ${existing.business_name || existing.name}.`, {
               id: `email-conflict-${email}`,
               action: {
-                label: 'Ver Cadastro Existente',
+                label: 'Acessar Cadastro Existente',
                 onClick: () => onConflictRef.current?.(existing),
               },
               duration: 10000,
@@ -606,7 +610,7 @@ export function CreatePharmacyLabForm({
                       className="w-fit"
                       onClick={() => onConflict(conflictPartner)}
                     >
-                      Ver Cadastro Existente
+                      Acessar Cadastro Existente
                     </Button>
                   )}
                 </div>
@@ -660,7 +664,7 @@ export function CreatePharmacyLabForm({
                       className="w-fit"
                       onClick={() => onConflict(conflictPartner)}
                     >
-                      Ver Cadastro Existente
+                      Acessar Cadastro Existente
                     </Button>
                   )}
                 </div>

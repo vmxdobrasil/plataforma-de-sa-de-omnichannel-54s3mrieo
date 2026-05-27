@@ -76,12 +76,12 @@ class PharmacyErrorBoundary extends React.Component<
       return (
         <div className="p-8 text-center bg-card rounded-xl border border-destructive/20 shadow-sm flex flex-col items-center justify-center min-h-[300px]">
           <AlertCircle className="h-12 w-12 text-destructive mb-4" />
-          <h2 className="text-xl font-bold mb-2">Ops! Algo deu errado</h2>
+          <h2 className="text-xl font-bold mb-2">Não foi possível carregar esta seção</h2>
           <p className="text-muted-foreground mb-6 max-w-md">
             Ocorreu um erro inesperado ao processar os dados da farmácia. Não se preocupe, a sua
             sessão continua ativa.
           </p>
-          <Button onClick={() => window.location.reload()}>Recarregar página</Button>
+          <Button onClick={() => window.location.reload()}>Recarregar</Button>
         </div>
       )
     }
