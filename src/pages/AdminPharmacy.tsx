@@ -162,9 +162,9 @@ function AdminPharmacyContent() {
       if (safePartner) {
         const numericPartner = safePartner.replace(/\D/g, '')
         if (numericPartner.length > 0) {
-          filter += ` && (name ~ "${safePartner}" || business_name ~ "${safePartner}" || tax_id ~ "${safePartner}" || tax_id ~ "${numericPartner}")`
+          filter += ` && (name ~ "${safePartner}" || business_name ~ "${safePartner}" || tax_id ~ "${safePartner}" || tax_id ~ "${numericPartner}" || city ~ "${safePartner}")`
         } else {
-          filter += ` && (name ~ "${safePartner}" || business_name ~ "${safePartner}" || tax_id ~ "${safePartner}")`
+          filter += ` && (name ~ "${safePartner}" || business_name ~ "${safePartner}" || tax_id ~ "${safePartner}" || city ~ "${safePartner}")`
         }
       }
       if (safeCity) {
@@ -396,11 +396,21 @@ function AdminPharmacyContent() {
               <div className="relative w-full sm:col-span-2 md:col-span-3 lg:col-span-2">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Nome fantasia, razão social ou CNPJ..."
-                  className="pl-9 bg-background"
+                  placeholder="Nome, razão social, CNPJ ou cidade..."
+                  className="pl-9 pr-9 bg-background"
                   value={searchPartner}
                   onChange={(e) => setSearchPartner(e.target.value)}
                 />
+                {searchPartner && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 text-muted-foreground hover:text-foreground"
+                    onClick={() => setSearchPartner('')}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                )}
               </div>
               <div className="relative w-full">
                 <Select value={searchRole} onValueChange={setSearchRole}>
@@ -430,10 +440,20 @@ function AdminPharmacyContent() {
               <div className="relative w-full">
                 <Input
                   placeholder="Cidade..."
-                  className="bg-background"
+                  className="bg-background pr-9"
                   value={searchCity}
                   onChange={(e) => setSearchCity(e.target.value)}
                 />
+                {searchCity && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 text-muted-foreground hover:text-foreground"
+                    onClick={() => setSearchCity('')}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                )}
               </div>
               <div className="w-full flex items-center justify-end">
                 <Dialog
@@ -535,8 +555,14 @@ function AdminPharmacyContent() {
                   </TableRow>
                 ) : partners.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
-                      Nenhum parceiro encontrado.
+                    <TableCell colSpan={5} className="text-center py-12 text-muted-foreground">
+                      <div className="flex flex-col items-center justify-center gap-3">
+                        <Search className="h-10 w-10 text-muted-foreground/50" />
+                        <p className="text-base font-medium text-foreground">
+                          Nenhum resultado encontrado
+                        </p>
+                        <p className="text-sm">Tente ajustar os termos da sua busca.</p>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -699,10 +725,20 @@ function AdminPharmacyContent() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Buscar produto por nome..."
-                className="pl-9 bg-background"
+                className="pl-9 pr-9 bg-background"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
+              {searchTerm && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 text-muted-foreground hover:text-foreground"
+                  onClick={() => setSearchTerm('')}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              )}
             </div>
           </div>
 
@@ -743,8 +779,14 @@ function AdminPharmacyContent() {
                   </TableRow>
                 ) : products.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
-                      Nenhum produto encontrado.
+                    <TableCell colSpan={5} className="text-center py-12 text-muted-foreground">
+                      <div className="flex flex-col items-center justify-center gap-3">
+                        <Search className="h-10 w-10 text-muted-foreground/50" />
+                        <p className="text-base font-medium text-foreground">
+                          Nenhum resultado encontrado
+                        </p>
+                        <p className="text-sm">Tente ajustar os termos da sua busca.</p>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ) : (
