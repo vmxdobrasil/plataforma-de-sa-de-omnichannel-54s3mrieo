@@ -277,9 +277,9 @@ export function CreatePharmacyLabForm({
         err?.message?.toLowerCase().includes('unique')
 
       if (isUniqueTaxId) {
-        toast.error('Este CNPJ já está cadastrado no sistema.', {
+        toast.error('Este CNPJ já está cadastrado. [Clique aqui para editar este parceiro]', {
           action: {
-            label: 'Ver/Editar Parceiro Existente',
+            label: 'Editar',
             onClick: (e) => {
               if (e && e.preventDefault) e.preventDefault()
               if (e && e.stopPropagation) e.stopPropagation()
@@ -347,7 +347,7 @@ export function CreatePharmacyLabForm({
                       if (onConflict) onConflict(conflictPartner)
                     }}
                   >
-                    Ver/Editar Parceiro Existente
+                    Clique aqui para editar este parceiro
                   </Button>
                 </div>
               </AlertDescription>
