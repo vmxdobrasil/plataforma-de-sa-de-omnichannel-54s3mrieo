@@ -453,7 +453,7 @@ export function CreatePharmacyLabForm({
             <AlertCircle className="h-4 w-4 text-amber-600" />
             <AlertTitle className="text-amber-800">Conflito de Cadastro</AlertTitle>
             <AlertDescription className="text-amber-700 text-sm mt-1">
-              Esse valor já está cadastrado. Deseja carregar o cadastro existente?
+              Este parceiro já está cadastrado. Deseja carregar os dados existentes?
               <br />
               (Encontramos um registro existente para{' '}
               <strong>{conflictPartner.name || conflictPartner.business_name}</strong> com este{' '}
@@ -697,6 +697,7 @@ export function CreatePharmacyLabForm({
           className="w-full mt-4"
           disabled={loading || !isFormValid || !!conflictPartner}
         >
+          {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           {loading ? 'Salvando...' : partner ? 'Salvar Alterações' : 'Confirmar Cadastro'}
         </Button>
       </form>

@@ -559,7 +559,7 @@ function AdminPharmacyContent() {
                       <div className="flex flex-col items-center justify-center gap-3">
                         <Search className="h-10 w-10 text-muted-foreground/50" />
                         <p className="text-base font-medium text-foreground">
-                          Nenhum parceiro encontrado
+                          Nenhum resultado encontrado
                         </p>
                         <p className="text-sm">Tente ajustar os termos da sua busca.</p>
                       </div>
@@ -783,7 +783,7 @@ function AdminPharmacyContent() {
                       <div className="flex flex-col items-center justify-center gap-3">
                         <Search className="h-10 w-10 text-muted-foreground/50" />
                         <p className="text-base font-medium text-foreground">
-                          Nenhum produto encontrado
+                          Nenhum resultado encontrado
                         </p>
                         <p className="text-sm">Tente ajustar os termos da sua busca.</p>
                       </div>
