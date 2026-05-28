@@ -129,7 +129,7 @@ export function CreatePharmacyLabForm({
     const cleanCnpj = watchTaxId?.replace(/\D/g, '') || ''
     if (cleanCnpj.length === 14) {
       pb.collection('users')
-        .getFirstListItem(`tax_id="${cleanCnpj}"`)
+        .getFirstListItem(`tax_id="${cleanCnpj}" && (role="pharmacy" || role="laboratory")`)
         .then((existing) => {
           if (existing && existing.id !== partner?.id) {
             setConflictPartner(existing)
@@ -189,8 +189,10 @@ export function CreatePharmacyLabForm({
   }, [watchCep, form])
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    if (conflictPartner) {
-      toast.error('Corrija os conflitos de cadastro antes de salvar.')
+    if (conflictPartner && conflictPartner.id !== partner?.id) {
+      toast.error(
+        'Este CNPJ já está cadastrado no sistema. Verifique o aviso no topo do formulário.',
+      )
       return
     }
 
@@ -267,7 +269,38 @@ export function CreatePharmacyLabForm({
       onSuccess()
     } catch (err: any) {
       const fieldErrors = extractFieldErrors(err)
-      if (Object.keys(fieldErrors).length > 0) {
+
+      if (
+        fieldErrors.tax_id?.toLowerCase().includes('unique') ||
+        fieldErrors.tax_id?.includes('must be unique')
+      ) {
+        toast.error('Este CNPJ já está cadastrado no sistema.', {
+          action: {
+            label: 'Editar Parceiro Existente',
+            onClick: () => {
+              pb.collection('users')
+                .getFirstListItem(`tax_id="${cleanCnpj}"`)
+                .then((existing) => {
+                  if (onConflict) onConflict(existing)
+                })
+                .catch(() => {})
+            },
+          },
+          duration: 8000,
+        })
+
+        pb.collection('users')
+          .getFirstListItem(`tax_id="${cleanCnpj}"`)
+          .then((existing) => {
+            if (existing && existing.id !== partner?.id) {
+              setConflictPartner(existing)
+              setConflictReason('tax_id')
+            }
+          })
+          .catch(() => {})
+
+        form.setError('tax_id', { message: 'CNPJ já cadastrado' })
+      } else if (Object.keys(fieldErrors).length > 0) {
         Object.entries(fieldErrors).forEach(([key, msg]) => {
           form.setError(key as any, { message: msg })
         })
@@ -287,7 +320,11 @@ export function CreatePharmacyLabForm({
           {conflictPartner && conflictPartner.id !== partner?.id && (
             <Alert className="bg-amber-50 border-amber-200 mb-6 animate-in fade-in slide-in-from-top-2">
               <AlertCircle className="h-4 w-4 text-amber-600" />
-              <AlertTitle className="text-amber-800">Conflito de Cadastro</AlertTitle>
+              <AlertTitle className="text-amber-800">
+                {conflictReason === 'tax_id'
+                  ? 'Este CNPJ já está cadastrado no sistema.'
+                  : 'Conflito de Cadastro'}
+              </AlertTitle>
               <AlertDescription className="text-amber-700 text-sm mt-1">
                 Este parceiro já possui um cadastro no sistema.
                 <br />
@@ -304,7 +341,7 @@ export function CreatePharmacyLabForm({
                       if (onConflict) onConflict(conflictPartner)
                     }}
                   >
-                    Carregar Cadastro Existente
+                    Editar Parceiro Existente
                   </Button>
                 </div>
               </AlertDescription>
