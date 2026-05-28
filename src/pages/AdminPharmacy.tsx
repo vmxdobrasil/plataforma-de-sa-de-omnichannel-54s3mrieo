@@ -162,9 +162,9 @@ function AdminPharmacyContent() {
       if (safePartner) {
         const numericPartner = safePartner.replace(/\D/g, '')
         if (numericPartner.length > 0) {
-          filter += ` && (name ~ "${safePartner}" || business_name ~ "${safePartner}" || tax_id ~ "${safePartner}" || tax_id ~ "${numericPartner}" || city ~ "${safePartner}")`
+          filter += ` && (name ~ "${safePartner}" || business_name ~ "${safePartner}" || tax_id ~ "${safePartner}" || tax_id ~ "${numericPartner}" || city ~ "${safePartner}" || email ~ "${safePartner}")`
         } else {
-          filter += ` && (name ~ "${safePartner}" || business_name ~ "${safePartner}" || tax_id ~ "${safePartner}" || city ~ "${safePartner}")`
+          filter += ` && (name ~ "${safePartner}" || business_name ~ "${safePartner}" || tax_id ~ "${safePartner}" || city ~ "${safePartner}" || email ~ "${safePartner}")`
         }
       }
       if (safeCity) {
@@ -396,7 +396,7 @@ function AdminPharmacyContent() {
               <div className="relative w-full sm:col-span-2 md:col-span-3 lg:col-span-2">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Nome, razão social, CNPJ ou cidade..."
+                  placeholder="Nome, razão social, CNPJ, e-mail ou cidade..."
                   className="pl-9 pr-9 bg-background"
                   value={searchPartner}
                   onChange={(e) => setSearchPartner(e.target.value)}
@@ -559,7 +559,7 @@ function AdminPharmacyContent() {
                       <div className="flex flex-col items-center justify-center gap-3">
                         <Search className="h-10 w-10 text-muted-foreground/50" />
                         <p className="text-base font-medium text-foreground">
-                          Nenhum resultado encontrado
+                          Nenhum parceiro encontrado
                         </p>
                         <p className="text-sm">Tente ajustar os termos da sua busca.</p>
                       </div>
@@ -583,7 +583,7 @@ function AdminPharmacyContent() {
                               Nome Fantasia
                             </span>
                             <span className="font-bold text-base text-foreground leading-tight">
-                              {p.business_name || '-'}
+                              {p.name || '-'}
                             </span>
                           </div>
                           <div>
@@ -591,7 +591,7 @@ function AdminPharmacyContent() {
                               Razão Social
                             </span>
                             <span className="text-xs font-medium text-muted-foreground leading-tight">
-                              {p.name || '-'}
+                              {p.business_name || '-'}
                             </span>
                           </div>
                           <div className="flex items-center gap-2 mt-1 flex-wrap">

@@ -453,7 +453,7 @@ export function CreatePharmacyLabForm({
             <AlertCircle className="h-4 w-4 text-amber-600" />
             <AlertTitle className="text-amber-800">Conflito de Cadastro</AlertTitle>
             <AlertDescription className="text-amber-700 text-sm mt-1">
-              Este parceiro já está cadastrado. Deseja carregar os dados existentes?
+              Este parceiro já possui um cadastro no sistema.
               <br />
               (Encontramos um registro existente para{' '}
               <strong>{conflictPartner.name || conflictPartner.business_name}</strong> com este{' '}
@@ -512,19 +512,14 @@ export function CreatePharmacyLabForm({
             </div>
 
             <div className="space-y-2">
-              <Label>Nome Fantasia (Apresentação) *</Label>
-              <Input
-                name="business_name"
-                defaultValue={partner?.business_name}
-                required
-                placeholder="Ex: MaxFarma"
-              />
+              <Label>Nome Fantasia *</Label>
+              <Input name="name" defaultValue={partner?.name} required placeholder="Ex: MaxFarma" />
             </div>
             <div className="space-y-2">
               <Label>Razão Social *</Label>
               <Input
-                name="name"
-                defaultValue={partner?.name}
+                name="business_name"
+                defaultValue={partner?.business_name}
                 required
                 placeholder="Ex: Simões e Silva Ltda"
               />
