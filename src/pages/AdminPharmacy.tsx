@@ -622,6 +622,14 @@ function AdminPharmacyContent() {
                                 )}
                               </span>
                             )}
+                            {p.asaas_wallet_id && (
+                              <Badge
+                                variant="outline"
+                                className="bg-blue-50 text-blue-800 border-blue-200 text-[10px] h-5"
+                              >
+                                Asaas Wallet
+                              </Badge>
+                            )}
                             {p.is_blocked && (
                               <Badge className="bg-red-500 text-white hover:bg-red-600 text-[10px] h-5 ml-2">
                                 Bloqueado
