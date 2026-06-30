@@ -31,6 +31,9 @@ export const registerEmployee = async (
   health_allowance: number,
   allowance_type: string,
   medication_allowance: number,
+  department?: string,
+  matricula?: string,
+  job_title?: string,
 ) => {
   const password = Math.random().toString(36).slice(-8) + 'A1!'
   return await pb.collection('users').create({
@@ -45,7 +48,39 @@ export const registerEmployee = async (
     allowance_type,
     medication_allowance,
     is_verified: true,
+    department: department || '',
+    matricula: matricula || '',
+    job_title: job_title || '',
   })
+}
+
+export const getCompanyStats = async (companyId: string) => {
+  const employees = await pb.collection('users').getFullList({
+    filter: `company_id = "${companyId}" && role = "patient"`,
+  })
+
+  const startOfMonth = new Date()
+  startOfMonth.setDate(1)
+  startOfMonth.setHours(0, 0, 0, 0)
+
+  const transactions = await pb.collection('benefit_transactions').getFullList({
+    filter: `company_id = "${companyId}" && created >= "${startOfMonth.toISOString().split('T')[0]} 00:00:00"`,
+  })
+
+  const totalDebits = transactions
+    .filter((t) => t.type === 'debit')
+    .reduce((sum, t) => sum + (t.amount || 0), 0)
+
+  const totalCredits = transactions
+    .filter((t) => t.type === 'credit')
+    .reduce((sum, t) => sum + (t.amount || 0), 0)
+
+  return {
+    employeeCount: employees.length,
+    activeEmployees: employees.filter((e) => !e.is_blocked).length,
+    monthlyUsage: totalDebits,
+    monthlyCredits: totalCredits,
+  }
 }
 
 export const updateEmployeeBenefit = async (

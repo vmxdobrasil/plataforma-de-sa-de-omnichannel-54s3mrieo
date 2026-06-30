@@ -1,6 +1,14 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, Briefcase, Pill, ReceiptText, PlusCircle, CreditCard } from 'lucide-react'
+import {
+  ArrowLeft,
+  Briefcase,
+  Pill,
+  ReceiptText,
+  PlusCircle,
+  CreditCard,
+  Calendar,
+} from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Dialog,
@@ -195,6 +203,14 @@ export default function BenefitStatement() {
               Adicionar Saldo
             </Button>
           )}
+          <Button
+            onClick={() => navigate('/search')}
+            variant="outline"
+            className="w-full md:w-auto shrink-0"
+          >
+            <Calendar className="mr-2 h-4 w-4" />
+            Agendar Consulta
+          </Button>
         </div>
       </div>
 

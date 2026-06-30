@@ -60,11 +60,9 @@ export function AppointmentBookingDialog({ open, onOpenChange, onSuccess }: Prop
     const dayOfWeek = new Date(date + 'T00:00:00').getDay().toString()
     Promise.all([
       getAvailabilitySlots(doctorId),
-      pb
-        .collection('appointments')
-        .getFullList({
-          filter: `professional_id = "${doctorId}" && dateTime >= "${date} 00:00:00" && dateTime <= "${date} 23:59:59" && status != "cancelled"`,
-        }),
+      pb.collection('appointments').getFullList({
+        filter: `professional_id = "${doctorId}" && dateTime >= "${date} 00:00:00" && dateTime <= "${date} 23:59:59" && status != "cancelled"`,
+      }),
     ])
       .then(([allSlots, booked]) => {
         const daySlots = allSlots.filter(

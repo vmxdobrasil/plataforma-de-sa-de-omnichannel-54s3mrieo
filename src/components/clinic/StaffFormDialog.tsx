@@ -45,13 +45,11 @@ export function StaffFormDialog({ open, onOpenChange, staff, onSuccess }: Props)
     setErrors({})
     try {
       if (staff) {
-        await pb
-          .collection('users')
-          .update(staff.id, {
-            name: values.name,
-            work_shift: values.work_shift,
-            phone: values.phone,
-          })
+        await pb.collection('users').update(staff.id, {
+          name: values.name,
+          work_shift: values.work_shift,
+          phone: values.phone,
+        })
         await logAudit('update', 'users', staff.id, { work_shift: values.work_shift })
         toast.success('Colaborador atualizado!')
       } else {

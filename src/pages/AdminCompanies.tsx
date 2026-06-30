@@ -11,6 +11,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Loader2, Plus, Edit, Trash, Users, Search } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
 import { toast } from 'sonner'
 import {
   Dialog,
@@ -140,13 +141,14 @@ export default function AdminCompanies() {
               <TableHead>Subsídio Saúde</TableHead>
               <TableHead>Subsídio Med.</TableHead>
               <TableHead>Renovação Auto.</TableHead>
+              <TableHead>Status</TableHead>
               <TableHead className="text-right">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {loading ? (
               <TableRow>
-                <TableCell colSpan={8} className="text-center py-8">
+                <TableCell colSpan={9} className="text-center py-8">
                   <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
                   <p className="text-sm text-muted-foreground mt-2 animate-pulse">
                     Carregando empresas...
@@ -155,7 +157,7 @@ export default function AdminCompanies() {
               </TableRow>
             ) : filteredCompanies.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
                   Nenhuma empresa encontrada.
                 </TableCell>
               </TableRow>
@@ -185,6 +187,23 @@ export default function AdminCompanies() {
                       : '-'}
                   </TableCell>
                   <TableCell>{company.auto_renew_benefits ? 'Sim' : 'Não'}</TableCell>
+                  <TableCell>
+                    <Badge
+                      variant={
+                        company.company_status === 'active'
+                          ? 'default'
+                          : company.company_status === 'suspended'
+                            ? 'destructive'
+                            : 'secondary'
+                      }
+                    >
+                      {company.company_status === 'active'
+                        ? 'Ativo'
+                        : company.company_status === 'suspended'
+                          ? 'Suspenso'
+                          : 'Aguardando Contrato'}
+                    </Badge>
+                  </TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-2">
                       <Button

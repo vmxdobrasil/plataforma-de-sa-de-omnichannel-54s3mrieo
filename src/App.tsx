@@ -27,6 +27,7 @@ import HealthProfile from './pages/HealthProfile'
 import NotFound from './pages/NotFound'
 import Login from './pages/Login'
 import Signup from './pages/Signup'
+import CompanyDashboard from './pages/CompanyDashboard'
 import CompanyEmployees from './pages/CompanyEmployees'
 import CompanyTransactions from './pages/CompanyTransactions'
 import BenefitStatement from './pages/BenefitStatement'
@@ -176,7 +177,7 @@ const AppRoutes = () => {
             <Route path="/pharmacy" element={<Pharmacy />} />
 
             <Route element={<CompanyOutlet />}>
-              {/* <Route path="/company/dashboard" element={<CompanyDashboard />} /> */}
+              <Route path="/company/dashboard" element={<CompanyDashboard />} />
               <Route path="/company/employees" element={<CompanyEmployees />} />
               <Route path="/company/transactions" element={<CompanyTransactions />} />
             </Route>

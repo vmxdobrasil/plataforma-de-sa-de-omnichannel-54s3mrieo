@@ -105,6 +105,26 @@ export function BookingFlow({ open, onOpenChange, professional }: BookingFlowPro
       return
     }
 
+    if (employeeData?.company_id) {
+      try {
+        const company = await pb.collection('users').getOne(employeeData.company_id)
+        if (company.company_status === 'suspended') {
+          toast.error('A empresa vinculada está suspensa. Contate o administrador.')
+          return
+        }
+        if (company.company_status === 'pending_contract') {
+          toast.error('O contrato da empresa vinculada ainda não foi ativado.')
+          return
+        }
+        if (company.is_blocked) {
+          toast.error('A empresa vinculada está bloqueada.')
+          return
+        }
+      } catch (e) {
+        console.error(e)
+      }
+    }
+
     if (method === 'corporate_full' || method === 'payroll') {
       if (!employeeData?.company_id) {
         toast.error('Vínculo corporativo não encontrado.')
@@ -355,7 +375,8 @@ export function BookingFlow({ open, onOpenChange, professional }: BookingFlowPro
               {employeeData?.company_id ? (
                 <div className="space-y-4">
                   <h3 className="font-semibold text-lg">Saldo em Reais</h3>
-                  {employeeData.allowance_type === 'payroll_deduction' ? (
+                  {(employeeData.allowance_type === 'payroll_deduction' ||
+                    employeeData.allowance_type === 'mixed') && (
                     <Button
                       variant="outline"
                       className="w-full justify-start h-auto py-4 hover:border-primary"
@@ -373,7 +394,9 @@ export function BookingFlow({ open, onOpenChange, professional }: BookingFlowPro
                         </p>
                       </div>
                     </Button>
-                  ) : (
+                  )}
+                  {(employeeData.allowance_type === 'benefit' ||
+                    employeeData.allowance_type === 'mixed') && (
                     <div className="space-y-4">
                       {(employeeData.health_allowance || 0) >= 150 ? (
                         <Button

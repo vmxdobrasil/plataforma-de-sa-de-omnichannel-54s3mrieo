@@ -24,6 +24,7 @@ import {
   Building2,
   ClipboardList,
   Pill,
+  Wallet,
 } from 'lucide-react'
 import {
   Sidebar,
@@ -151,6 +152,7 @@ const navItems = [
     roles: ['medical_director', 'admin'],
     masterOnly: true,
   },
+  { title: 'Minha Empresa', icon: Building2, url: '/company/dashboard', roles: ['company'] },
   { title: 'Gestão de Funcionários', icon: Users, url: '/company/employees', roles: ['company'] },
   {
     title: 'Transações de Benefícios',
@@ -170,6 +172,7 @@ const navItems = [
     url: '/admin/professionals',
     roles: ['medical_director', 'admin'],
   },
+  { title: 'Meus Benefícios', icon: Wallet, url: '/benefits/statement', roles: ['patient'] },
   { title: 'Meu Perfil de Saúde', icon: HeartPulse, url: '/health-profile', roles: ['patient'] },
   { title: 'Documentos', icon: Folder, url: '/documents', roles: ['patient', 'professional'] },
   {

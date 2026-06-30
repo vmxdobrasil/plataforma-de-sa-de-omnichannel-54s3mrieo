@@ -18,6 +18,8 @@ export function CreateCompanyForm({ onSuccess }: { onSuccess: () => void }) {
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [allowanceType, setAllowanceType] = useState('benefit')
+  const [companyStatus, setCompanyStatus] = useState('active')
+  const [creditLimitType, setCreditLimitType] = useState('fixed')
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -35,6 +37,15 @@ export function CreateCompanyForm({ onSuccess }: { onSuccess: () => void }) {
     submitData.append('passwordConfirm', formData.get('password') as string)
     submitData.append('tax_id', (formData.get('tax_id') as string).replace(/\D/g, ''))
     submitData.append('allowance_type', allowanceType)
+    submitData.append('company_status', companyStatus)
+    submitData.append('credit_limit_type', creditLimitType)
+
+    submitData.append('rh_contact_name', formData.get('rh_contact_name') as string)
+    submitData.append('rh_contact_phone', formData.get('rh_contact_phone') as string)
+    submitData.append('rh_contact_email', formData.get('rh_contact_email') as string)
+    submitData.append('finance_contact_name', formData.get('finance_contact_name') as string)
+    submitData.append('finance_contact_phone', formData.get('finance_contact_phone') as string)
+    submitData.append('finance_contact_email', formData.get('finance_contact_email') as string)
 
     submitData.append('address_zip_code', formData.get('address_zip_code') as string)
     submitData.append('address_street', formData.get('address_street') as string)
@@ -170,8 +181,66 @@ export function CreateCompanyForm({ onSuccess }: { onSuccess: () => void }) {
                 <SelectContent>
                   <SelectItem value="benefit">Benefício (Custo Empresa)</SelectItem>
                   <SelectItem value="payroll_deduction">Desconto em Folha</SelectItem>
+                  <SelectItem value="mixed">Misto (Benefício + Folha)</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          <h3 className="font-semibold text-lg border-b pb-2">Status e Contatos</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Status da Empresa</Label>
+              <Select value={companyStatus} onValueChange={setCompanyStatus}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="active">Ativo</SelectItem>
+                  <SelectItem value="suspended">Suspenso</SelectItem>
+                  <SelectItem value="pending_contract">Aguardando Contrato</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Tipo de Limite de Crédito</Label>
+              <Select value={creditLimitType} onValueChange={setCreditLimitType}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="fixed">Valor Fixo (R$)</SelectItem>
+                  <SelectItem value="percentage">Percentual (%)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <Label>Contato RH - Nome</Label>
+              <Input name="rh_contact_name" />
+            </div>
+            <div className="space-y-2">
+              <Label>Contato RH - Telefone</Label>
+              <Input name="rh_contact_phone" />
+            </div>
+            <div className="space-y-2">
+              <Label>Contato RH - Email</Label>
+              <Input type="email" name="rh_contact_email" />
+            </div>
+            <div className="space-y-2">
+              <Label>Contato Financeiro - Nome</Label>
+              <Input name="finance_contact_name" />
+            </div>
+            <div className="space-y-2">
+              <Label>Contato Financeiro - Telefone</Label>
+              <Input name="finance_contact_phone" />
+            </div>
+            <div className="space-y-2">
+              <Label>Contato Financeiro - Email</Label>
+              <Input type="email" name="finance_contact_email" />
             </div>
           </div>
         </div>

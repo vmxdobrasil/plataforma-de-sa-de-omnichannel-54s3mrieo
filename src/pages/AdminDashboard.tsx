@@ -23,6 +23,8 @@ import {
   BadgeAlert,
   Bot,
   Download,
+  TrendingUp,
+  TrendingDown,
 } from 'lucide-react'
 import {
   Select,
@@ -350,6 +352,58 @@ export default function AdminDashboard() {
         </div>
       )}
 
+      {isMasterAdmin && (
+        <div>
+          <h2 className="text-xl font-bold tracking-tight mb-4 flex items-center gap-2">
+            <Building2 className="h-5 w-5 text-primary" /> Ecossistema B2B
+          </h2>
+          <div className="grid gap-4 md:grid-cols-3">
+            <Card className="border-primary/20 bg-primary/5">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Empresas Ativas</CardTitle>
+                <Building2 className="h-4 w-4 text-primary" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{loading ? '...' : stats.companies}</div>
+                <p className="text-xs text-muted-foreground mt-1">Parceiros corporativos</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Crédito Distribuído (Mês)</CardTitle>
+                <TrendingUp className="h-4 w-4 text-emerald-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-emerald-600">
+                  R${' '}
+                  {txData
+                    .filter((t) => t.type === 'credit')
+                    .reduce((s, t) => s + (t.amount || 0), 0)
+                    .toFixed(2)}
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">Total creditado no período</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Crédito Utilizado (Mês)</CardTitle>
+                <TrendingDown className="h-4 w-4 text-amber-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-amber-600">
+                  R${' '}
+                  {txData
+                    .filter((t) => t.type === 'debit')
+                    .reduce((s, t) => s + (t.amount || 0), 0)
+                    .toFixed(2)}
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">Total consumido no período</p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      )}
+
       <div>
         <h2 className="text-xl font-bold tracking-tight mb-4 flex items-center gap-2">
           <ActivitySquare className="h-5 w-5 text-primary" /> Módulos de Gestão da Plataforma
@@ -417,7 +471,7 @@ export default function AdminDashboard() {
               {/* Empresas Corporativas */}
               <Card
                 className="group hover:border-primary/50 transition-all cursor-pointer hover:shadow-md border-primary/20 bg-primary/5"
-                onClick={() => navigate('/company/employees')}
+                onClick={() => navigate('/admin/companies')}
               >
                 <CardHeader>
                   <div className="flex items-center justify-between mb-2">

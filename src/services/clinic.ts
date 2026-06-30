@@ -49,11 +49,9 @@ export async function getClinicStats() {
     pb
       .collection('users')
       .getList(1, 1, { filter: 'role = "professional" && professional_status = "active"' }),
-    pb
-      .collection('appointments')
-      .getList(1, 1, {
-        filter: `dateTime >= "${today} 00:00:00" && dateTime <= "${today} 23:59:59"`,
-      }),
+    pb.collection('appointments').getList(1, 1, {
+      filter: `dateTime >= "${today} 00:00:00" && dateTime <= "${today} 23:59:59"`,
+    }),
     pb.collection('appointments').getList(1, 1, { filter: 'status = "scheduled"' }),
   ])
   return {
@@ -131,13 +129,11 @@ export async function getAppointments(
   if (filters.date)
     parts.push(`dateTime >= "${filters.date} 00:00:00" && dateTime <= "${filters.date} 23:59:59"`)
   const filter = parts.length > 0 ? parts.join(' && ') : '1 = 1'
-  return pb
-    .collection('appointments')
-    .getList(page, 20, {
-      filter,
-      sort: '-dateTime',
-      expand: 'patient_id,professional_id,cancelled_by',
-    })
+  return pb.collection('appointments').getList(page, 20, {
+    filter,
+    sort: '-dateTime',
+    expand: 'patient_id,professional_id,cancelled_by',
+  })
 }
 
 export async function checkDoubleBooking(doctorId: string, dateTime: string) {

@@ -78,6 +78,9 @@ export default function CompanyEmployees() {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [documentId, setDocumentId] = useState('')
+  const [department, setDepartment] = useState('')
+  const [matricula, setMatricula] = useState('')
+  const [jobTitle, setJobTitle] = useState('')
   const [allowance, setAllowance] = useState('0')
   const [medicationAllowance, setMedicationAllowance] = useState('0')
   const [type, setType] = useState('benefit')
@@ -166,6 +169,9 @@ export default function CompanyEmployees() {
         parseFloat(allowance),
         type,
         parseFloat(medicationAllowance),
+        department,
+        matricula,
+        jobTitle,
       )
       toast.success('Funcionário cadastrado com sucesso!')
       setIsAddOpen(false)
@@ -185,6 +191,11 @@ export default function CompanyEmployees() {
         type,
         parseFloat(medicationAllowance),
       )
+      await updateUser(selectedEmployee.id, {
+        department,
+        matricula,
+        job_title: jobTitle,
+      })
       toast.success('Benefício atualizado com sucesso!')
       setIsEditOpen(false)
       setSelectedEmployee(null)
@@ -199,6 +210,9 @@ export default function CompanyEmployees() {
     setAllowance((emp.health_allowance || 0).toString())
     setMedicationAllowance((emp.medication_allowance || 0).toString())
     setType(emp.allowance_type || 'benefit')
+    setDepartment(emp.department || '')
+    setMatricula(emp.matricula || '')
+    setJobTitle(emp.job_title || '')
     setIsEditOpen(true)
   }
 
@@ -206,6 +220,9 @@ export default function CompanyEmployees() {
     setName('')
     setEmail('')
     setDocumentId('')
+    setDepartment('')
+    setMatricula('')
+    setJobTitle('')
     setAllowance('0')
     setMedicationAllowance('0')
     setType('benefit')
@@ -243,10 +260,19 @@ export default function CompanyEmployees() {
         const rowName = cols[0]?.trim()
         const rowEmail = cols[1]?.trim()
         const rowDoc = cols[2]?.trim()
-        const health = parseFloat(cols[3] || '0')
-        const med = parseFloat(cols[4] || '0')
+        const rowDept = cols[3]?.trim() || ''
+        const rowMat = cols[4]?.trim() || ''
+        const rowJob = cols[5]?.trim() || ''
+        const health = parseFloat(cols[6] || '0')
+        const med = parseFloat(cols[7] || '0')
 
         if (!rowName || !rowEmail || !rowDoc) {
+          errorCount++
+          continue
+        }
+
+        const existingDocs = new Set(employees.map((e) => e.document_id).filter(Boolean))
+        if (existingDocs.has(rowDoc)) {
           errorCount++
           continue
         }
@@ -260,6 +286,9 @@ export default function CompanyEmployees() {
             health,
             'benefit',
             med,
+            rowDept,
+            rowMat,
+            rowJob,
           )
           successCount++
         } catch (e) {
@@ -330,6 +359,9 @@ export default function CompanyEmployees() {
                 name: emp.name,
                 email: emp.email,
                 document_id: emp.document_id,
+                department: emp.department || '',
+                matricula: emp.matricula || '',
+                job_title: emp.job_title || '',
                 role: emp.role,
                 health_allowance: emp.health_allowance || 0,
                 medication_allowance: emp.medication_allowance || 0,
@@ -338,10 +370,10 @@ export default function CompanyEmployees() {
                 is_blocked: emp.is_blocked || false,
               }))
               const csv = [
-                'ID,Name,Email,Document ID,Role,Health Allowance,Medication Allowance,Allowance Type,Auto Renew,Blocked',
+                'ID,Name,Email,Document ID,Department,Matricula,Job Title,Role,Health Allowance,Medication Allowance,Allowance Type,Auto Renew,Blocked',
                 ...exportData.map(
                   (e) =>
-                    `${e.id},${e.name},${e.email},${e.document_id},${e.role},${e.health_allowance},${e.medication_allowance},${e.allowance_type},${e.auto_renew},${e.is_blocked}`,
+                    `${e.id},${e.name},${e.email},${e.document_id},${e.department},${e.matricula},${e.job_title},${e.role},${e.health_allowance},${e.medication_allowance},${e.allowance_type},${e.auto_renew},${e.is_blocked}`,
                 ),
               ].join('\n')
               const blob = new Blob([csv], { type: 'text/csv' })
@@ -396,6 +428,7 @@ export default function CompanyEmployees() {
                 <TableRow>
                   <TableHead>Nome</TableHead>
                   <TableHead>Email / Doc</TableHead>
+                  <TableHead>Depto / Matrícula</TableHead>
                   <TableHead>Saúde</TableHead>
                   <TableHead>Farmácia</TableHead>
                   <TableHead>Status</TableHead>
@@ -405,7 +438,7 @@ export default function CompanyEmployees() {
               <TableBody>
                 {filteredEmployees.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                    <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
                       Nenhum colaborador encontrado.
                     </TableCell>
                   </TableRow>
@@ -418,6 +451,10 @@ export default function CompanyEmployees() {
                       <div className="text-xs text-muted-foreground">
                         {emp.document_id || 'N/A'}
                       </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-sm">{emp.department || '-'}</div>
+                      <div className="text-xs text-muted-foreground">{emp.matricula || 'N/A'}</div>
                     </TableCell>
                     <TableCell>R$ {(emp.health_allowance || 0).toFixed(2)}</TableCell>
                     <TableCell>R$ {(emp.medication_allowance || 0).toFixed(2)}</TableCell>
@@ -511,6 +548,32 @@ export default function CompanyEmployees() {
                   />
                 </div>
               </div>
+              <div className="grid grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label>Departamento</Label>
+                  <Input
+                    value={department}
+                    onChange={(e) => setDepartment(e.target.value)}
+                    placeholder="TI"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Matrícula</Label>
+                  <Input
+                    value={matricula}
+                    onChange={(e) => setMatricula(e.target.value)}
+                    placeholder="001"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Cargo</Label>
+                  <Input
+                    value={jobTitle}
+                    onChange={(e) => setJobTitle(e.target.value)}
+                    placeholder="Analista"
+                  />
+                </div>
+              </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Crédito Saúde (R$)</Label>
@@ -549,7 +612,11 @@ export default function CompanyEmployees() {
             <TabsContent value="bulk" className="space-y-4 mt-4">
               <DialogDescription>
                 Importe uma lista de colaboradores via arquivo CSV. O arquivo deve conter as
-                colunas: <strong>Nome, Email, CPF, Credito_Saude, Credito_Farmacia</strong>.
+                colunas:{' '}
+                <strong>
+                  Nome, Email, CPF, Departamento, Matrícula, Cargo, Credito_Saude, Credito_Farmacia
+                </strong>
+                .
               </DialogDescription>
               <div className="grid w-full items-center gap-1.5">
                 <Label htmlFor="csv">Arquivo CSV</Label>
@@ -630,6 +697,20 @@ export default function CompanyEmployees() {
             <DialogTitle>Editar Benefício: {selectedEmployee?.name}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 mt-4">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label>Departamento</Label>
+                <Input value={department} onChange={(e) => setDepartment(e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label>Matrícula</Label>
+                <Input value={matricula} onChange={(e) => setMatricula(e.target.value)} />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>Cargo</Label>
+              <Input value={jobTitle} onChange={(e) => setJobTitle(e.target.value)} />
+            </div>
             <div className="space-y-2">
               <Label>Crédito Saúde (R$)</Label>
               <Input

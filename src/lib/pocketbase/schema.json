@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-29T22:16:39.998Z",
+  "generatedAt": "2026-06-30T14:37:42.364Z",
   "collections": [
     {
       "name": "users",
@@ -133,13 +133,6 @@
           "type": "number",
           "required": false,
           "system": false
-        },
-        {
-          "name": "allowance_type",
-          "type": "select",
-          "required": false,
-          "system": false,
-          "selectValues": ["benefit", "payroll_deduction"]
         },
         {
           "name": "medication_allowance",
@@ -355,6 +348,87 @@
           "required": false,
           "system": false,
           "selectValues": ["active", "inactive", "vacation"]
+        },
+        {
+          "name": "rh_contact_name",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "rh_contact_phone",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "rh_contact_email",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "finance_contact_name",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "finance_contact_phone",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "finance_contact_email",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "department",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "matricula",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "job_title",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "company_status",
+          "type": "select",
+          "required": false,
+          "system": false,
+          "selectValues": ["active", "suspended", "pending_contract"]
+        },
+        {
+          "name": "credit_limit_type",
+          "type": "select",
+          "required": false,
+          "system": false,
+          "selectValues": ["fixed", "percentage"]
+        },
+        {
+          "name": "credit_limit_percentage",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "allowance_type",
+          "type": "select",
+          "required": false,
+          "system": false,
+          "selectValues": ["benefit", "payroll_deduction", "mixed"]
         }
       ],
       "indexes": [
