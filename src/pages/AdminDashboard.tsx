@@ -23,6 +23,7 @@ import {
   BadgeAlert,
   Bot,
   Download,
+  MapPin,
   TrendingUp,
   TrendingDown,
 } from 'lucide-react'
@@ -503,6 +504,25 @@ export default function AdminDashboard() {
                   <CardDescription className="text-sm">
                     Painel de gestão para farmácias, drogarias e laboratórios parceiros.
                   </CardDescription>{' '}
+                </CardHeader>
+              </Card>
+
+              {/* Rede Credenciada */}
+              <Card
+                className="group hover:border-primary/50 transition-all cursor-pointer hover:shadow-md"
+                onClick={() => navigate('/admin/network')}
+              >
+                <CardHeader>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="p-2.5 bg-indigo-500/10 rounded-xl text-indigo-600 group-hover:bg-indigo-500 group-hover:text-white transition-colors">
+                      <MapPin className="h-6 w-6" />
+                    </div>
+                    <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0" />
+                  </div>
+                  <CardTitle className="text-lg">Rede Credenciada</CardTitle>
+                  <CardDescription className="text-sm">
+                    Visão geográfica da rede de parceiros e relatório de repasses financeiros.
+                  </CardDescription>
                 </CardHeader>
               </Card>
 

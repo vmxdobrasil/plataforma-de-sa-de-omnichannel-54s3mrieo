@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-30T14:54:08.939Z",
+  "generatedAt": "2026-06-30T15:19:27.894Z",
   "collections": [
     {
       "name": "users",
@@ -429,6 +429,18 @@
           "required": false,
           "system": false,
           "selectValues": ["benefit", "payroll_deduction", "mixed"]
+        },
+        {
+          "name": "lat",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "lng",
+          "type": "number",
+          "required": false,
+          "system": false
         }
       ],
       "indexes": [
@@ -533,13 +545,6 @@
           "collectionRef": "insurance_partners"
         },
         {
-          "name": "classification",
-          "type": "select",
-          "required": false,
-          "system": false,
-          "selectValues": ["first_visit", "follow_up", "emergency", "telemedicine"]
-        },
-        {
           "name": "cancellation_reason",
           "type": "text",
           "required": false,
@@ -551,6 +556,13 @@
           "required": false,
           "system": false,
           "collectionRef": "users"
+        },
+        {
+          "name": "classification",
+          "type": "select",
+          "required": false,
+          "system": false,
+          "selectValues": ["first_visit", "follow_up", "emergency", "telemedicine", "exam"]
         }
       ],
       "indexes": [
@@ -859,18 +871,6 @@
           "autodateTriggers": ["onCreate", "onUpdate"]
         },
         {
-          "name": "category",
-          "type": "select",
-          "required": false,
-          "system": false,
-          "selectValues": [
-            "health_service",
-            "medication",
-            "preventive_service",
-            "emergency_service"
-          ]
-        },
-        {
           "name": "description",
           "type": "text",
           "required": false,
@@ -895,6 +895,19 @@
           "required": false,
           "system": false,
           "collectionRef": "users"
+        },
+        {
+          "name": "category",
+          "type": "select",
+          "required": false,
+          "system": false,
+          "selectValues": [
+            "health_service",
+            "medication",
+            "preventive_service",
+            "emergency_service",
+            "exam"
+          ]
         }
       ],
       "indexes": []

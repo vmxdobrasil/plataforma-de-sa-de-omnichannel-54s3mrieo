@@ -2,6 +2,7 @@ import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import {
   HeartPulse,
   Home,
+  MapPin,
   Search,
   Stethoscope,
   Activity,
@@ -111,6 +112,13 @@ const navItems = [
     masterOnly: true,
   },
   {
+    title: 'Rede Credenciada',
+    icon: MapPin,
+    url: '/admin/network',
+    roles: ['medical_director', 'admin'],
+    masterOnly: true,
+  },
+  {
     title: 'Agentes de IA',
     icon: Bot,
     url: '/admin/ai',
@@ -173,6 +181,8 @@ const navItems = [
     roles: ['medical_director', 'admin'],
   },
   { title: 'Meus Benefícios', icon: Wallet, url: '/benefits/statement', roles: ['patient'] },
+  { title: 'Onde Usar', icon: MapPin, url: '/partners', roles: ['patient'] },
+  { title: 'Meus Exames', icon: Folder, url: '/my-exams', roles: ['patient'] },
   { title: 'Meu Perfil de Saúde', icon: HeartPulse, url: '/health-profile', roles: ['patient'] },
   { title: 'Documentos', icon: Folder, url: '/documents', roles: ['patient', 'professional'] },
   {
@@ -201,6 +211,12 @@ const navItems = [
     icon: Settings,
     url: '/settings',
     roles: ['patient', 'professional', 'company', 'medical_director', 'admin'],
+  },
+  {
+    title: 'Registro de Vendas',
+    icon: ReceiptText,
+    url: '/pharmacy-sales',
+    roles: ['pharmacy', 'laboratory'],
   },
 ]
 

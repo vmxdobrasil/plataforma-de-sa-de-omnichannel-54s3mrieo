@@ -204,6 +204,7 @@ export function AppointmentBookingDialog({ open, onOpenChange, onSuccess }: Prop
                 <SelectItem value="follow_up">Retorno</SelectItem>
                 <SelectItem value="emergency">Emergência</SelectItem>
                 <SelectItem value="telemedicine">Telemedicina</SelectItem>
+                <SelectItem value="exam">Exame</SelectItem>
               </SelectContent>
             </Select>
           </div>

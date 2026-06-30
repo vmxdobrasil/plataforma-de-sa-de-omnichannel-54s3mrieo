@@ -56,6 +56,10 @@ import Academy from './pages/dashboard/Academy'
 import AgentsHub from './pages/dashboard/AgentsHub'
 import AgencyDashboard from './pages/dashboard/AgencyDashboard'
 import Pharmacy from './pages/Pharmacy'
+import AdminNetwork from './pages/AdminNetwork'
+import PartnerDirectory from './pages/PartnerDirectory'
+import MyExams from './pages/MyExams'
+import PharmacySales from './pages/PharmacySales'
 
 const EntryPoint = () => {
   const { user, loading } = useAuth()
@@ -175,6 +179,9 @@ const AppRoutes = () => {
             <Route path="/professional/schedule" element={<ProfessionalSchedule />} />
             <Route path="/health-profile" element={<HealthProfile />} />
             <Route path="/pharmacy" element={<Pharmacy />} />
+            <Route path="/partners" element={<PartnerDirectory />} />
+            <Route path="/my-exams" element={<MyExams />} />
+            <Route path="/pharmacy-sales" element={<PharmacySales />} />
 
             <Route element={<CompanyOutlet />}>
               <Route path="/company/dashboard" element={<CompanyDashboard />} />
@@ -200,6 +207,7 @@ const AppRoutes = () => {
               <Route path="/admin/companies" element={<AdminCompanies />} />
               <Route path="/admin/ai" element={<AdminAI />} />
               <Route path="/admin/transactions" element={<AdminTransactions />} />
+              <Route path="/admin/network" element={<AdminNetwork />} />
               <Route path="/admin/professionals" element={<AdminProfessionals />} />
             </Route>
             <Route path="/telemedicine/:id" element={<TelemedicineRoom />} />

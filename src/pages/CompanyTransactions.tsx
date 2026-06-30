@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { ReceiptText, Briefcase, Pill, ArrowLeft } from 'lucide-react'
+import { ReceiptText, Briefcase, Pill, ArrowLeft, Stethoscope } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -76,6 +76,10 @@ export default function CompanyTransactions() {
     .filter((t) => t.category === 'medication')
     .reduce((acc, t) => acc + t.amount, 0)
 
+  const totalSpentExams = currentMonthTransactions
+    .filter((t) => t.category === 'exam')
+    .reduce((acc, t) => acc + t.amount, 0)
+
   return (
     <div className="space-y-6 pb-10 animate-fade-in-up">
       <div className="flex items-center gap-4">
@@ -89,7 +93,7 @@ export default function CompanyTransactions() {
         </div>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-4">
+      <div className="grid md:grid-cols-3 gap-4">
         <Card className="bg-purple-50 border-purple-200">
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-4">
@@ -117,6 +121,22 @@ export default function CompanyTransactions() {
             <div className="flex items-end gap-2 mb-1">
               <span className="text-3xl font-bold text-teal-900">
                 R$ {totalSpentMeds.toFixed(2)}
+              </span>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-blue-50 border-blue-200">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2 text-blue-800">
+                <Stethoscope className="h-5 w-5" />
+                <span className="font-semibold">Uso Exames (Mês Atual)</span>
+              </div>
+            </div>
+            <div className="flex items-end gap-2 mb-1">
+              <span className="text-3xl font-bold text-blue-900">
+                R$ {totalSpentExams.toFixed(2)}
               </span>
             </div>
           </CardContent>
