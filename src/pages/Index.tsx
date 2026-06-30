@@ -302,10 +302,10 @@ export default function Index() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           <div>
             <h1 className="text-3xl md:text-4xl font-bold mb-2">
-              Bom dia, {user?.name?.split(' ')[0]}! 👋
+              Olá, {user?.name?.split(' ')[0]}! 👋
             </h1>
             <p className="text-muted-foreground text-lg">
-              Sua saúde está em dia. Como você está se sentindo hoje?
+              Sua saúde em primeiro lugar. Como podemos ajudar hoje?
             </p>
           </div>
           {user?.role === 'patient' && (
@@ -313,17 +313,17 @@ export default function Index() {
           )}
         </div>
 
-        <Card className="bg-gradient-to-r from-primary/10 to-secondary/10 border-none shadow-sm">
+        <Card className="ds-gradient-header border-none shadow-md rounded-2xl">
           <CardContent className="p-6">
             <div className="relative max-w-2xl mx-auto">
-              <Sparkles className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-primary" />
+              <Sparkles className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-brandAccent" />
               <Input
                 placeholder="Ex: Quero melhorar meu sorriso, Dor nas costas..."
-                className="pl-12 pr-24 h-14 text-lg rounded-full bg-background shadow-sm border-primary/20 focus-visible:ring-primary/50"
+                className="pl-12 pr-24 h-14 text-lg rounded-full bg-white/90 shadow-sm border-white/30 focus-visible:ring-white/50 text-foreground"
                 onKeyDown={(e) => e.key === 'Enter' && navigate('/search')}
               />
               <Button
-                className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full px-6"
+                className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full px-6 bg-cta hover:bg-cta/90 text-white border-0"
                 onClick={() => navigate('/search')}
               >
                 Buscar

@@ -180,19 +180,21 @@ export default function Login() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-muted/50 to-muted/10 p-4 sm:p-8">
       <div className="w-full max-w-md flex flex-col items-center text-center mb-6 animate-fade-in-up">
-        <div className="bg-white p-4 sm:p-6 rounded-3xl shadow-sm mb-6 border border-primary/10">
+        <div className="bg-white p-4 sm:p-6 rounded-3xl shadow-md mb-6 border border-primary/10">
           <img
             src={logoUrl}
-            alt="V MED BRASIL Logo"
+            alt="V MED Brasil Logo"
             className="w-auto h-20 sm:h-24 object-contain transition-transform duration-500 hover:scale-105"
           />
         </div>
-        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground mb-3">
-          Boas-vindas à <span className="text-primary">V MED BRASIL</span>
-        </h1>
-        <p className="text-muted-foreground text-sm sm:text-base max-w-sm">
-          Sua plataforma integrada de saúde, cuidado contínuo e gestão de tratamentos.
-        </p>
+        <div className="ds-gradient-header w-full p-6 rounded-2xl shadow-md">
+          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-white mb-3">
+            Boas-vindas à <span className="text-brandAccent">V MED Brasil</span>
+          </h1>
+          <p className="text-white/80 text-sm sm:text-base max-w-sm mx-auto">
+            Sua plataforma integrada de saúde, cuidado contínuo e gestão de tratamentos.
+          </p>
+        </div>
       </div>
 
       {!isConnected && (

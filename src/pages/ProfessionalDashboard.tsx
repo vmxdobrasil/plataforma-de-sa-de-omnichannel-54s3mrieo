@@ -453,13 +453,13 @@ export default function ProfessionalDashboard() {
                         ? 'border-emerald-600'
                         : apt.type === 'Online'
                           ? 'border-blue-500'
-                          : 'border-orange-500'
+                          : 'border-amber-500'
                     const typeTextColor =
                       apt.type === 'Presencial'
                         ? 'text-emerald-600'
                         : apt.type === 'Online'
                           ? 'text-blue-500'
-                          : 'text-orange-500'
+                          : 'text-amber-600'
                     return (
                       <div
                         key={apt.id}

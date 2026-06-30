@@ -152,7 +152,7 @@ export default function B2CLanding() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-muted/30 flex flex-col">
       <header className="p-6 text-center">
-        <h1 className="text-2xl font-bold ds-gradient-text">V MED BRASIL</h1>
+        <h1 className="text-2xl font-bold ds-gradient-text">V MED Brasil</h1>
         <p className="text-sm text-muted-foreground mt-1">
           Saúde e bem-estar para você e sua família
         </p>
@@ -425,7 +425,7 @@ export default function B2CLanding() {
           )}
         </div>
       </div>
-      <footer className="p-4 text-center text-xs text-muted-foreground">V MED BRASIL © 2026</footer>
+      <footer className="p-4 text-center text-xs text-muted-foreground">V MED Brasil © 2026</footer>
     </div>
   )
 }

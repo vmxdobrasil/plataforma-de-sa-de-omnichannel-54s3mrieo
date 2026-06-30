@@ -84,10 +84,10 @@ export default function CompanyDashboard() {
       </div>
 
       <div className="grid md:grid-cols-3 gap-6">
-        <Card className="ds-card ds-card-hover bg-primary/5 border-primary/20 p-2">
+        <Card className="ds-card ds-card-hover bg-primary/5 border-primary/20 p-2 rounded-2xl">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-              Saldo Saúde
+              Saldo Disponível
             </CardTitle>
             <div className="p-2 bg-primary/10 rounded-full">
               <Wallet className="h-5 w-5 text-primary" />
@@ -100,7 +100,7 @@ export default function CompanyDashboard() {
             <p className="text-xs text-muted-foreground mt-2">Crédito mensal por funcionário</p>
           </CardContent>
         </Card>
-        <Card className="ds-card ds-card-hover bg-primary/5 border-primary/20 p-2">
+        <Card className="ds-card ds-card-hover bg-primary/5 border-primary/20 p-2 rounded-2xl">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
               Saldo Farmácia
@@ -116,7 +116,7 @@ export default function CompanyDashboard() {
             <p className="text-xs text-muted-foreground mt-2">Crédito farmácia por funcionário</p>
           </CardContent>
         </Card>
-        <Card className="ds-card ds-card-hover bg-orange-50 border-orange-200 p-2">
+        <Card className="ds-card ds-card-hover bg-orange-50 border-orange-200 p-2 rounded-2xl">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
               Uso do Mês

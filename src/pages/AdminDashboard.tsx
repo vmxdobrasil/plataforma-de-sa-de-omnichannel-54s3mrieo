@@ -191,21 +191,14 @@ export default function AdminDashboard() {
         icon={<Shield className="h-8 w-8" />}
         rightContent={
           <div className="flex flex-col gap-2">
-            <Badge
-              variant="secondary"
-              className="bg-primary/10 text-primary border-primary/20 w-fit"
-            >
+            <Badge variant="secondary" className="bg-white/20 text-white border-white/30 w-fit">
               Gestor Master: Valter Paula Mendonça
             </Badge>
-            <Badge
-              variant="secondary"
-              className="bg-primary/10 text-primary border-primary/20 w-fit"
-            >
+            <Badge variant="secondary" className="bg-white/20 text-white border-white/30 w-fit">
               Gestor Master: Victor Hugo Tavares Mendonça
             </Badge>
           </div>
         }
-        className="bg-primary/10 border-primary/30"
       />
 
       {isMasterAdmin && (

@@ -162,6 +162,75 @@
   .ds-tap-target {
     min-height: 3rem;
   }
+  .ds-gradient-header {
+    background: var(--brand-gradient);
+    color: hsl(0 0% 100%);
+    border-radius: 1rem;
+  }
+  .ds-input-outlined {
+    border: 2px solid hsl(var(--input));
+    border-radius: 0.75rem;
+    background-color: hsl(var(--background));
+    padding: 0.625rem 1rem;
+    font-size: 0.875rem;
+    transition:
+      border-color 200ms ease,
+      box-shadow 200ms ease;
+    width: 100%;
+  }
+  .ds-input-outlined:focus {
+    border-color: hsl(var(--primary));
+    box-shadow: 0 0 0 3px hsl(var(--primary) / 0.1);
+    outline: none;
+  }
+  .ds-feedback-success {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background-color: hsl(159 73% 29% / 0.08);
+    color: hsl(159 73% 25%);
+    border: 1px solid hsl(159 73% 29% / 0.2);
+    border-radius: 9999px;
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+  }
+  .ds-feedback-error {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background-color: hsl(0 84% 60% / 0.08);
+    color: hsl(0 84% 45%);
+    border: 1px solid hsl(0 84% 60% / 0.2);
+    border-radius: 9999px;
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+  }
+  .ds-badge-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    border-radius: 9999px;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+  .ds-badge-status-active {
+    background-color: hsl(159 73% 29% / 0.1);
+    color: hsl(159 73% 29%);
+    border: 1px solid hsl(159 73% 29% / 0.2);
+  }
+  .ds-badge-status-pending {
+    background-color: hsl(41 93% 57% / 0.1);
+    color: hsl(41 93% 45%);
+    border: 1px solid hsl(41 93% 57% / 0.2);
+  }
+  .ds-badge-status-inactive {
+    background-color: hsl(0 84% 60% / 0.08);
+    color: hsl(0 84% 50%);
+    border: 1px solid hsl(0 84% 60% / 0.2);
+  }
 }
 
 @layer utilities {

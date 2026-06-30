@@ -24,7 +24,16 @@ export function AdminHeader({
   const [loading, setLoading] = useState(true)
 
   const fetchLogo = async () => {
-    setLogoUrl(defaultLogo)
+    try {
+      const settings = await pb.collection('system_settings').getFirstListItem('')
+      if (settings.logo) {
+        setLogoUrl(pb.files.getURL(settings, settings.logo))
+      } else {
+        setLogoUrl(defaultLogo)
+      }
+    } catch {
+      setLogoUrl(defaultLogo)
+    }
     setLoading(false)
   }
 
@@ -32,46 +41,44 @@ export function AdminHeader({
     fetchLogo()
   }, [])
 
+  useRealtime('system_settings', () => {
+    fetchLogo()
+  })
+
   return (
     <div
       className={cn(
-        'flex flex-col lg:flex-row lg:items-center justify-between gap-6 bg-background/90 backdrop-blur-md border border-primary/20 rounded-xl p-6 shadow-sm mb-6',
+        'flex flex-col lg:flex-row lg:items-center justify-between gap-6 ds-gradient-header border-none rounded-2xl p-6 shadow-md mb-6',
         className,
       )}
     >
       <div className="flex flex-col sm:flex-row sm:items-center gap-6">
         {loading ? (
-          <Skeleton className="h-16 w-32 shrink-0" />
-        ) : logoUrl ? (
-          <div className="shrink-0 bg-white/90 dark:bg-white p-2 rounded-lg shadow-sm w-fit flex items-center justify-center">
-            <img
-              src={logoUrl}
-              alt="Logo VMed"
-              className="h-14 w-auto max-w-[200px] object-contain mix-blend-multiply dark:mix-blend-normal"
-            />
-          </div>
+          <Skeleton className="h-16 w-32 shrink-0 bg-white/20" />
         ) : (
-          <div className="shrink-0 bg-white/90 dark:bg-white p-2 rounded-lg shadow-sm w-fit flex items-center justify-center">
+          <div className="shrink-0 bg-white p-2 rounded-lg shadow-sm w-fit flex items-center justify-center">
             <img
-              src={defaultLogo}
-              alt="Logo VMed"
-              className="h-14 w-auto max-w-[200px] object-contain mix-blend-multiply dark:mix-blend-normal"
+              src={logoUrl || defaultLogo}
+              alt="Logo V MED Brasil"
+              className="h-14 w-auto max-w-[200px] object-contain"
             />
           </div>
         )}
         <div>
-          <div className="text-[10px] sm:text-xs font-bold text-primary uppercase tracking-widest mb-1 sm:mb-2">
-            Vmx do Brasil Administradora de Cartões e Benefícios Ltda
+          <div className="text-[10px] sm:text-xs font-bold text-white/80 uppercase tracking-widest mb-1 sm:mb-2">
+            V MED Brasil — Administradora de Cartões e Benefícios Ltda
           </div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight flex items-center gap-2">
-            {icon && <span className="text-primary">{icon}</span>}
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight flex items-center gap-2 text-white">
+            {icon && <span className="text-brandAccent">{icon}</span>}
             {title}
           </h1>
-          <p className="text-muted-foreground mt-1 max-w-2xl">{description}</p>
+          <p className="text-white/70 mt-1 max-w-2xl">{description}</p>
         </div>
       </div>
       {rightContent && (
-        <div className="flex items-center shrink-0 w-full lg:w-auto">{rightContent}</div>
+        <div className="flex items-center shrink-0 w-full lg:w-auto bg-white/10 backdrop-blur-sm rounded-lg p-3">
+          {rightContent}
+        </div>
       )}
     </div>
   )

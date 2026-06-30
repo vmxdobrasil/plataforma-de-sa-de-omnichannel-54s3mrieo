@@ -427,6 +427,7 @@ export default function Layout() {
         </Sidebar>
 
         <div className="flex-1 flex flex-col overflow-hidden">
+          <div className="h-1 bg-brand-gradient w-full shrink-0" />
           <header className="h-20 sm:h-24 border-b flex items-center justify-between px-4 sm:px-6 bg-card sticky top-0 z-30">
             <div className="flex items-center gap-2 sm:gap-4 flex-1">
               <SidebarTrigger />
