@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { ReceiptText, Briefcase, Pill, ArrowLeft, Stethoscope } from 'lucide-react'
+import { ReceiptText, Briefcase, Pill, ArrowLeft, Stethoscope, FileText } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -20,12 +20,14 @@ import {
 import { useAuth } from '@/hooks/use-auth'
 import { useRealtime } from '@/hooks/use-realtime'
 import { getCompanyTransactions } from '@/services/companies'
+import { getInvoices } from '@/services/invoices'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 
 export default function CompanyTransactions() {
   const { user } = useAuth()
   const [transactions, setTransactions] = useState<any[]>([])
+  const [invoices, setInvoices] = useState<any[]>([])
   const [categoryFilter, setCategoryFilter] = useState<string>('all')
   const [typeFilter, setTypeFilter] = useState<string>('all')
   const [loading, setLoading] = useState(true)
@@ -33,8 +35,12 @@ export default function CompanyTransactions() {
   const loadData = async () => {
     if (!user?.id) return
     try {
-      const data = await getCompanyTransactions(user.id)
+      const [data, invRes] = await Promise.all([
+        getCompanyTransactions(user.id),
+        getInvoices(user.id),
+      ])
       setTransactions(data)
+      setInvoices(invRes.items)
     } catch (e) {
       console.error(e)
     } finally {
@@ -79,6 +85,10 @@ export default function CompanyTransactions() {
   const totalSpentExams = currentMonthTransactions
     .filter((t) => t.category === 'exam')
     .reduce((acc, t) => acc + t.amount, 0)
+
+  const openInvoicesTotal = invoices
+    .filter((inv) => inv.status === 'open' || inv.status === 'overdue')
+    .reduce((acc, inv) => acc + (inv.total_amount || 0), 0)
 
   return (
     <div className="space-y-6 pb-10 animate-fade-in-up">
@@ -142,6 +152,57 @@ export default function CompanyTransactions() {
           </CardContent>
         </Card>
       </div>
+
+      {invoices.length > 0 && (
+        <Card className="border-amber-200 bg-amber-50">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2 text-amber-800">
+                <FileText className="h-5 w-5" />
+                <span className="font-semibold">Faturas em Aberto</span>
+              </div>
+            </div>
+            <div className="flex items-end gap-2 mb-3">
+              <span className="text-3xl font-bold text-amber-900">
+                R$ {openInvoicesTotal.toFixed(2)}
+              </span>
+              <span className="text-sm text-amber-700 mb-1">saldo devedor</span>
+            </div>
+            <div className="space-y-2">
+              {invoices.map((inv) => (
+                <div
+                  key={inv.id}
+                  className="flex items-center justify-between text-sm border-t border-amber-200 pt-2"
+                >
+                  <span className="text-amber-800">
+                    {inv.billing_period_start} a {inv.billing_period_end}
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold text-amber-900">
+                      R$ {(inv.total_amount || 0).toFixed(2)}
+                    </span>
+                    <Badge
+                      variant={
+                        inv.status === 'paid'
+                          ? 'default'
+                          : inv.status === 'overdue'
+                            ? 'destructive'
+                            : 'secondary'
+                      }
+                    >
+                      {inv.status === 'paid'
+                        ? 'Paga'
+                        : inv.status === 'overdue'
+                          ? 'Vencida'
+                          : 'Em Aberto'}
+                    </Badge>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <Card className="border-border/50 shadow-sm overflow-hidden">
         <CardHeader className="pb-4 border-b bg-muted/20 flex flex-col md:flex-row md:items-center justify-between gap-4">

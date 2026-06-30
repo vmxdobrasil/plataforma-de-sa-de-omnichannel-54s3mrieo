@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-30T15:54:49.358Z",
+  "generatedAt": "2026-06-30T17:00:49.223Z",
   "collections": [
     {
       "name": "users",
@@ -1810,13 +1810,6 @@
           "system": false
         },
         {
-          "name": "reason",
-          "type": "select",
-          "required": true,
-          "system": false,
-          "selectValues": ["signup", "dependent", "referral"]
-        },
-        {
           "name": "related_appointment_id",
           "type": "relation",
           "required": false,
@@ -1836,6 +1829,13 @@
           "required": false,
           "system": false,
           "autodateTriggers": ["onCreate", "onUpdate"]
+        },
+        {
+          "name": "reason",
+          "type": "select",
+          "required": true,
+          "system": false,
+          "selectValues": ["signup", "dependent", "referral", "cashback", "points_redemption"]
         }
       ],
       "indexes": []
@@ -1878,6 +1878,255 @@
         {
           "name": "referral_code",
           "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate"]
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate", "onUpdate"]
+        }
+      ],
+      "indexes": []
+    },
+    {
+      "name": "configuracoes_split",
+      "type": "base",
+      "apiRules": {
+        "list": "@request.auth.role = 'medical_director' || @request.auth.role = 'admin'",
+        "view": "@request.auth.role = 'medical_director' || @request.auth.role = 'admin'",
+        "create": "@request.auth.role = 'medical_director' || @request.auth.role = 'admin'",
+        "update": "@request.auth.role = 'medical_director' || @request.auth.role = 'admin'",
+        "delete": null
+      },
+      "fields": [
+        {
+          "name": "default_commission",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "consultation_percentage",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "exam_percentage",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "pharmacy_percentage",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "is_active",
+          "type": "bool",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate"]
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate", "onUpdate"]
+        }
+      ],
+      "indexes": []
+    },
+    {
+      "name": "faturas_empresas",
+      "type": "base",
+      "apiRules": {
+        "list": "@request.auth.id != '' && (company_id = @request.auth.id || @request.auth.role = 'medical_director' || @request.auth.role = 'admin')",
+        "view": "@request.auth.id != '' && (company_id = @request.auth.id || @request.auth.role = 'medical_director' || @request.auth.role = 'admin')",
+        "create": "@request.auth.role = 'medical_director' || @request.auth.role = 'admin'",
+        "update": "@request.auth.role = 'medical_director' || @request.auth.role = 'admin'",
+        "delete": null
+      },
+      "fields": [
+        {
+          "name": "company_id",
+          "type": "relation",
+          "required": true,
+          "system": false,
+          "collectionRef": "users"
+        },
+        {
+          "name": "billing_period_start",
+          "type": "date",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "billing_period_end",
+          "type": "date",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "total_amount",
+          "type": "number",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "status",
+          "type": "select",
+          "required": true,
+          "system": false,
+          "selectValues": ["open", "paid", "overdue"]
+        },
+        {
+          "name": "file",
+          "type": "file",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate"]
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate", "onUpdate"]
+        }
+      ],
+      "indexes": []
+    },
+    {
+      "name": "regras_cashback",
+      "type": "base",
+      "apiRules": {
+        "list": "@request.auth.id != ''",
+        "view": "@request.auth.id != ''",
+        "create": "@request.auth.role = 'medical_director' || @request.auth.role = 'admin'",
+        "update": "@request.auth.role = 'medical_director' || @request.auth.role = 'admin'",
+        "delete": null
+      },
+      "fields": [
+        {
+          "name": "category",
+          "type": "select",
+          "required": true,
+          "system": false,
+          "selectValues": [
+            "health_service",
+            "medication",
+            "preventive_service",
+            "emergency_service",
+            "exam"
+          ]
+        },
+        {
+          "name": "percentage",
+          "type": "number",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "is_active",
+          "type": "bool",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate"]
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate", "onUpdate"]
+        }
+      ],
+      "indexes": []
+    },
+    {
+      "name": "log_transacoes_asaas",
+      "type": "base",
+      "apiRules": {
+        "list": "@request.auth.role = 'medical_director' || @request.auth.role = 'admin'",
+        "view": "@request.auth.role = 'medical_director' || @request.auth.role = 'admin'",
+        "create": "@request.auth.id != ''",
+        "update": null,
+        "delete": null
+      },
+      "fields": [
+        {
+          "name": "asaas_id",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "appointment_id",
+          "type": "relation",
+          "required": false,
+          "system": false,
+          "collectionRef": "appointments"
+        },
+        {
+          "name": "benefit_transaction_id",
+          "type": "relation",
+          "required": false,
+          "system": false,
+          "collectionRef": "benefit_transactions"
+        },
+        {
+          "name": "amount",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "split_amount",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "status",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "metadata",
+          "type": "json",
           "required": false,
           "system": false
         },

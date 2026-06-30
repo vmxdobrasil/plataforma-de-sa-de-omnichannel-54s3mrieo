@@ -40,6 +40,7 @@ import {
 import { useAuth } from '@/hooks/use-auth'
 import { useRealtime } from '@/hooks/use-realtime'
 import { getEmployeeTransactions } from '@/services/benefit_transactions'
+import { CashbackHistory } from '@/components/CashbackHistory'
 import pb from '@/lib/pocketbase/client'
 import { format } from 'date-fns'
 
@@ -278,6 +279,8 @@ export default function BenefitStatement() {
           </div>
         )
       )}
+
+      <CashbackHistory />
 
       <Dialog open={isAmountDialogOpen} onOpenChange={setIsAmountDialogOpen}>
         <DialogContent>

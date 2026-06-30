@@ -133,6 +133,20 @@ const navItems = [
     masterOnly: true,
   },
   {
+    title: 'Inteligência Financeira',
+    icon: TrendingUp,
+    url: '/admin/financial',
+    roles: ['medical_director', 'admin'],
+    masterOnly: true,
+  },
+  {
+    title: 'Faturamento B2B',
+    icon: ReceiptText,
+    url: '/admin/invoices',
+    roles: ['medical_director', 'admin'],
+    masterOnly: true,
+  },
+  {
     title: 'Parceiros de Seguro',
     icon: Building2,
     url: '/admin/insurance',

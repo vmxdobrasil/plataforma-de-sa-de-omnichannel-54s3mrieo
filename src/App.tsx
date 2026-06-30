@@ -49,6 +49,8 @@ import AdminAI from './pages/AdminAI'
 import AdminTransactions from './pages/AdminTransactions'
 import AdminProfessionals from './pages/AdminProfessionals'
 import AdminCompanies from './pages/AdminCompanies'
+import AdminFinancialDashboard from './pages/AdminFinancialDashboard'
+import AdminInvoices from './pages/AdminInvoices'
 import SocialAI from './pages/SocialAI'
 import Marketplace from './pages/dashboard/Marketplace'
 import BrandKit from './pages/dashboard/BrandKit'
@@ -209,6 +211,8 @@ const AppRoutes = () => {
               <Route path="/admin/transactions" element={<AdminTransactions />} />
               <Route path="/admin/network" element={<AdminNetwork />} />
               <Route path="/admin/professionals" element={<AdminProfessionals />} />
+              <Route path="/admin/financial" element={<AdminFinancialDashboard />} />
+              <Route path="/admin/invoices" element={<AdminInvoices />} />
             </Route>
             <Route path="/telemedicine/:id" element={<TelemedicineRoom />} />
             <Route path="/dashboard/social-ai" element={<SocialAI />} />

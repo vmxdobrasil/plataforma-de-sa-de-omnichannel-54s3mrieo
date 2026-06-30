@@ -526,6 +526,45 @@ export default function AdminDashboard() {
                 </CardHeader>
               </Card>
 
+              {/* Inteligência Financeira */}
+              <Card
+                className="group hover:border-primary/50 transition-all cursor-pointer hover:shadow-md border-emerald-500/20 bg-emerald-500/5"
+                onClick={() => navigate('/admin/financial')}
+              >
+                <CardHeader>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="p-2.5 bg-emerald-500/10 rounded-xl text-emerald-600 group-hover:bg-emerald-500 group-hover:text-white transition-colors">
+                      <TrendingUp className="h-6 w-6" />
+                    </div>
+                    <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0" />
+                  </div>
+                  <CardTitle className="text-lg">Inteligência Financeira</CardTitle>
+                  <CardDescription className="text-sm">
+                    Dashboard de receita, repasses Asaas, performance por vertical e ranking de
+                    provedores.
+                  </CardDescription>
+                </CardHeader>
+              </Card>
+
+              {/* Faturamento B2B */}
+              <Card
+                className="group hover:border-primary/50 transition-all cursor-pointer hover:shadow-md"
+                onClick={() => navigate('/admin/invoices')}
+              >
+                <CardHeader>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="p-2.5 bg-cyan-500/10 rounded-xl text-cyan-600 group-hover:bg-cyan-500 group-hover:text-white transition-colors">
+                      <ReceiptText className="h-6 w-6" />
+                    </div>
+                    <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0" />
+                  </div>
+                  <CardTitle className="text-lg">Faturamento B2B</CardTitle>
+                  <CardDescription className="text-sm">
+                    Geração de faturas mensais para empresas parceiras e controle de pagamentos.
+                  </CardDescription>
+                </CardHeader>
+              </Card>
+
               {/* Especialidades */}
               <Card
                 className="group hover:border-primary/50 transition-all cursor-pointer hover:shadow-md"
