@@ -447,54 +447,70 @@ export default function ProfessionalDashboard() {
               </CardHeader>
               <CardContent className="px-0 flex-1 overflow-y-auto">
                 <div className="divide-y">
-                  {appointments.map((apt) => (
-                    <div
-                      key={apt.id}
-                      onClick={() => handleStartConsultation(apt)}
-                      className={`p-4 flex flex-col gap-2 hover:bg-muted/50 transition-colors cursor-pointer ${activeAppt?.id === apt.id ? 'bg-muted/80 border-l-4 border-primary' : ''}`}
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className="text-center font-medium w-12 text-sm">
-                          {format(new Date(apt.dateTime), 'HH:mm')}
+                  {appointments.map((apt) => {
+                    const typeColor =
+                      apt.type === 'Presencial'
+                        ? 'border-emerald-600'
+                        : apt.type === 'Online'
+                          ? 'border-blue-500'
+                          : 'border-orange-500'
+                    const typeTextColor =
+                      apt.type === 'Presencial'
+                        ? 'text-emerald-600'
+                        : apt.type === 'Online'
+                          ? 'text-blue-500'
+                          : 'text-orange-500'
+                    return (
+                      <div
+                        key={apt.id}
+                        onClick={() => handleStartConsultation(apt)}
+                        className={`p-4 flex flex-col gap-2 hover:bg-muted/50 transition-all cursor-pointer border-l-4 ${typeColor} ${activeAppt?.id === apt.id ? 'bg-muted/80 ring-2 ring-primary/20' : ''}`}
+                      >
+                        <div className="flex items-center gap-4">
+                          <div className="text-center font-medium w-12 text-sm">
+                            {format(new Date(apt.dateTime), 'HH:mm')}
+                          </div>
+                          <Avatar className="h-10 w-10 border">
+                            <AvatarImage
+                              src={
+                                apt.expand?.patient_id?.avatar
+                                  ? pb.files.getURL(
+                                      { id: apt.expand?.patient_id?.id, collectionId: 'users' },
+                                      apt.expand?.patient_id?.avatar,
+                                    )
+                                  : `https://api.dicebear.com/7.x/notionists/svg?seed=${apt.expand?.patient_id?.name}`
+                              }
+                            />
+                            <AvatarFallback>{apt.expand?.patient_id?.name?.[0]}</AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1 overflow-hidden">
+                            <p className="font-semibold text-sm truncate">
+                              {apt.expand?.patient_id?.name}
+                            </p>
+                            <p className={`text-xs font-medium truncate ${typeTextColor}`}>
+                              {apt.type}
+                            </p>
+                          </div>
                         </div>
-                        <Avatar className="h-10 w-10 border">
-                          <AvatarImage
-                            src={
-                              apt.expand?.patient_id?.avatar
-                                ? pb.files.getURL(
-                                    { id: apt.expand?.patient_id?.id, collectionId: 'users' },
-                                    apt.expand?.patient_id?.avatar,
-                                  )
-                                : `https://api.dicebear.com/7.x/notionists/svg?seed=${apt.expand?.patient_id?.name}`
-                            }
-                          />
-                          <AvatarFallback>{apt.expand?.patient_id?.name?.[0]}</AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1 overflow-hidden">
-                          <p className="font-semibold text-sm truncate">
-                            {apt.expand?.patient_id?.name}
-                          </p>
-                          <p className="text-xs text-muted-foreground truncate">{apt.type}</p>
-                        </div>
+                        {apt.status === 'checked_in' && (
+                          <Badge
+                            variant="secondary"
+                            className="bg-amber-100 text-amber-700 self-end w-fit text-[10px]"
+                          >
+                            <CheckCircle2 className="h-3 w-3 mr-1" /> Check-in Feito
+                          </Badge>
+                        )}
+                        {apt.status === 'completed' && (
+                          <Badge
+                            variant="outline"
+                            className="self-end w-fit text-[10px] text-muted-foreground"
+                          >
+                            Finalizado
+                          </Badge>
+                        )}
                       </div>
-                      {apt.status === 'checked_in' && (
-                        <Badge
-                          variant="secondary"
-                          className="bg-amber-100 text-amber-700 self-end w-fit text-[10px]"
-                        >
-                          <CheckCircle2 className="h-3 w-3 mr-1" /> Check-in Feito
-                        </Badge>
-                      )}
-                      {apt.status === 'completed' && (
-                        <Badge
-                          variant="outline"
-                          className="self-end w-fit text-[10px] text-muted-foreground"
-                        >
-                          Finalizado
-                        </Badge>
-                      )}
-                    </div>
-                  ))}
+                    )
+                  })}
                   {appointments.length === 0 && (
                     <p className="p-4 text-center text-sm text-muted-foreground">
                       Nenhuma consulta agendada.

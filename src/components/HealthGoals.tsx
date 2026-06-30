@@ -52,16 +52,16 @@ export function HealthGoals({ patientId }: { patientId: string }) {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+        <div className="bg-brandAccent/10 border border-brandAccent/30 rounded-2xl p-4">
           <div className="flex justify-between items-center mb-2">
-            <span className="font-semibold text-yellow-800">Pontos Ganhos: {completedPoints}</span>
-            <Trophy className="h-5 w-5 text-yellow-600" />
+            <span className="font-semibold text-brandAccent">Pontos Ganhos: {completedPoints}</span>
+            <Trophy className="h-5 w-5 text-brandAccent" />
           </div>
           <Progress
             value={Math.min((completedPoints / 500) * 100, 100)}
-            className="h-2 bg-yellow-200 [&>div]:bg-yellow-500"
+            className="h-3 bg-muted [&>div]:bg-gradient-to-r [&>div]:from-primary [&>div]:to-chart-2"
           />
-          <p className="text-xs text-yellow-700 mt-2">
+          <p className="text-xs text-muted-foreground mt-2">
             Complete 500 pontos para resgatar uma recompensa especial!
           </p>
         </div>
@@ -83,7 +83,7 @@ export function HealthGoals({ patientId }: { patientId: string }) {
                     <span className="font-semibold text-sm">{g.title}</span>
                     <Badge
                       variant="secondary"
-                      className="bg-yellow-100 text-yellow-700 text-[10px]"
+                      className="bg-brandAccent/20 text-brandAccent text-[10px]"
                     >
                       +{g.points_reward} pts
                     </Badge>
@@ -118,10 +118,7 @@ export function HealthGoals({ patientId }: { patientId: string }) {
                 <div>
                   <span className="font-semibold text-sm line-through">{g.title}</span>
                 </div>
-                <Badge
-                  variant="outline"
-                  className="text-emerald-600 border-emerald-200 bg-emerald-50"
-                >
+                <Badge variant="outline" className="text-primary border-primary/30 bg-primary/5">
                   Concluído
                 </Badge>
               </div>

@@ -152,7 +152,7 @@ export default function B2CLanding() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-muted/30 flex flex-col">
       <header className="p-6 text-center">
-        <h1 className="text-2xl font-bold text-primary">V MED BRASIL</h1>
+        <h1 className="text-2xl font-bold ds-gradient-text">V MED BRASIL</h1>
         <p className="text-sm text-muted-foreground mt-1">
           Saúde e bem-estar para você e sua família
         </p>
@@ -182,7 +182,7 @@ export default function B2CLanding() {
                   setPlan('individual')
                   setStep(1)
                 }}
-                className="w-full p-6 border-2 rounded-2xl hover:border-primary transition-all text-left"
+                className="w-full p-6 border-2 rounded-2xl hover:border-primary hover:scale-[1.02] transition-all text-left"
               >
                 <HeartPulse className="h-8 w-8 text-primary mb-2" />
                 <h3 className="font-bold text-lg">Plano Individual</h3>
@@ -195,7 +195,7 @@ export default function B2CLanding() {
                   setPlan('family')
                   setStep(1)
                 }}
-                className="w-full p-6 border-2 rounded-2xl hover:border-primary transition-all text-left"
+                className="w-full p-6 border-2 rounded-2xl hover:border-primary hover:scale-[1.02] transition-all text-left"
               >
                 <Users className="h-8 w-8 text-primary mb-2" />
                 <h3 className="font-bold text-lg">Plano Família</h3>
@@ -266,11 +266,15 @@ export default function B2CLanding() {
                 </Label>
               </div>
               <div className="flex gap-2">
-                <Button variant="outline" onClick={() => setStep(0)}>
+                <Button
+                  variant="outline"
+                  className="rounded-full h-12 ds-tap-target"
+                  onClick={() => setStep(0)}
+                >
                   <ArrowLeft className="mr-2 h-4 w-4" /> Voltar
                 </Button>
                 <Button
-                  className="flex-1"
+                  className="flex-1 rounded-full h-12 ds-tap-target bg-cta hover:bg-cta/90 text-white"
                   onClick={() => setStep(plan === 'family' ? 2 : 3)}
                   disabled={!canNext}
                 >
@@ -344,15 +348,26 @@ export default function B2CLanding() {
                     </SelectContent>
                   </Select>
                 </div>
-                <Button variant="outline" className="w-full" onClick={addDependent}>
+                <Button
+                  variant="outline"
+                  className="w-full rounded-full h-12 ds-tap-target border-2 border-primary text-primary hover:bg-primary/5"
+                  onClick={addDependent}
+                >
                   <Plus className="mr-2 h-4 w-4" /> Adicionar
                 </Button>
               </div>
               <div className="flex gap-2">
-                <Button variant="outline" onClick={() => setStep(1)}>
+                <Button
+                  variant="outline"
+                  className="rounded-full h-12 ds-tap-target"
+                  onClick={() => setStep(1)}
+                >
                   <ArrowLeft className="mr-2 h-4 w-4" /> Voltar
                 </Button>
-                <Button className="flex-1" onClick={() => setStep(3)}>
+                <Button
+                  className="flex-1 rounded-full h-12 ds-tap-target bg-cta hover:bg-cta/90 text-white"
+                  onClick={() => setStep(3)}
+                >
                   Finalizar <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </div>
@@ -386,7 +401,11 @@ export default function B2CLanding() {
                   <Gift className="h-4 w-4" /> Cadastrado via indicação!
                 </p>
               )}
-              <Button className="w-full" onClick={handleSubmit} disabled={loading}>
+              <Button
+                className="w-full rounded-full h-12 ds-tap-target bg-cta hover:bg-cta/90 text-white"
+                onClick={handleSubmit}
+                disabled={loading}
+              >
                 {loading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Criando...
@@ -395,7 +414,11 @@ export default function B2CLanding() {
                   'Criar Conta Gratuita'
                 )}
               </Button>
-              <Button variant="ghost" onClick={() => setStep(plan === 'family' ? 2 : 1)}>
+              <Button
+                variant="ghost"
+                className="rounded-full h-12 ds-tap-target"
+                onClick={() => setStep(plan === 'family' ? 2 : 1)}
+              >
                 Voltar
               </Button>
             </div>

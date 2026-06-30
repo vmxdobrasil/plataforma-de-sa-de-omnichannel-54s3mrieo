@@ -39,6 +39,13 @@ export default {
           DEFAULT: 'hsl(var(--primary) / <alpha-value>)',
           foreground: 'hsl(var(--primary-foreground) / <alpha-value>)',
         },
+        cta: {
+          DEFAULT: 'hsl(var(--cta) / <alpha-value>)',
+          foreground: 'hsl(var(--cta-foreground) / <alpha-value>)',
+        },
+        brandAccent: {
+          DEFAULT: 'hsl(var(--brand-accent) / <alpha-value>)',
+        },
         secondary: {
           DEFAULT: 'hsl(var(--secondary) / <alpha-value>)',
           foreground: 'hsl(var(--secondary-foreground) / <alpha-value>)',
@@ -93,6 +100,11 @@ export default {
       boxShadow: {
         subtle: '0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.03)',
         elevation: '0 4px 20px rgba(0, 0, 0, 0.05)',
+        card: '0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -1px rgba(0, 0, 0, 0.04)',
+        'card-hover': '0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04)',
+      },
+      backgroundImage: {
+        'brand-gradient': 'linear-gradient(135deg, hsl(159 73% 29%), hsl(145 63% 49%))',
       },
     },
   },

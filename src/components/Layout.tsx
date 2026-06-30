@@ -352,7 +352,7 @@ export default function Layout() {
       <div className="min-h-screen flex w-full bg-background font-sans text-foreground">
         <Sidebar className="border-r border-border/50">
           <SidebarContent>
-            <div className="p-8 flex border-b">
+            <div className="p-8 flex border-b border-sidebar-border">
               <div className="flex flex-col gap-1 w-full">
                 <Link
                   to="/"
@@ -376,19 +376,20 @@ export default function Layout() {
                   )}
                 </Link>{' '}
                 {location.pathname.startsWith('/admin') && (
-                  <div className="text-xs font-bold text-primary tracking-widest mt-1">
+                  <div className="text-xs font-bold text-sidebar-primary tracking-widest mt-1">
                     VMX ADMIN
                   </div>
                 )}
                 {linkedCompany && (
-                  <div className="text-xs font-medium text-muted-foreground mt-2 border-t pt-2">
+                  <div className="text-xs font-medium text-sidebar-foreground/70 mt-2 border-t border-sidebar-border pt-2">
                     Vinculado a:{' '}
-                    <span className="text-primary font-bold">{linkedCompany.name}</span>
+                    <span className="text-sidebar-primary font-bold">{linkedCompany.name}</span>
                   </div>
                 )}
                 {(user?.role === 'pharmacy' || user?.role === 'laboratory') && (
-                  <div className="text-xs font-medium text-muted-foreground mt-2 border-t pt-2">
-                    Unidade: <span className="text-primary font-bold block">{user.name}</span>
+                  <div className="text-xs font-medium text-sidebar-foreground/70 mt-2 border-t border-sidebar-border pt-2">
+                    Unidade:{' '}
+                    <span className="text-sidebar-primary font-bold block">{user.name}</span>
                     {user.business_name && (
                       <span className="text-[10px] block opacity-80">{user.business_name}</span>
                     )}
@@ -599,7 +600,7 @@ export default function Layout() {
             </div>
           </header>
 
-          <main className="flex-1 overflow-auto p-6 max-w-7xl mx-auto w-full">
+          <main className="flex-1 overflow-auto p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full">
             <Outlet />
           </main>
         </div>

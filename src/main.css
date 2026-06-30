@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,52 +6,47 @@
 
 @layer base {
   :root {
-    /* V MED Green for Primary */
-    --primary: 144 75% 34%;
+    --primary: 159 73% 29%;
     --primary-foreground: 0 0% 100%;
+    --brand-accent: 41 93% 57%;
+    --cta: 33 100% 50%;
+    --cta-foreground: 0 0% 100%;
+    --brand-gradient: linear-gradient(135deg, hsl(159 73% 29%), hsl(145 63% 49%));
 
-    /* Soft-Pink-400 for Secondary */
     --secondary: 338 71% 73%;
     --secondary-foreground: 338 71% 15%;
 
-    --background: 0 0% 98%; /* Neutral-50 warm white */
+    --background: 0 0% 98%;
     --foreground: 222.2 84% 4.9%;
-
     --card: 0 0% 100%;
     --card-foreground: 222.2 84% 4.9%;
-
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
-
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
-
     --accent: 210 40% 96.1%;
     --accent-foreground: 222.2 84% 4.9%;
-
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
-
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 144 75% 34%;
-
+    --ring: 159 73% 29%;
     --radius: 0.75rem;
 
-    --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 222.2 84% 4.9%;
-    --sidebar-primary: 144 75% 34%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 210 40% 96.1%;
-    --sidebar-accent-foreground: 222.2 84% 4.9%;
-    --sidebar-border: 214.3 31.8% 91.4%;
-    --sidebar-ring: 144 75% 34%;
+    --sidebar-background: 160 60% 12%;
+    --sidebar-foreground: 160 10% 85%;
+    --sidebar-primary: 41 93% 57%;
+    --sidebar-primary-foreground: 160 60% 12%;
+    --sidebar-accent: 160 40% 18%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 160 30% 20%;
+    --sidebar-ring: 41 93% 57%;
 
-    --chart-1: 144 75% 34%;
-    --chart-2: 338 71% 73%;
-    --chart-3: 209 100% 32%;
-    --chart-4: 42 100% 50%;
-    --chart-5: 33 100% 50%;
+    --chart-1: 159 73% 29%;
+    --chart-2: 145 63% 49%;
+    --chart-3: 160 50% 40%;
+    --chart-4: 145 50% 55%;
+    --chart-5: 159 60% 35%;
   }
 
   .dark {
@@ -61,7 +56,7 @@
     --card-foreground: 210 40% 98%;
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
-    --primary: 144 75% 34%;
+    --primary: 159 73% 29%;
     --primary-foreground: 0 0% 100%;
     --secondary: 338 71% 73%;
     --secondary-foreground: 0 0% 100%;
@@ -73,15 +68,99 @@
     --destructive-foreground: 210 40% 98%;
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
-    --ring: 144 75% 34%;
-    --sidebar-background: 222.2 84% 4.9%;
-    --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 144 75% 34%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 217.2 32.6% 17.5%;
-    --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 217.2 32.6% 17.5%;
-    --sidebar-ring: 144 75% 34%;
+    --ring: 159 73% 29%;
+    --sidebar-background: 160 60% 8%;
+    --sidebar-foreground: 160 10% 85%;
+    --sidebar-primary: 41 93% 57%;
+    --sidebar-primary-foreground: 160 60% 12%;
+    --sidebar-accent: 160 40% 15%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 160 30% 15%;
+    --sidebar-ring: 41 93% 57%;
+  }
+}
+
+@layer components {
+  .ds-btn-primary {
+    border-radius: 9999px;
+    background-color: hsl(var(--cta));
+    color: hsl(0 0% 100%);
+    padding: 0.625rem 1.5rem;
+    font-weight: 600;
+    font-size: 0.875rem;
+    transition: all 200ms ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+  .ds-btn-primary:hover {
+    transform: scale(1.02);
+    background-color: hsl(33 100% 45%);
+  }
+  .ds-btn-secondary {
+    border-radius: 9999px;
+    border: 2px solid hsl(var(--primary));
+    background-color: transparent;
+    color: hsl(var(--primary));
+    padding: 0.5rem 1.5rem;
+    font-weight: 600;
+    font-size: 0.875rem;
+    transition: all 200ms ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+  .ds-btn-secondary:hover {
+    transform: scale(1.02);
+    background-color: hsl(var(--primary) / 0.05);
+  }
+  .ds-card {
+    background-color: #ffffff;
+    border-radius: 1rem;
+    box-shadow:
+      0 4px 6px -1px rgba(0, 0, 0, 0.07),
+      0 2px 4px -1px rgba(0, 0, 0, 0.04);
+    border: 1px solid hsl(var(--border) / 0.5);
+    transition: all 200ms ease;
+  }
+  .ds-card-hover:hover {
+    transform: scale(1.02);
+    box-shadow:
+      0 10px 15px -3px rgba(0, 0, 0, 0.08),
+      0 4px 6px -2px rgba(0, 0, 0, 0.04);
+  }
+  .ds-gradient-bg {
+    background: var(--brand-gradient);
+  }
+  .ds-gradient-text {
+    background: var(--brand-gradient);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .ds-alert-success {
+    background-color: hsl(159 73% 29% / 0.08);
+    border: 1px solid hsl(159 73% 29% / 0.2);
+    border-radius: 0.75rem;
+    padding: 1rem;
+    color: hsl(159 73% 20%);
+  }
+  .ds-alert-error {
+    background-color: hsl(0 84% 60% / 0.08);
+    border: 1px solid hsl(0 84% 60% / 0.2);
+    border-radius: 0.75rem;
+    padding: 1rem;
+    color: hsl(0 84% 40%);
+  }
+  .ds-progress-fill {
+    background: var(--brand-gradient);
+    border-radius: 9999px;
+    transition: width 500ms ease;
+  }
+  .ds-tap-target {
+    min-height: 3rem;
   }
 }
 
@@ -89,7 +168,6 @@
   .font-heading {
     font-family: 'Outfit', sans-serif;
   }
-
   @keyframes accordion-down {
     from {
       height: 0;
@@ -119,15 +197,33 @@
   @keyframes pulse-glow {
     0%,
     100% {
-      box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4);
+      box-shadow: 0 0 0 0 rgba(20, 128, 90, 0.4);
       transform: scale(1);
     }
     50% {
-      box-shadow: 0 0 20px 10px rgba(16, 185, 129, 0);
+      box-shadow: 0 0 20px 10px rgba(20, 128, 90, 0);
       transform: scale(1.05);
     }
   }
-
+  @keyframes slide-up {
+    from {
+      transform: translateY(100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+  @keyframes float {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-8px);
+    }
+  }
   .animate-accordion-down {
     animation: accordion-down 0.2s ease-out;
   }
@@ -140,13 +236,25 @@
   .animate-pulse-glow {
     animation: pulse-glow 3s infinite;
   }
+  .animate-slide-up {
+    animation: slide-up 0.3s ease-out forwards;
+  }
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
   .bg-grid-pattern {
     background-size: 20px 20px;
     background-image: radial-gradient(
       circle at 1px 1px,
-      hsl(var(--primary) / 0.2) 1px,
+      hsl(var(--primary) / 0.15) 1px,
       transparent 0
     );
+  }
+  .hover-scale {
+    transition: transform 200ms ease;
+  }
+  .hover-scale:hover {
+    transform: scale(1.02);
   }
 }
 
@@ -157,4 +265,10 @@ h4,
 h5,
 h6 {
   @apply font-heading;
+  font-weight: 700;
+}
+
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-weight: 400;
 }

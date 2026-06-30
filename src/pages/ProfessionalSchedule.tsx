@@ -20,6 +20,7 @@ import { useRealtime } from '@/hooks/use-realtime'
 import { Calendar, Clock, Trash2, Plus, Users } from 'lucide-react'
 import { toast } from 'sonner'
 import { Badge } from '@/components/ui/badge'
+import pb from '@/lib/pocketbase/client'
 
 const DAYS = [
   { value: '0', label: 'Domingo' },
@@ -254,10 +255,22 @@ export default function ProfessionalSchedule() {
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {appointments.map((app) => {
                 const isCorporate = !!app.expand?.patient_id?.company_id
+                const typeBorder =
+                  app.type === 'Presencial'
+                    ? 'border-l-4 border-l-emerald-600'
+                    : app.type === 'Online'
+                      ? 'border-l-4 border-l-blue-500'
+                      : 'border-l-4 border-l-orange-500'
+                const typeBadgeClass =
+                  app.type === 'Presencial'
+                    ? 'border-emerald-600 text-emerald-600'
+                    : app.type === 'Online'
+                      ? 'border-blue-500 text-blue-500'
+                      : 'border-orange-500 text-orange-500'
                 return (
                   <div
                     key={app.id}
-                    className="border p-4 rounded-lg flex flex-col gap-3 bg-card hover:shadow-md transition-shadow"
+                    className={`border p-4 rounded-2xl flex flex-col gap-3 bg-card hover:shadow-md hover:scale-[1.02] transition-all ${typeBorder}`}
                   >
                     <div className="flex justify-between items-start">
                       <div>
@@ -273,13 +286,15 @@ export default function ProfessionalSchedule() {
                       </div>
                       <Badge
                         variant={isCorporate ? 'default' : 'secondary'}
-                        className={isCorporate ? 'bg-purple-600 hover:bg-purple-700' : ''}
+                        className={isCorporate ? 'bg-primary hover:bg-primary/90' : ''}
                       >
                         {isCorporate ? 'Corporativo' : 'Particular'}
                       </Badge>
                     </div>
                     <div className="text-sm flex gap-2 flex-wrap">
-                      <Badge variant="outline">{app.type}</Badge>
+                      <Badge variant="outline" className={typeBadgeClass}>
+                        {app.type}
+                      </Badge>
                       <Badge
                         variant="outline"
                         className={

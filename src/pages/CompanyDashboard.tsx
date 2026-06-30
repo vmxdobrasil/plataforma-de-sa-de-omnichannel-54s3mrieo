@@ -83,39 +83,51 @@ export default function CompanyDashboard() {
         <p className="text-muted-foreground mt-2">Visão geral da conta corporativa e benefícios.</p>
       </div>
 
-      <div className="grid md:grid-cols-3 gap-4">
-        <Card className="bg-primary/5 border-primary/20">
+      <div className="grid md:grid-cols-3 gap-6">
+        <Card className="ds-card ds-card-hover bg-primary/5 border-primary/20 p-2">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Saldo Saúde</CardTitle>
-            <Wallet className="h-4 w-4 text-primary" />
+            <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+              Saldo Saúde
+            </CardTitle>
+            <div className="p-2 bg-primary/10 rounded-full">
+              <Wallet className="h-5 w-5 text-primary" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-4xl font-bold text-primary">
               R$ {(companyData.health_allowance || 0).toFixed(2)}
             </div>
-            <p className="text-xs text-muted-foreground mt-1">Crédito mensal por funcionário</p>
+            <p className="text-xs text-muted-foreground mt-2">Crédito mensal por funcionário</p>
           </CardContent>
         </Card>
-        <Card className="bg-teal-50 border-teal-200">
+        <Card className="ds-card ds-card-hover bg-primary/5 border-primary/20 p-2">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Saldo Farmácia</CardTitle>
-            <Wallet className="h-4 w-4 text-teal-600" />
+            <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+              Saldo Farmácia
+            </CardTitle>
+            <div className="p-2 bg-primary/10 rounded-full">
+              <Wallet className="h-5 w-5 text-primary" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-teal-900">
+            <div className="text-4xl font-bold text-primary">
               R$ {(companyData.medication_allowance || 0).toFixed(2)}
             </div>
-            <p className="text-xs text-teal-700 mt-1">Crédito farmácia por funcionário</p>
+            <p className="text-xs text-muted-foreground mt-2">Crédito farmácia por funcionário</p>
           </CardContent>
         </Card>
-        <Card className="bg-amber-50 border-amber-200">
+        <Card className="ds-card ds-card-hover bg-orange-50 border-orange-200 p-2">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Uso do Mês</CardTitle>
-            <TrendingDown className="h-4 w-4 text-amber-600" />
+            <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+              Uso do Mês
+            </CardTitle>
+            <div className="p-2 bg-orange-100 rounded-full">
+              <TrendingDown className="h-5 w-5 text-orange-600" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-amber-900">R$ {monthlyUsage.toFixed(2)}</div>
-            <p className="text-xs text-amber-700 mt-1">Total consumido neste mês</p>
+            <div className="text-4xl font-bold text-orange-600">R$ {monthlyUsage.toFixed(2)}</div>
+            <p className="text-xs text-muted-foreground mt-2">Total consumido neste mês</p>
           </CardContent>
         </Card>
       </div>
