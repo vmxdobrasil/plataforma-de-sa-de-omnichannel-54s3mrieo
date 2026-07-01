@@ -60,7 +60,7 @@ import { NotificationsPopover } from './NotificationsPopover'
 import pb from '@/lib/pocketbase/client'
 import { useState, useEffect } from 'react'
 import { useRealtime } from '@/hooks/use-realtime'
-import defaultLogo from '@/assets/logo-v-med-c5c45.jpg'
+import defaultLogo from '@/assets/1002440441png1782862869065-a785f.png'
 
 const navItems = [
   { title: 'Início', icon: Home, url: '/', roles: ['patient', 'professional'] },
@@ -366,11 +366,11 @@ export default function Layout() {
                       className="w-full h-16 sm:h-20 object-contain object-left"
                     />
                   ) : (
-                    <div className="bg-white/90 p-2 rounded-lg w-full flex items-center justify-start">
+                    <div className="w-full flex items-center justify-start rounded-xl overflow-hidden">
                       <img
                         src={defaultLogo}
                         alt="V MED BRASIL Logo"
-                        className="w-full h-12 sm:h-16 object-contain object-left mix-blend-multiply"
+                        className="h-12 sm:h-16 w-auto object-contain object-left"
                       />
                     </div>
                   )}
@@ -444,11 +444,11 @@ export default function Layout() {
                       className="h-14 sm:h-16 w-auto max-w-[250px] object-contain"
                     />
                   ) : (
-                    <div className="bg-white/90 p-1 rounded-lg flex items-center justify-center">
+                    <div className="rounded-xl overflow-hidden flex items-center justify-center">
                       <img
                         src={defaultLogo}
                         alt="V MED BRASIL Logo"
-                        className="h-10 sm:h-12 w-auto max-w-[200px] object-contain mix-blend-multiply"
+                        className="h-10 sm:h-12 w-auto max-w-[200px] object-contain"
                       />
                     </div>
                   )}

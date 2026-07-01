@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, Navigate } from 'react-router-dom'
 import { HeartPulse, Stethoscope, ArrowRight, RefreshCcw, WifiOff } from 'lucide-react'
-import logoUrl from '@/assets/logo-v-med-c5c45.jpg'
+import logoUrl from '@/assets/1002440441png1782862869065-a785f.png'
 import { useAuth } from '@/hooks/use-auth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -180,11 +180,11 @@ export default function Login() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-muted/50 to-muted/10 p-4 sm:p-8">
       <div className="w-full max-w-md flex flex-col items-center text-center mb-6 animate-fade-in-up">
-        <div className="bg-white p-4 sm:p-6 rounded-3xl shadow-md mb-6 border border-primary/10">
+        <div className="rounded-3xl shadow-xl mb-6 border-4 border-white/20 overflow-hidden bg-primary flex items-center justify-center">
           <img
             src={logoUrl}
             alt="V MED Brasil Logo"
-            className="w-auto h-20 sm:h-24 object-contain transition-transform duration-500 hover:scale-105"
+            className="w-24 h-24 sm:w-32 sm:h-32 object-cover transition-transform duration-500 hover:scale-105"
           />
         </div>
         <div className="ds-gradient-header w-full p-6 rounded-2xl shadow-md">
