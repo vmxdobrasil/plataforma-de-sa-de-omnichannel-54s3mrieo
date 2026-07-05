@@ -50,3 +50,10 @@ export const getDependents = async (parentId?: string) => {
 export const createDependent = async (data: any) => {
   return await pb.collection('users').create(data)
 }
+
+export const updateRegistrationStatus = async (
+  id: string,
+  status: 'pending' | 'approved' | 'rejected',
+) => {
+  return await pb.collection('users').update(id, { registration_status: status })
+}

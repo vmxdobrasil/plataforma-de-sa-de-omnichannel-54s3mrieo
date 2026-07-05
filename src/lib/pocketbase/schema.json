@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-01T00:16:49.102Z",
+  "generatedAt": "2026-07-05T15:21:24.252Z",
   "collections": [
     {
       "name": "users",
@@ -2146,6 +2146,174 @@
         }
       ],
       "indexes": []
+    },
+    {
+      "name": "notification_templates",
+      "type": "base",
+      "apiRules": {
+        "list": "@request.auth.id != ''",
+        "view": "@request.auth.id != ''",
+        "create": "@request.auth.role = 'admin' || @request.auth.role = 'medical_director'",
+        "update": "@request.auth.role = 'admin' || @request.auth.role = 'medical_director'",
+        "delete": "@request.auth.role = 'admin'"
+      },
+      "fields": [
+        {
+          "name": "slug",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "name",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "subject",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "body_text",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "body_html",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "type",
+          "type": "select",
+          "required": true,
+          "system": false,
+          "selectValues": ["email", "whatsapp", "both"]
+        },
+        {
+          "name": "is_active",
+          "type": "bool",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate"]
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate", "onUpdate"]
+        }
+      ],
+      "indexes": [
+        "CREATE UNIQUE INDEX idx_notification_templates_slug ON notification_templates (slug)"
+      ]
+    },
+    {
+      "name": "notification_logs",
+      "type": "base",
+      "apiRules": {
+        "list": "@request.auth.id != '' && (recipient_id = @request.auth.id || @request.auth.role = 'admin' || @request.auth.role = 'medical_director')",
+        "view": "@request.auth.id != '' && (recipient_id = @request.auth.id || @request.auth.role = 'admin' || @request.auth.role = 'medical_director')",
+        "create": "@request.auth.id != ''",
+        "update": "@request.auth.role = 'admin' || @request.auth.role = 'medical_director'",
+        "delete": "@request.auth.role = 'admin'"
+      },
+      "fields": [
+        {
+          "name": "recipient_id",
+          "type": "relation",
+          "required": true,
+          "system": false,
+          "collectionRef": "users"
+        },
+        {
+          "name": "template_slug",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "message_type",
+          "type": "select",
+          "required": true,
+          "system": false,
+          "selectValues": ["email", "whatsapp"]
+        },
+        {
+          "name": "subject",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "content",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "status",
+          "type": "select",
+          "required": true,
+          "system": false,
+          "selectValues": ["pending", "sent", "delivered", "failed"]
+        },
+        {
+          "name": "priority",
+          "type": "select",
+          "required": false,
+          "system": false,
+          "selectValues": ["normal", "high", "critical"]
+        },
+        {
+          "name": "error_message",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "retry_count",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "metadata",
+          "type": "json",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate"]
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate", "onUpdate"]
+        }
+      ],
+      "indexes": [
+        "CREATE INDEX idx_notification_logs_recipient ON notification_logs (recipient_id)",
+        "CREATE INDEX idx_notification_logs_status ON notification_logs (status)"
+      ]
     }
   ]
 }
