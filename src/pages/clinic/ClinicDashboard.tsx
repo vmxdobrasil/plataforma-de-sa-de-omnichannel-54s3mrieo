@@ -1,15 +1,25 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Users, Stethoscope, Calendar, Clock } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { getClinicStats } from '@/services/clinic'
+import { useAuth } from '@/hooks/use-auth'
 import { useRealtime } from '@/hooks/use-realtime'
 import pb from '@/lib/pocketbase/client'
 
 export default function ClinicDashboard() {
+  const { user } = useAuth()
+  const navigate = useNavigate()
   const [stats, setStats] = useState({ patients: 0, doctors: 0, apptsToday: 0, pending: 0 })
   const [todayAppts, setTodayAppts] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    if (user && user.role !== 'medical_director' && user.role !== 'admin') {
+      navigate('/forbidden')
+    }
+  }, [user, navigate])
 
   const loadData = async () => {
     try {

@@ -88,6 +88,10 @@ export default function Login() {
       return <Navigate to="/company/employees" replace />
     } else if (user.role === 'professional') {
       return <Navigate to="/professional" replace />
+    } else if (user.role === 'pharmacy') {
+      return <Navigate to="/dashboard/pharmacy" replace />
+    } else if (user.role === 'laboratory') {
+      return <Navigate to="/dashboard/laboratory" replace />
     } else {
       return <Navigate to="/" replace />
     }

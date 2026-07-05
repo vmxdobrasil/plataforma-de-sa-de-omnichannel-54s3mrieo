@@ -26,6 +26,7 @@ import {
   ClipboardList,
   Pill,
   Wallet,
+  TestTube,
 } from 'lucide-react'
 import {
   Sidebar,
@@ -232,6 +233,24 @@ const navItems = [
     icon: Settings,
     url: '/settings',
     roles: ['patient', 'professional', 'company', 'medical_director', 'admin'],
+  },
+  {
+    title: 'Portal da Farmácia',
+    icon: Pill,
+    url: '/dashboard/pharmacy',
+    roles: ['pharmacy'],
+  },
+  {
+    title: 'Portal do Laboratório',
+    icon: TestTube,
+    url: '/dashboard/laboratory',
+    roles: ['laboratory'],
+  },
+  {
+    title: 'Dashboard Clínico',
+    icon: Activity,
+    url: '/dashboard/clinic',
+    roles: ['medical_director', 'admin'],
   },
   {
     title: 'Registro de Vendas',

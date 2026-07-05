@@ -57,6 +57,10 @@ import BrandKit from './pages/dashboard/BrandKit'
 import Academy from './pages/dashboard/Academy'
 import AgentsHub from './pages/dashboard/AgentsHub'
 import AgencyDashboard from './pages/dashboard/AgencyDashboard'
+import PharmacyDashboard from './pages/dashboard/PharmacyDashboard'
+import LaboratoryDashboard from './pages/dashboard/LaboratoryDashboard'
+import ClinicDashboard from './pages/clinic/ClinicDashboard'
+import Forbidden from './pages/Forbidden'
 import Pharmacy from './pages/Pharmacy'
 import AdminNetwork from './pages/AdminNetwork'
 import PartnerDirectory from './pages/PartnerDirectory'
@@ -90,6 +94,8 @@ const EntryPoint = () => {
   if (user.role === 'medical_director') return <Navigate to="/admin/supervision" replace />
   if (user.role === 'company') return <Navigate to="/company/employees" replace />
   if (user.role === 'professional') return <Navigate to="/professional" replace />
+  if (user.role === 'pharmacy') return <Navigate to="/dashboard/pharmacy" replace />
+  if (user.role === 'laboratory') return <Navigate to="/dashboard/laboratory" replace />
 
   return <Index />
 }
@@ -235,8 +241,12 @@ const AppRoutes = () => {
             <Route path="/dashboard/academy" element={<Academy />} />
             <Route path="/dashboard/agents" element={<AgentsHub />} />
             <Route path="/dashboard/agency" element={<AgencyDashboard />} />
+            <Route path="/dashboard/pharmacy" element={<PharmacyDashboard />} />
+            <Route path="/dashboard/laboratory" element={<LaboratoryDashboard />} />
+            <Route path="/dashboard/clinic" element={<ClinicDashboard />} />
           </Route>
         </Route>
+        <Route path="/forbidden" element={<Forbidden />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </>
