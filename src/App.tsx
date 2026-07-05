@@ -72,6 +72,7 @@ import PartnerRegistration from './pages/registration/PartnerRegistration'
 import IndividualRegistration from './pages/registration/IndividualRegistration'
 import ProfessionalRegistration from './pages/registration/ProfessionalRegistration'
 import AdminLeads from './pages/AdminLeads'
+import AdminCRM from './pages/AdminCRM'
 import B2CLanding from './pages/B2CLanding'
 
 const EntryPoint = () => {
@@ -233,6 +234,7 @@ const AppRoutes = () => {
               <Route path="/admin/financial" element={<AdminFinancialDashboard />} />
               <Route path="/admin/invoices" element={<AdminInvoices />} />
               <Route path="/admin/leads" element={<AdminLeads />} />
+              <Route path="/admin/crm" element={<AdminCRM />} />
             </Route>
             <Route path="/telemedicine/:id" element={<TelemedicineRoom />} />
             <Route path="/dashboard/social-ai" element={<SocialAI />} />

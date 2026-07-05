@@ -27,6 +27,7 @@ import {
   Pill,
   Wallet,
   TestTube,
+  Briefcase,
 } from 'lucide-react'
 import {
   Sidebar,
@@ -179,6 +180,13 @@ const navItems = [
     title: 'Gestão de Leads',
     icon: Users,
     url: '/admin/leads',
+    roles: ['admin'],
+    masterOnly: true,
+  },
+  {
+    title: 'CRM B2B',
+    icon: Briefcase,
+    url: '/admin/crm',
     roles: ['admin'],
     masterOnly: true,
   },

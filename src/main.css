@@ -231,6 +231,27 @@
     color: hsl(0 84% 50%);
     border: 1px solid hsl(0 84% 60% / 0.2);
   }
+  .glass-card {
+    background: hsl(var(--card) / 0.65);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid hsl(var(--border) / 0.25);
+    border-radius: 28px;
+  }
+  .glass-sidebar-crm {
+    background: hsl(222 47% 11% / 0.85);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid hsl(0 0% 100% / 0.08);
+    border-radius: 24px;
+  }
+  .glass-header-crm {
+    background: hsl(var(--card) / 0.7);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid hsl(var(--border) / 0.2);
+    border-radius: 20px;
+  }
 }
 
 @layer utilities {
