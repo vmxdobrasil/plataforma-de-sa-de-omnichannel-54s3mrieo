@@ -66,6 +66,7 @@ import RegistrationPortal from './pages/RegistrationPortal'
 import CompanyRegistration from './pages/registration/CompanyRegistration'
 import PartnerRegistration from './pages/registration/PartnerRegistration'
 import IndividualRegistration from './pages/registration/IndividualRegistration'
+import ProfessionalRegistration from './pages/registration/ProfessionalRegistration'
 import AdminLeads from './pages/AdminLeads'
 
 const EntryPoint = () => {
@@ -178,6 +179,7 @@ const AppRoutes = () => {
         <Route path="/register/company" element={<CompanyRegistration />} />
         <Route path="/register/partner" element={<PartnerRegistration />} />
         <Route path="/register/individual" element={<IndividualRegistration />} />
+        <Route path="/register/professional" element={<ProfessionalRegistration />} />
 
         <Route element={<Layout />}>
           {/* Entry Point / Public / Patient Dashboard */}

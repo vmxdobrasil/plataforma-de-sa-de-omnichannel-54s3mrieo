@@ -6,12 +6,12 @@
 
 @layer base {
   :root {
-    --primary: 159 73% 29%;
+    --primary: 160 84% 39%;
     --primary-foreground: 0 0% 100%;
     --brand-accent: 41 93% 57%;
-    --cta: 33 100% 50%;
+    --cta: 160 84% 39%;
     --cta-foreground: 0 0% 100%;
-    --brand-gradient: linear-gradient(135deg, hsl(159 73% 29%), hsl(145 63% 49%));
+    --brand-gradient: linear-gradient(135deg, hsl(160 84% 39%), hsl(160 70% 50%));
 
     --secondary: 338 71% 73%;
     --secondary-foreground: 338 71% 15%;
@@ -30,7 +30,7 @@
     --destructive-foreground: 210 40% 98%;
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 159 73% 29%;
+    --ring: 160 84% 39%;
     --radius: 0.75rem;
 
     --sidebar-background: 160 60% 12%;
@@ -42,7 +42,7 @@
     --sidebar-border: 160 30% 20%;
     --sidebar-ring: 41 93% 57%;
 
-    --chart-1: 159 73% 29%;
+    --chart-1: 160 84% 39%;
     --chart-2: 145 63% 49%;
     --chart-3: 160 50% 40%;
     --chart-4: 145 50% 55%;
@@ -56,7 +56,7 @@
     --card-foreground: 210 40% 98%;
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
-    --primary: 159 73% 29%;
+    --primary: 160 84% 39%;
     --primary-foreground: 0 0% 100%;
     --secondary: 338 71% 73%;
     --secondary-foreground: 0 0% 100%;
@@ -68,7 +68,7 @@
     --destructive-foreground: 210 40% 98%;
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
-    --ring: 159 73% 29%;
+    --ring: 160 84% 39%;
     --sidebar-background: 160 60% 8%;
     --sidebar-foreground: 160 10% 85%;
     --sidebar-primary: 41 93% 57%;
@@ -96,7 +96,7 @@
   }
   .ds-btn-primary:hover {
     transform: scale(1.02);
-    background-color: hsl(33 100% 45%);
+    background-color: hsl(160 84% 34%);
   }
   .ds-btn-secondary {
     border-radius: 9999px;
@@ -266,11 +266,11 @@
   @keyframes pulse-glow {
     0%,
     100% {
-      box-shadow: 0 0 0 0 rgba(20, 128, 90, 0.4);
+      box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4);
       transform: scale(1);
     }
     50% {
-      box-shadow: 0 0 20px 10px rgba(20, 128, 90, 0);
+      box-shadow: 0 0 20px 10px rgba(16, 185, 129, 0);
       transform: scale(1.05);
     }
   }

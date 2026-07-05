@@ -104,7 +104,7 @@ export default {
         'card-hover': '0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04)',
       },
       backgroundImage: {
-        'brand-gradient': 'linear-gradient(135deg, hsl(159 73% 29%), hsl(145 63% 49%))',
+        'brand-gradient': 'linear-gradient(135deg, hsl(160 84% 39%), hsl(160 70% 50%))',
       },
     },
   },

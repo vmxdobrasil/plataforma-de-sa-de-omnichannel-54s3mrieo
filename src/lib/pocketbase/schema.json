@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-05T16:59:32.960Z",
+  "generatedAt": "2026-07-05T17:16:22.756Z",
   "collections": [
     {
       "name": "users",
@@ -2351,13 +2351,6 @@
           "system": false
         },
         {
-          "name": "type",
-          "type": "select",
-          "required": true,
-          "system": false,
-          "selectValues": ["company", "partner", "individual"]
-        },
-        {
           "name": "employee_count",
           "type": "number",
           "required": false,
@@ -2395,6 +2388,13 @@
           "required": false,
           "system": false,
           "autodateTriggers": ["onCreate", "onUpdate"]
+        },
+        {
+          "name": "type",
+          "type": "select",
+          "required": true,
+          "system": false,
+          "selectValues": ["company", "partner", "individual", "professional"]
         }
       ],
       "indexes": [

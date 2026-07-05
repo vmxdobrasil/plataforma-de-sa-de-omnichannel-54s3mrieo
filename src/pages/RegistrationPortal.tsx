@@ -1,102 +1,122 @@
-import { useNavigate } from 'react-router-dom'
-import { Building2, Pill, HeartPulse, ArrowRight, ShieldCheck } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { Building2, Pill, Stethoscope, User, ArrowRight, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import defaultLogo from '@/assets/1002440441png1782862869065-a785f.png'
 
+const paths = [
+  {
+    title: 'Para Empresas',
+    description:
+      'Cadastre sua empresa e ofereça benefícios de saúde e bem-estar aos colaboradores.',
+    icon: Building2,
+    href: '/register/company',
+  },
+  {
+    title: 'Para Farmácias e Laboratórios',
+    description: 'Junte-se à rede credenciada e amplie o alcance dos seus serviços.',
+    icon: Pill,
+    href: '/register/partner',
+  },
+  {
+    title: 'Para Profissionais de Saúde',
+    description: 'Médicos, dentistas, fisioterapeutas e nutricionistas: faça parte da rede.',
+    icon: Stethoscope,
+    href: '/register/professional',
+  },
+  {
+    title: 'Para Você (Individual)',
+    description: 'Acesse a rede de saúde e bem-estar da V MED Brasil como paciente.',
+    icon: User,
+    href: '/register/individual',
+  },
+]
+
+const benefits = [
+  'Agendamento online',
+  'Prontuário digital',
+  'Rede credenciada',
+  'Suporte dedicado',
+]
+
 export default function RegistrationPortal() {
-  const navigate = useNavigate()
-
-  const cards = [
-    {
-      icon: Building2,
-      title: 'Para Empresas',
-      description:
-        'Cadastre sua empresa e ofereça benefícios de saúde e farmácia aos seus colaboradores.',
-      path: '/register/company',
-      accent: 'bg-blue-600',
-    },
-    {
-      icon: Pill,
-      title: 'Para Farmácias e Laboratórios',
-      description:
-        'Junte-se à nossa rede credenciada e amplie o alcance dos seus serviços de saúde.',
-      path: '/register/partner',
-      accent: 'bg-cyan-600',
-    },
-    {
-      icon: HeartPulse,
-      title: 'Para Você (Individual)',
-      description:
-        'Acesse consultas, exames e farmácia com a qualidade V MED BRASIL. Cadastro rápido e fácil.',
-      path: '/register/individual',
-      accent: 'bg-teal-600',
-    },
-  ]
-
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-blue-950 via-blue-900 to-blue-800">
-      <header className="px-6 py-5 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <img src={defaultLogo} alt="V MED BRASIL" className="h-12 w-auto object-contain" />
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-teal-50">
+      <header className="border-b bg-white/80 backdrop-blur-sm">
+        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+          <img src={defaultLogo} alt="V MED Brasil" className="h-12 sm:h-14 object-contain" />
+          <Button
+            asChild
+            variant="outline"
+            className="rounded-full border-primary text-primary hover:bg-primary/5"
+          >
+            <Link to="/login">Entrar</Link>
+          </Button>
         </div>
-        <Button
-          variant="outline"
-          className="border-white/30 text-white hover:bg-white/10 hover:text-white"
-          onClick={() => navigate('/login')}
-        >
-          Já tenho conta
-        </Button>
       </header>
 
-      <main className="flex-1 flex flex-col items-center justify-center px-4 py-10">
-        <div className="text-center mb-12 animate-fade-in-up">
-          <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2 mb-6">
-            <ShieldCheck className="h-4 w-4 text-blue-300" />
-            <span className="text-sm font-medium text-blue-100">Plataforma Integrada de Saúde</span>
-          </div>
-          <h1 className="text-4xl md:text-5xl font-extrabold text-white mb-4 tracking-tight">
-            Comece sua jornada com a <span className="text-blue-300">V MED BRASIL</span>
+      <div className="max-w-6xl mx-auto px-4 py-10 sm:py-16">
+        <div className="text-center mb-10">
+          <h1 className="text-3xl sm:text-4xl font-bold text-foreground">
+            Comece sua jornada na <span className="text-primary">V MED Brasil</span>
           </h1>
-          <p className="text-lg text-blue-100/80 max-w-2xl mx-auto">
-            Escolha a opção que melhor se adequa ao seu perfil e inicie seu cadastro agora mesmo.
+          <p className="text-muted-foreground mt-3 max-w-2xl mx-auto">
+            Escolha o perfil que melhor se adapta a você e faça parte da maior plataforma integrada
+            de saúde do Brasil.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-5xl">
-          {cards.map((card, i) => (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-10">
+          {paths.map((p) => (
             <Card
-              key={card.title}
-              className="border-white/20 bg-white/95 backdrop-blur-sm shadow-2xl hover:scale-[1.02] transition-transform cursor-pointer animate-fade-in-up overflow-hidden"
-              style={{ animationDelay: `${i * 0.1}s` }}
-              onClick={() => navigate(card.path)}
+              key={p.href}
+              className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-border/50"
             >
-              <CardContent className="p-8 flex flex-col items-center text-center h-full">
-                <div className={`${card.accent} p-5 rounded-2xl mb-6 shadow-lg`}>
-                  <card.icon className="h-10 w-10 text-white" />
+              <CardContent className="p-6 sm:p-7">
+                <div className="flex items-start gap-4">
+                  <div className="shrink-0 w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                    <p.icon className="h-7 w-7 text-primary group-hover:text-primary-foreground transition-colors" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-lg font-bold text-foreground mb-1">{p.title}</h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed">{p.description}</p>
+                    <Button
+                      asChild
+                      className="mt-4 rounded-full bg-primary hover:bg-primary/90 text-sm"
+                    >
+                      <Link to={p.href}>
+                        Cadastrar <ArrowRight className="h-4 w-4 ml-1" />
+                      </Link>
+                    </Button>
+                  </div>
                 </div>
-                <h3 className="text-xl font-bold text-blue-950 mb-3">{card.title}</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed mb-6 flex-1">
-                  {card.description}
-                </p>
-                <Button
-                  className="w-full bg-blue-700 hover:bg-blue-800 text-white rounded-full"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    navigate(card.path)
-                  }}
-                >
-                  Iniciar Cadastro <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
               </CardContent>
             </Card>
           ))}
         </div>
 
-        <p className="text-blue-200/60 text-sm mt-12">
-          V MED BRASIL © 2026 — Administradora de Cartões e Benefícios Ltda
-        </p>
-      </main>
+        <div className="bg-primary/5 rounded-2xl p-6 sm:p-8 border border-primary/10">
+          <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-8">
+            {benefits.map((b) => (
+              <div key={b} className="flex items-center gap-2">
+                <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Check className="h-3 w-3 text-primary" />
+                </div>
+                <span className="text-sm font-medium text-foreground">{b}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="text-center mt-8">
+          <Link
+            to="/"
+            className="text-sm text-muted-foreground hover:text-primary transition-colors"
+          >
+            ← Voltar para o início
+          </Link>
+        </div>
+      </div>
     </div>
   )
 }
