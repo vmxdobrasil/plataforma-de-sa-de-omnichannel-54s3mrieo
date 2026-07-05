@@ -26,6 +26,7 @@ import {
   MapPin,
   TrendingUp,
   TrendingDown,
+  ReceiptText,
 } from 'lucide-react'
 import {
   Select,

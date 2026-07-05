@@ -208,6 +208,15 @@ export default function Index() {
             <Stethoscope className="mr-2 h-5 w-5" />
             Buscar Especialistas
           </Button>
+          <Button
+            size="lg"
+            variant="outline"
+            onClick={() => navigate('/landing')}
+            className="h-14 px-8 text-lg rounded-full"
+          >
+            <Sparkles className="mr-2 h-5 w-5" />
+            Simular meu crédito
+          </Button>
         </div>
 
         <div className="mt-20 grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-5xl text-left">
