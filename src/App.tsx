@@ -62,6 +62,11 @@ import AdminNetwork from './pages/AdminNetwork'
 import PartnerDirectory from './pages/PartnerDirectory'
 import MyExams from './pages/MyExams'
 import PharmacySales from './pages/PharmacySales'
+import RegistrationPortal from './pages/RegistrationPortal'
+import CompanyRegistration from './pages/registration/CompanyRegistration'
+import PartnerRegistration from './pages/registration/PartnerRegistration'
+import IndividualRegistration from './pages/registration/IndividualRegistration'
+import AdminLeads from './pages/AdminLeads'
 
 const EntryPoint = () => {
   const { user, loading } = useAuth()
@@ -169,6 +174,10 @@ const AppRoutes = () => {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
+        <Route path="/register" element={<RegistrationPortal />} />
+        <Route path="/register/company" element={<CompanyRegistration />} />
+        <Route path="/register/partner" element={<PartnerRegistration />} />
+        <Route path="/register/individual" element={<IndividualRegistration />} />
 
         <Route element={<Layout />}>
           {/* Entry Point / Public / Patient Dashboard */}
@@ -213,6 +222,7 @@ const AppRoutes = () => {
               <Route path="/admin/professionals" element={<AdminProfessionals />} />
               <Route path="/admin/financial" element={<AdminFinancialDashboard />} />
               <Route path="/admin/invoices" element={<AdminInvoices />} />
+              <Route path="/admin/leads" element={<AdminLeads />} />
             </Route>
             <Route path="/telemedicine/:id" element={<TelemedicineRoom />} />
             <Route path="/dashboard/social-ai" element={<SocialAI />} />

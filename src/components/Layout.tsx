@@ -174,6 +174,13 @@ const navItems = [
     roles: ['medical_director', 'admin'],
     masterOnly: true,
   },
+  {
+    title: 'Gestão de Leads',
+    icon: Users,
+    url: '/admin/leads',
+    roles: ['admin'],
+    masterOnly: true,
+  },
   { title: 'Minha Empresa', icon: Building2, url: '/company/dashboard', roles: ['company'] },
   { title: 'Gestão de Funcionários', icon: Users, url: '/company/employees', roles: ['company'] },
   {

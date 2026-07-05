@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-05T15:21:24.252Z",
+  "generatedAt": "2026-07-05T16:59:32.960Z",
   "collections": [
     {
       "name": "users",
@@ -2313,6 +2313,94 @@
       "indexes": [
         "CREATE INDEX idx_notification_logs_recipient ON notification_logs (recipient_id)",
         "CREATE INDEX idx_notification_logs_status ON notification_logs (status)"
+      ]
+    },
+    {
+      "name": "registration_leads",
+      "type": "base",
+      "apiRules": {
+        "list": "@request.auth.role = 'admin' || @request.auth.role = 'medical_director'",
+        "view": "@request.auth.role = 'admin' || @request.auth.role = 'medical_director'",
+        "create": "",
+        "update": "@request.auth.role = 'admin' || @request.auth.role = 'medical_director'",
+        "delete": "@request.auth.role = 'admin'"
+      },
+      "fields": [
+        {
+          "name": "name",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "email",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "phone",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "tax_id",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "type",
+          "type": "select",
+          "required": true,
+          "system": false,
+          "selectValues": ["company", "partner", "individual"]
+        },
+        {
+          "name": "employee_count",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "benefit_intention",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "status",
+          "type": "select",
+          "required": true,
+          "system": false,
+          "selectValues": ["pending", "contacted", "converted", "rejected"]
+        },
+        {
+          "name": "metadata",
+          "type": "json",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate"]
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate", "onUpdate"]
+        }
+      ],
+      "indexes": [
+        "CREATE INDEX idx_registration_leads_status ON registration_leads (status)",
+        "CREATE INDEX idx_registration_leads_type ON registration_leads (type)",
+        "CREATE INDEX idx_registration_leads_email ON registration_leads (email)"
       ]
     }
   ]
