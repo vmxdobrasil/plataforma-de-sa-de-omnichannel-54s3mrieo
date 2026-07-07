@@ -23,7 +23,8 @@ export default function AdminVerification() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (user && user.role !== 'admin' && user.role !== 'medical_director') {
+    if (!user) return
+    if (user.role !== 'admin' && user.role !== 'medical_director') {
       navigate('/')
       return
     }

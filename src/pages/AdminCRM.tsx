@@ -1,82 +1,103 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useAuth } from '@/hooks/use-auth'
-import { CrmSidebar } from '@/components/crm/CrmSidebar'
-import { CrmHeader } from '@/components/crm/CrmHeader'
-import { CrmMetrics } from '@/components/crm/CrmMetrics'
-import { CrmInteractionHistory } from '@/components/crm/CrmInteractionHistory'
-import { CrmTaskAgenda } from '@/components/crm/CrmTaskAgenda'
-import { CrmSalesFunnel } from '@/components/crm/CrmSalesFunnel'
-import { CrmProfilePanel } from '@/components/crm/CrmProfilePanel'
-import { CrmLeadsView } from '@/components/crm/CrmLeadsView'
-import { getCrmMetrics, getPipelineData } from '@/services/crm'
 import { useRealtime } from '@/hooks/use-realtime'
+import { useNavigate } from 'react-router-dom'
+import pb from '@/lib/pocketbase/client'
+import { CRMSidebar } from '@/components/crm/CRMSidebar'
+import { CRMHeader } from '@/components/crm/CRMHeader'
+import { CRMDashboardView } from '@/components/crm/CRMDashboardView'
+import { CRMLeadsView } from '@/components/crm/CRMLeadsView'
+import { NewLeadDialog } from '@/components/crm/NewLeadDialog'
 
 export default function AdminCRM() {
   const { user } = useAuth()
-  const [activeView, setActiveView] = useState('dashboard')
-  const [activeTab, setActiveTab] = useState('Resumo')
-  const [search, setSearch] = useState('')
-  const [metrics, setMetrics] = useState({ newClients: 0, earnedValues: 0, completedTasks: 0 })
-  const [pipeline, setPipeline] = useState<any[]>([])
-  const [selectedLead, setSelectedLead] = useState<any | null>(null)
+  const navigate = useNavigate()
+  const [activeTab, setActiveTab] = useState('dashboard')
+  const [activeHeaderTab, setActiveHeaderTab] = useState('Resumo')
+  const [searchQuery, setSearchQuery] = useState('')
+  const [leads, setLeads] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [selectedLead, setSelectedLead] = useState<any>(null)
+  const [showNewLead, setShowNewLead] = useState(false)
 
-  const loadData = useCallback(async () => {
-    setLoading(true)
-    try {
-      const [m, p] = await Promise.all([getCrmMetrics(), getPipelineData()])
-      setMetrics(m)
-      setPipeline(p)
-    } catch {
-      /* ignore */
+  useEffect(() => {
+    if (user && user.role !== 'admin' && user.role !== 'medical_director') {
+      navigate('/forbidden')
     }
-    setLoading(false)
+  }, [user, navigate])
+
+  const loadLeads = useCallback(async () => {
+    try {
+      const data = await pb.collection('registration_leads').getFullList({ sort: '-created' })
+      setLeads(data)
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setLoading(false)
+    }
   }, [])
 
   useEffect(() => {
-    loadData()
-  }, [loadData])
-  useRealtime('registration_leads', () => loadData())
+    loadLeads()
+  }, [loadLeads])
+
+  useRealtime('registration_leads', () => loadLeads())
+
+  const filteredLeads = useMemo(() => {
+    if (!searchQuery.trim()) return leads
+    const q = searchQuery.toLowerCase()
+    return leads.filter(
+      (l) =>
+        l.name?.toLowerCase().includes(q) ||
+        l.email?.toLowerCase().includes(q) ||
+        l.phone?.toLowerCase().includes(q) ||
+        l.type?.toLowerCase().includes(q),
+    )
+  }, [leads, searchQuery])
+
+  const avatarUrl = user?.avatar
+    ? pb.files.getURL({ id: user.id, collectionId: 'users' }, user.avatar)
+    : ''
 
   return (
-    <div className="flex gap-4 min-h-[calc(100vh-10rem)]">
-      <CrmSidebar activeView={activeView} onViewChange={setActiveView} />
-      <div className="flex-1 flex flex-col gap-4 min-w-0">
-        <CrmHeader
-          search={search}
-          onSearchChange={setSearch}
-          activeTab={activeTab}
-          onTabChange={setActiveTab}
-          userName={user?.name || 'Admin'}
-          userRole={user?.role || 'admin'}
-        />
-        <div className="flex gap-4 flex-1">
-          <div className="flex-1 min-w-0 space-y-4">
-            {activeView === 'leads' ? (
-              <CrmLeadsView searchQuery={search} onSelectLead={setSelectedLead} />
-            ) : (
-              <>
-                <div className="glass-card p-5">
-                  <h2 className="text-xl font-bold">Visão Geral do Cliente</h2>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Acompanhe leads, pipeline e crescimento de clientes corporativos B2B em tempo
-                    real.
-                  </p>
-                </div>
-                <CrmMetrics metrics={metrics} loading={loading} />
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                  <CrmInteractionHistory />
-                  <CrmTaskAgenda />
-                </div>
-                <CrmSalesFunnel data={pipeline} loading={loading} />
-              </>
-            )}
-          </div>
-          <div className="hidden xl:block w-80 shrink-0">
-            <CrmProfilePanel lead={selectedLead} />
-          </div>
+    <div className="rounded-3xl bg-gradient-to-br from-gray-900 via-gray-800 to-black p-4 lg:p-6 min-h-[calc(100vh-8rem)]">
+      <div className="flex gap-4 lg:gap-6">
+        <CRMSidebar activeTab={activeTab} onTabChange={setActiveTab} />
+        <div className="flex-1 min-w-0">
+          <CRMHeader
+            activeHeaderTab={activeHeaderTab}
+            onHeaderTabChange={setActiveHeaderTab}
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            userName={user?.name || ''}
+            userEmail={user?.email || ''}
+            avatarUrl={avatarUrl}
+          />
+
+          {activeTab === 'dashboard' && (
+            <CRMDashboardView leads={filteredLeads} loading={loading} />
+          )}
+
+          {activeTab === 'leads' && (
+            <CRMLeadsView
+              leads={filteredLeads}
+              loading={loading}
+              selectedLead={selectedLead}
+              onSelectLead={setSelectedLead}
+              onNewLead={() => setShowNewLead(true)}
+            />
+          )}
+
+          {activeTab !== 'dashboard' && activeTab !== 'leads' && (
+            <div className="flex flex-col items-center justify-center h-64 backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl">
+              <p className="text-white/40 text-lg font-medium">Módulo em desenvolvimento</p>
+              <p className="text-white/30 text-sm mt-2">Em breve: {activeTab}</p>
+            </div>
+          )}
         </div>
       </div>
+
+      <NewLeadDialog open={showNewLead} onOpenChange={setShowNewLead} onSuccess={loadLeads} />
     </div>
   )
 }

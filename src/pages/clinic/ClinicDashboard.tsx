@@ -16,7 +16,12 @@ export default function ClinicDashboard() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (user && user.role !== 'medical_director' && user.role !== 'admin') {
+    if (
+      user &&
+      user.role !== 'medical_director' &&
+      user.role !== 'admin' &&
+      user.role !== 'professional'
+    ) {
       navigate('/forbidden')
     }
   }, [user, navigate])

@@ -27,6 +27,7 @@ import {
   TrendingUp,
   TrendingDown,
   ReceiptText,
+  Briefcase,
 } from 'lucide-react'
 import {
   Select,
@@ -456,9 +457,28 @@ export default function AdminDashboard() {
                     </div>
                     <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0" />
                   </div>
-                  <CardTitle className="text-lg">CRM</CardTitle>
+                  <CardTitle className="text-lg">Gestão de Usuários</CardTitle>
                   <CardDescription className="text-sm">
                     Acesso aos registros de todos os usuários, pacientes e parceiros da plataforma.
+                  </CardDescription>
+                </CardHeader>
+              </Card>
+
+              {/* CRM B2B */}
+              <Card
+                className="group hover:border-primary/50 transition-all cursor-pointer hover:shadow-md border-primary/20 bg-primary/5"
+                onClick={() => navigate('/admin/crm')}
+              >
+                <CardHeader>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="p-2.5 bg-primary/20 rounded-xl text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                      <Briefcase className="h-6 w-6" />
+                    </div>
+                    <ArrowRight className="h-5 w-5 text-primary transition-colors opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0" />
+                  </div>
+                  <CardTitle className="text-lg text-primary">CRM B2B</CardTitle>
+                  <CardDescription className="text-sm text-foreground/70">
+                    Gestão de leads B2B, pipeline de vendas e relacionamento com parceiros.
                   </CardDescription>
                 </CardHeader>
               </Card>

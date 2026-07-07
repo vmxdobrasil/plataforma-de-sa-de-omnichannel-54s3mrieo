@@ -93,7 +93,7 @@ const navItems = [
     masterOnly: true,
   },
   {
-    title: 'CRM',
+    title: 'Gestão de Usuários',
     icon: Users,
     url: '/admin/users',
     roles: ['medical_director', 'admin'],
@@ -258,7 +258,7 @@ const navItems = [
     title: 'Dashboard Clínico',
     icon: Activity,
     url: '/dashboard/clinic',
-    roles: ['medical_director', 'admin'],
+    roles: ['medical_director', 'admin', 'professional'],
   },
   {
     title: 'Registro de Vendas',
