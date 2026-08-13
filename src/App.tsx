@@ -47,6 +47,7 @@ import AdminAudit from './pages/AdminAudit'
 import AdminPharmacy from './pages/AdminPharmacy'
 import AdminAI from './pages/AdminAI'
 import AdminTransactions from './pages/AdminTransactions'
+import AdminAsaas from './pages/AdminAsaas'
 import AdminProfessionals from './pages/AdminProfessionals'
 import AdminCompanies from './pages/AdminCompanies'
 import AdminFinancialDashboard from './pages/AdminFinancialDashboard'
@@ -229,6 +230,7 @@ const AppRoutes = () => {
               <Route path="/admin/companies" element={<AdminCompanies />} />
               <Route path="/admin/ai" element={<AdminAI />} />
               <Route path="/admin/transactions" element={<AdminTransactions />} />
+              <Route path="/admin/asaas" element={<AdminAsaas />} />
               <Route path="/admin/network" element={<AdminNetwork />} />
               <Route path="/admin/professionals" element={<AdminProfessionals />} />
               <Route path="/admin/financial" element={<AdminFinancialDashboard />} />

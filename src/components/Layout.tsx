@@ -28,6 +28,7 @@ import {
   Wallet,
   TestTube,
   Briefcase,
+  CreditCard,
 } from 'lucide-react'
 import {
   Sidebar,
@@ -131,6 +132,13 @@ const navItems = [
     title: 'Transações e Financeiro',
     icon: ReceiptText,
     url: '/admin/transactions',
+    roles: ['medical_director', 'admin'],
+    masterOnly: true,
+  },
+  {
+    title: 'Gateway Asaas',
+    icon: CreditCard,
+    url: '/admin/asaas',
     roles: ['medical_director', 'admin'],
     masterOnly: true,
   },

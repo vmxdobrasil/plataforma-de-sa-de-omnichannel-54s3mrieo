@@ -3,6 +3,51 @@ routerAdd('POST', '/backend/v1/asaas/webhook', (e) => {
   const event = body.event || ''
   const payment = body.payment || body
   const txId = payment.externalReference || body.externalReference
+  const asaasPaymentId = payment.id || body.id || ''
+
+  // Map event -> internal status for the `transacoes` collection
+  let internalStatus = ''
+  if (event === 'PAYMENT_RECEIVED' || event === 'PAYMENT_CONFIRMED' || event === 'PAYMENT_MOCKED') {
+    internalStatus = 'confirmed'
+  } else if (event === 'PAYMENT_OVERDUE') {
+    internalStatus = 'overdue'
+  } else if (
+    event === 'PAYMENT_REFUNDED' ||
+    event === 'PAYMENT_CHARGEBACK_REQUESTED' ||
+    event === 'PAYMENT_CHARGEBACK_DISPUTE'
+  ) {
+    internalStatus = 'canceled'
+  } else if (event === 'PAYMENT_DELETED' || event === 'PAYMENT_CANCELED') {
+    internalStatus = 'canceled'
+  }
+  if (internalStatus && asaasPaymentId) {
+    try {
+      const recs = $app.findRecordsByFilter(
+        'transacoes',
+        "asaas_id = '" + asaasPaymentId + "'",
+        '',
+        1,
+        0,
+      )
+      if (recs && recs.length) {
+        const rec = recs[0]
+        if (rec.getString('status') !== internalStatus) {
+          rec.set('status', internalStatus)
+          $app.save(rec)
+        }
+      }
+    } catch (err) {
+      $app
+        .logger()
+        .warn(
+          'webhook transacoes update failed',
+          'asaasId',
+          asaasPaymentId,
+          'err',
+          (err && err.message) || String(err),
+        )
+    }
+  }
 
   if (event === 'PAYMENT_RECEIVED' || event === 'PAYMENT_CONFIRMED' || event === 'PAYMENT_MOCKED') {
     if (txId) {
