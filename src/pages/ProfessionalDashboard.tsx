@@ -80,6 +80,11 @@ export default function ProfessionalDashboard() {
   const [notes, setNotes] = useState('')
   const [meds, setMeds] = useState('')
   const [insts, setInsts] = useState('')
+  // Campos financeiros (integração GestãoMed) exibidos ao finalizar a consulta
+  const [valor, setValor] = useState('')
+  const [formaPagamento, setFormaPagamento] = useState('PIX')
+  const [statusPagamento, setStatusPagamento] = useState('Pago')
+  const [repassePct, setRepassePct] = useState('')
 
   // External Labs States
   const [externalLabs, setExternalLabs] = useState<any[]>([])
@@ -614,6 +619,65 @@ export default function ProfessionalDashboard() {
                         placeholder="Digite a evolução clínica..."
                         className="flex-1 min-h-[200px] resize-none border-primary/20 focus-visible:ring-primary/30"
                       />
+                      <div className="space-y-3 rounded-lg border p-3 bg-muted/20">
+                        <p className="text-sm font-medium">Dados Financeiros (GestãoMed)</p>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="space-y-1">
+                            <Label className="text-xs text-muted-foreground">Valor (R$)</Label>
+                            <Input
+                              type="number"
+                              step="0.01"
+                              min="0"
+                              placeholder="0,00"
+                              value={valor}
+                              onChange={(e) => setValor(e.target.value)}
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <Label className="text-xs text-muted-foreground">% Repasse</Label>
+                            <Input
+                              type="number"
+                              step="0.01"
+                              min="0"
+                              max="100"
+                              placeholder="0"
+                              value={repassePct}
+                              onChange={(e) => setRepassePct(e.target.value)}
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <Label className="text-xs text-muted-foreground">
+                              Forma de Pagamento
+                            </Label>
+                            <Select value={formaPagamento} onValueChange={setFormaPagamento}>
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="PIX">PIX</SelectItem>
+                                <SelectItem value="cartao">Cartão</SelectItem>
+                                <SelectItem value="transferencia">Transferência</SelectItem>
+                                <SelectItem value="dinheiro">Dinheiro</SelectItem>
+                                <SelectItem value="boleto">Boleto</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="space-y-1">
+                            <Label className="text-xs text-muted-foreground">
+                              Status Pagamento
+                            </Label>
+                            <Select value={statusPagamento} onValueChange={setStatusPagamento}>
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="Pago">Pago</SelectItem>
+                                <SelectItem value="Aguardando">Aguardando</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                      </div>
                       <div className="flex justify-end gap-2 pt-2">
                         <Button onClick={handleSaveNotes} disabled={!notes.trim()}>
                           Assinar e Finalizar Consulta

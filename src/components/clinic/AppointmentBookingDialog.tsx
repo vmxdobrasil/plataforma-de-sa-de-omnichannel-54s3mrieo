@@ -35,6 +35,11 @@ export function AppointmentBookingDialog({ open, onOpenChange, onSuccess }: Prop
   const [selectedTime, setSelectedTime] = useState('')
   const [notes, setNotes] = useState('')
   const [loading, setLoading] = useState(false)
+  // Campos financeiros (integração GestãoMed)
+  const [valor, setValor] = useState('')
+  const [formaPagamento, setFormaPagamento] = useState('')
+  const [statusPagamento, setStatusPagamento] = useState('')
+  const [repassePct, setRepassePct] = useState('')
 
   useEffect(() => {
     if (open) {
@@ -112,6 +117,12 @@ export function AppointmentBookingDialog({ open, onOpenChange, onSuccess }: Prop
     }
     setLoading(true)
     try {
+      const payment: Record<string, unknown> = {}
+      if (valor) payment.valor = parseFloat(valor)
+      if (formaPagamento) payment.forma_pagamento = formaPagamento
+      if (statusPagamento) payment.status_pagamento = statusPagamento
+      if (repassePct) payment.repasse_pct = parseFloat(repassePct)
+
       const appt = await createAppointment({
         patient_id: patientId,
         professional_id: doctorId,
@@ -119,8 +130,9 @@ export function AppointmentBookingDialog({ open, onOpenChange, onSuccess }: Prop
         type,
         status: 'scheduled',
         notes,
+        classification,
+        ...payment,
       })
-      await pb.collection('appointments').update(appt.id, { classification })
       await logAudit('create', 'appointments', appt.id, { patientId, doctorId, classification })
       toast.success('Agendamento criado!')
       onOpenChange(false)
@@ -232,6 +244,61 @@ export function AppointmentBookingDialog({ open, onOpenChange, onSuccess }: Prop
               )}
             </div>
           )}
+          <div className="space-y-2 rounded-lg border p-3 bg-muted/30">
+            <Label className="text-sm font-semibold">Dados Financeiros (GestãoMed)</Label>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">Valor (R$)</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  placeholder="0,00"
+                  value={valor}
+                  onChange={(e) => setValor(e.target.value)}
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">% Repasse</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  max="100"
+                  placeholder="0"
+                  value={repassePct}
+                  onChange={(e) => setRepassePct(e.target.value)}
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">Forma de Pagamento</Label>
+                <Select value={formaPagamento} onValueChange={setFormaPagamento}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="PIX">PIX</SelectItem>
+                    <SelectItem value="cartao">Cartão</SelectItem>
+                    <SelectItem value="transferencia">Transferência</SelectItem>
+                    <SelectItem value="dinheiro">Dinheiro</SelectItem>
+                    <SelectItem value="boleto">Boleto</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">Status Pagamento</Label>
+                <Select value={statusPagamento} onValueChange={setStatusPagamento}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Pago">Pago</SelectItem>
+                    <SelectItem value="Aguardando">Aguardando</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
           <div className="space-y-2">
             <Label>Observações</Label>
             <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} />
