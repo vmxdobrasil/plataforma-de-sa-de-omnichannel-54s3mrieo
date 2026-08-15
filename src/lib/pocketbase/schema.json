@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-15T13:32:16.055Z",
+  "generatedAt": "2026-08-15T14:08:00.345Z",
   "collections": [
     {
       "name": "users",
@@ -620,15 +620,13 @@
           "name": "valor",
           "type": "number",
           "required": false,
-          "system": false,
-          "min": 0
+          "system": false
         },
         {
           "name": "forma_pagamento",
           "type": "select",
           "required": false,
           "system": false,
-          "maxSelect": 1,
           "selectValues": ["PIX", "cartao", "transferencia", "dinheiro", "boleto"]
         },
         {
@@ -636,16 +634,13 @@
           "type": "select",
           "required": false,
           "system": false,
-          "maxSelect": 1,
           "selectValues": ["Pago", "Aguardando"]
         },
         {
           "name": "repasse_pct",
           "type": "number",
           "required": false,
-          "system": false,
-          "min": 0,
-          "max": 100
+          "system": false
         }
       ],
       "indexes": [

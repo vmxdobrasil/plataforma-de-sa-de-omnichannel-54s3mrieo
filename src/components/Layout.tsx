@@ -227,7 +227,7 @@ const navItems = [
     title: 'Painel do Profissional',
     icon: Stethoscope,
     url: '/professional',
-    roles: ['professional'],
+    roles: ['professional', 'admin', 'medical_director'],
   },
   {
     title: 'Marketplace',

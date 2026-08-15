@@ -37,7 +37,7 @@ import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog'
 import { Progress } from '@/components/ui/progress'
 import { SOSCard } from '@/components/SOSCard'
 import { useAuth } from '@/hooks/use-auth'
-import { getProfessionalAppointments, updateAppointmentStatus } from '@/services/appointments'
+import { getProfessionalAppointments, finalizeAppointment } from '@/services/appointments'
 import { createPrescription } from '@/services/prescriptions'
 import { getTreatmentPlans, updateTreatmentPlanStatus } from '@/services/treatment_plans'
 import { createHealthRecord } from '@/services/health_records'
@@ -210,9 +210,18 @@ export default function ProfessionalDashboard() {
         content: notes,
         type: 'clinical',
       })
-      await updateAppointmentStatus(activeAppt.id, 'completed')
+      // Finaliza a consulta registrando os dados financeiros que disparam
+      // o webhook -> GestãoMed (status muda para 'completed').
+      await finalizeAppointment(activeAppt.id, {
+        valor: valor ? Number(valor) : undefined,
+        forma_pagamento: formaPagamento || undefined,
+        status_pagamento: statusPagamento || undefined,
+        repasse_pct: repassePct ? Number(repassePct) : undefined,
+      })
       toast.success('Prontuário salvo e consulta finalizada.')
       setNotes('')
+      setValor('')
+      setRepassePct('')
     } catch (e) {
       toast.error('Erro ao salvar prontuário.')
     }
