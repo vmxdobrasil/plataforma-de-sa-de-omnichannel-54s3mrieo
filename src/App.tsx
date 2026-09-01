@@ -14,6 +14,7 @@ import { TooltipProvider } from '@/components/ui/tooltip'
 import { Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 
+import pb from './lib/pocketbase/client'
 import { AuthProvider, useAuth } from './hooks/use-auth'
 import { useRealtime } from './hooks/use-realtime'
 import { ThemeProvider } from './components/ThemeProvider'
@@ -121,9 +122,21 @@ const ProtectedOutlet = () => {
 }
 
 const AdminOutlet = () => {
-  const { user } = useAuth()
+  const { user, loading } = useAuth()
+  const effectiveUser = user || pb.authStore.record
 
-  if (user?.role !== 'medical_director' && user?.role !== 'admin') {
+  if (loading) {
+    return (
+      <div className="flex h-full min-h-[60vh] w-full items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-10 w-10 animate-spin text-primary" />
+          <p className="text-muted-foreground font-medium animate-pulse">Carregando...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (effectiveUser?.role !== 'medical_director' && effectiveUser?.role !== 'admin') {
     return <Navigate to="/" replace />
   }
 

@@ -40,8 +40,11 @@ import { AdminHeader } from '@/components/admin/AdminHeader'
 
 export default function AdminSettings() {
   const { user } = useAuth()
+  const effectiveUser = user || pb.authStore.record
   const isAuthorized =
-    user?.role === 'admin' || user?.role === 'medical_director' || user?.role === 'company'
+    effectiveUser?.role === 'admin' ||
+    effectiveUser?.role === 'medical_director' ||
+    effectiveUser?.role === 'company'
 
   const [settingsId, setSettingsId] = useState<string | null>(null)
   const [logoPreview, setLogoPreview] = useState<string | null>(null)
@@ -242,10 +245,12 @@ export default function AdminSettings() {
   }
 
   const canManageBranding =
-    user?.role === 'admin' || user?.role === 'medical_director' || user?.role === 'company'
+    effectiveUser?.role === 'admin' ||
+    effectiveUser?.role === 'medical_director' ||
+    effectiveUser?.role === 'company'
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8 animate-fade-in-up pb-12">
+    <div className="max-w-6xl mx-auto space-y-8 pb-12">
       <AdminHeader
         title={
           <>
