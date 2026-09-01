@@ -142,7 +142,7 @@ function AdminSupervisionContent() {
 
   const getRoleFilter = useCallback(
     (prefix = '') => {
-      const isMasterAdmin = user?.role === 'admin' || user?.email === 'valterpmendonca@gmail.com'
+      const isMasterAdmin = user?.role === 'admin' || user?.role === 'medical_director'
       if (isMasterAdmin) return ''
       if (user?.role === 'medical_director') {
         if (user?.crm_state) {

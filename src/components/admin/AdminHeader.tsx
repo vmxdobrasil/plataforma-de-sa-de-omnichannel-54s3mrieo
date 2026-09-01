@@ -25,9 +25,9 @@ export function AdminHeader({
 
   const fetchLogo = async () => {
     try {
-      const settings = await pb.collection('system_settings').getFirstListItem('')
-      if (settings.logo) {
-        setLogoUrl(pb.files.getURL(settings, settings.logo))
+      const res = await pb.collection('system_settings').getList(1, 1)
+      if (res.items.length > 0 && res.items[0].logo) {
+        setLogoUrl(pb.files.getURL(res.items[0], res.items[0].logo))
       } else {
         setLogoUrl(defaultLogo)
       }

@@ -296,13 +296,7 @@ export default function Layout() {
     navigate('/login')
   }
 
-  const isMasterAdmin =
-    user?.role === 'admin' ||
-    user?.role === 'medical_director' ||
-    user?.email === 'valterpmendonca@gmail.com' ||
-    user?.email === 'victorhugotmendonca@gmail.com' ||
-    user?.name?.toLowerCase().includes('valter') ||
-    user?.name?.toLowerCase().includes('victor')
+  const isMasterAdmin = user?.role === 'admin' || user?.role === 'medical_director'
 
   const visibleNavItems = navItems.filter((item) => {
     // Para administradores (admin e medical_director), todos os itens admin são visíveis
@@ -352,11 +346,19 @@ export default function Layout() {
   }
 
   useEffect(() => {
+    let isMounted = true
+
     pb.collection('system_settings')
-      .getFirstListItem('')
-      .then((rec) => {
-        setSystemSettings(rec)
-        applyBrandColor(rec.primary_color)
+      .getList(1, 1)
+      .then((res) => {
+        if (!isMounted) return
+        if (res.items.length > 0) {
+          const rec = res.items[0]
+          setSystemSettings(rec)
+          if (rec.primary_color) {
+            applyBrandColor(rec.primary_color)
+          }
+        }
       })
       .catch(() => {
         /* ignore */
@@ -364,11 +366,20 @@ export default function Layout() {
 
     if (user?.role === 'professional') {
       pb.collection('brand_kits')
-        .getFirstListItem(`user_id="${user.id}"`)
-        .then((rec) => setBrandKit(rec))
+        .getList(1, 1, { filter: `user_id="${user.id}"` })
+        .then((res) => {
+          if (!isMounted) return
+          if (res.items.length > 0) {
+            setBrandKit(res.items[0])
+          }
+        })
         .catch(() => {
           /* ignore */
         })
+    }
+
+    return () => {
+      isMounted = false
     }
   }, [user])
 

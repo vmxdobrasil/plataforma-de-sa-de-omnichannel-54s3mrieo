@@ -47,13 +47,7 @@ import { AdminHeader } from '@/components/admin/AdminHeader'
 
 export default function AdminDashboard() {
   const { user } = useAuth()
-  const isMasterAdmin =
-    user?.role === 'admin' ||
-    user?.role === 'medical_director' ||
-    user?.email === 'valterpmendonca@gmail.com' ||
-    user?.email === 'victorhugotmendonca@gmail.com' ||
-    user?.name?.toLowerCase().includes('valter') ||
-    user?.name?.toLowerCase().includes('victor')
+  const isMasterAdmin = user?.role === 'admin' || user?.role === 'medical_director'
 
   const [stats, setStats] = useState({
     patients: 0,
@@ -196,11 +190,16 @@ export default function AdminDashboard() {
         rightContent={
           <div className="flex flex-col gap-2">
             <Badge variant="secondary" className="bg-white/20 text-white border-white/30 w-fit">
-              Gestor Master: Valter Paula Mendonça
+              {user?.role === 'admin' ? 'Administrador Master' : 'Diretor Técnico'}
             </Badge>
-            <Badge variant="secondary" className="bg-white/20 text-white border-white/30 w-fit">
-              Gestor Master: Victor Hugo Tavares Mendonça
-            </Badge>
+            {user?.name && (
+              <Badge
+                variant="secondary"
+                className="bg-white/10 text-white/90 border-white/20 w-fit"
+              >
+                {user.name}
+              </Badge>
+            )}
           </div>
         }
       />

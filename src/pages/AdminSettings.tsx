@@ -80,17 +80,22 @@ export default function AdminSettings() {
   })
 
   useEffect(() => {
+    let isMounted = true
+
     const loadSettings = async () => {
       try {
-        const record = await pb.collection('system_settings').getFirstListItem('')
-        setSettingsId(record.id)
-        if (record.company_name) setCompanyName(record.company_name)
-        if (record.primary_color) setPrimaryColor(record.primary_color)
-        if (record.logo) {
-          setLogoPreview(pb.files.getURL(record, record.logo))
-        }
-      } catch (err) {
-        if (
+        const list = await pb.collection('system_settings').getList(1, 1)
+        if (!isMounted) return
+
+        if (list.items.length > 0) {
+          const record = list.items[0]
+          setSettingsId(record.id)
+          if (record.company_name) setCompanyName(record.company_name)
+          if (record.primary_color) setPrimaryColor(record.primary_color)
+          if (record.logo) {
+            setLogoPreview(pb.files.getURL(record, record.logo))
+          }
+        } else if (
           user?.role === 'admin' ||
           user?.role === 'medical_director' ||
           user?.role === 'company'
@@ -100,15 +105,21 @@ export default function AdminSettings() {
               company_name: 'V MED Brasil',
               primary_color: '#14805A',
             })
-            setSettingsId(newRecord.id)
+            if (isMounted) setSettingsId(newRecord.id)
           } catch (createErr) {
             console.error('Could not create system settings', createErr)
           }
         }
+      } catch (err) {
+        console.error('Error fetching system settings in AdminSettings:', err)
       }
     }
 
     loadSettings()
+
+    return () => {
+      isMounted = false
+    }
   }, [user])
 
   const copyToClipboard = async (text: string, key: string, label: string) => {
