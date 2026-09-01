@@ -260,7 +260,7 @@ const AppRoutes = () => {
 const App = () => {
   return (
     <ErrorBoundary>
-      <BrowserRouter future={{ v7_startTransition: false, v7_relativeSplatPath: false }}>
+      <BrowserRouter>
         <ThemeProvider defaultTheme="system" storageKey="vmed-theme">
           <TooltipProvider>
             <AuthProvider>

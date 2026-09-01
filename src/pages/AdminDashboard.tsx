@@ -28,6 +28,7 @@ import {
   TrendingDown,
   ReceiptText,
   Briefcase,
+  Sliders,
 } from 'lucide-react'
 import {
   Select,
@@ -595,6 +596,26 @@ export default function AdminDashboard() {
                   <CardDescription className="text-sm">
                     Gerencie a base de dados de especialidades e vetores sintomáticos para a IA de
                     Triagem.
+                  </CardDescription>
+                </CardHeader>
+              </Card>
+
+              {/* Configurações do Sistema */}
+              <Card
+                className="group hover:border-primary/50 transition-all cursor-pointer hover:shadow-md border-primary/20 bg-primary/5"
+                onClick={() => navigate('/admin/settings')}
+              >
+                <CardHeader>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="p-2.5 bg-primary/20 rounded-xl text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                      <Sliders className="h-6 w-6" />
+                    </div>
+                    <ArrowRight className="h-5 w-5 text-primary transition-colors opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0" />
+                  </div>
+                  <CardTitle className="text-lg text-primary">Configurações do Sistema</CardTitle>
+                  <CardDescription className="text-sm text-foreground/70">
+                    Ajustes de branding, domínio personalizado, repositório GitHub e uploads
+                    globais.
                   </CardDescription>
                 </CardHeader>
               </Card>

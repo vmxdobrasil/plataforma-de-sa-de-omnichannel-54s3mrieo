@@ -21,17 +21,15 @@ import pb from '@/lib/pocketbase/client'
 import { useAuth } from '@/hooks/use-auth'
 import { extractFieldErrors } from '@/lib/pocketbase/errors'
 
+type FormValues = {
+  low_balance_threshold: number
+}
+
 const formSchema = z.object({
-  low_balance_threshold: z.preprocess(
-    (val) => (val === '' || val === null || val === undefined ? undefined : Number(val)),
-    z
-      .number({
-        required_error: 'O valor é obrigatório',
-        invalid_type_error: 'Deve ser um número válido',
-      })
-      .min(0, 'O valor não pode ser negativo')
-      .max(100000, 'Valor muito alto'),
-  ),
+  low_balance_threshold: z.coerce
+    .number()
+    .min(0, 'O valor não pode ser negativo')
+    .max(100000, 'Valor muito alto'),
 })
 
 export function NotificationSettings() {
@@ -39,8 +37,8 @@ export function NotificationSettings() {
   const { toast } = useToast()
   const [loading, setLoading] = useState(false)
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema as any),
     defaultValues: {
       low_balance_threshold: 50,
     },
@@ -58,7 +56,7 @@ export function NotificationSettings() {
     }
   }, [user, form])
 
-  async function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: FormValues) {
     if (!user) return
     setLoading(true)
     try {

@@ -56,7 +56,7 @@ export class ErrorBoundary extends Component<Props, State> {
                 Limpar Cache e Recarregar
               </Button>
             </div>
-            {process.env.NODE_ENV === 'development' && this.state.error && (
+            {import.meta.env.DEV && this.state.error && (
               <div className="mt-8 max-w-full overflow-auto rounded-md bg-muted p-4 text-left text-xs">
                 <pre className="text-destructive">{this.state.error.message}</pre>
               </div>

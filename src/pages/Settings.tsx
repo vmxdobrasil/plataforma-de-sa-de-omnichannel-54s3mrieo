@@ -233,6 +233,25 @@ export default function Settings() {
       {user?.role === 'company' && <CompanySettings user={user} />}
       {user?.role === 'professional' && <ProfessionalSettings user={user} />}
       {user?.role === 'patient' && <PatientSettings user={user} />}
+      {(user?.role === 'admin' || user?.role === 'medical_director') && (
+        <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Acesso Administrativo Master</CardTitle>
+              <CardDescription>
+                Você está autenticado com privilégios de gestão. As configurações avançadas da
+                plataforma, logomarca, domínio e GitHub estão centralizadas no painel
+                administrativo.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button onClick={() => (window.location.href = '/admin/settings')}>
+                Ir para Configurações do Sistema (Admin)
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   )
 }

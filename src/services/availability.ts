@@ -13,6 +13,7 @@ export const createAvailabilitySlot = async (data: {
   start_time: string
   end_time: string
   slot_type: string
+  slot_duration?: number
 }) => {
   return pb.collection('availability_slots').create(data)
 }

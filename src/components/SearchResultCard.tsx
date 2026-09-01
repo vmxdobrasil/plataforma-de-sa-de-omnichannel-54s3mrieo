@@ -62,7 +62,9 @@ export function SearchResultCard({ r, isAdmin, onToggleStatus }: SearchResultCar
                 </span>
               )}
               {r.is_verified && (
-                <ShieldCheck className="h-4 w-4 text-green-500" title="Parceiro Verificado" />
+                <span title="Parceiro Verificado" className="inline-flex items-center">
+                  <ShieldCheck className="h-4 w-4 text-green-500" />
+                </span>
               )}
               {r.is_blocked && (
                 <Badge variant="destructive" className="text-[10px] h-5 px-1.5">
