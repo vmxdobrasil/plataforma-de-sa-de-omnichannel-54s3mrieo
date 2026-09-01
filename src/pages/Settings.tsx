@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useAuth } from '@/hooks/use-auth'
+import { useNavigate } from 'react-router-dom'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -7,7 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { toast } from 'sonner'
 import pb from '@/lib/pocketbase/client'
-import { UploadCloud, X } from 'lucide-react'
+import { UploadCloud, X, Sliders, ArrowRight } from 'lucide-react'
 
 function CompanySettings({ user }: { user: any }) {
   const initialAvatarUrl = user?.avatar
@@ -220,6 +221,7 @@ function PatientSettings({ user }: { user: any }) {
 
 export default function Settings() {
   const { user } = useAuth()
+  const navigate = useNavigate()
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -235,18 +237,25 @@ export default function Settings() {
       {user?.role === 'patient' && <PatientSettings user={user} />}
       {(user?.role === 'admin' || user?.role === 'medical_director') && (
         <div className="space-y-6">
-          <Card>
+          <Card className="border-primary/20 bg-primary/5">
             <CardHeader>
-              <CardTitle>Acesso Administrativo Master</CardTitle>
-              <CardDescription>
-                Você está autenticado com privilégios de gestão. As configurações avançadas da
-                plataforma, logomarca, domínio e GitHub estão centralizadas no painel
-                administrativo.
-              </CardDescription>
+              <div className="flex items-center gap-2">
+                <div className="p-2 bg-primary/20 rounded-lg text-primary">
+                  <Sliders className="h-5 w-5" />
+                </div>
+                <div>
+                  <CardTitle className="text-lg">Configurações do Sistema (Admin Master)</CardTitle>
+                  <CardDescription>
+                    Você está autenticado com privilégios de gestão. As configurações avançadas de
+                    branding (logomarca), domínio personalizado e sincronização com GitHub estão
+                    centralizadas no painel administrativo.
+                  </CardDescription>
+                </div>
+              </div>
             </CardHeader>
             <CardContent>
-              <Button onClick={() => (window.location.href = '/admin/settings')}>
-                Ir para Configurações do Sistema (Admin)
+              <Button onClick={() => navigate('/admin/settings')} className="gap-2">
+                Acessar Configurações do Sistema <ArrowRight className="h-4 w-4" />
               </Button>
             </CardContent>
           </Card>

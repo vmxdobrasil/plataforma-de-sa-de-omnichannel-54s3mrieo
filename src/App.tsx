@@ -122,19 +122,9 @@ const ProtectedOutlet = () => {
 
 const AdminOutlet = () => {
   const { user } = useAuth()
-  const location = useLocation()
 
   if (user?.role !== 'medical_director' && user?.role !== 'admin') {
     return <Navigate to="/" replace />
-  }
-
-  if (user?.role === 'medical_director') {
-    const isAllowed = ['/admin/supervision', '/admin/verification', '/admin/professionals'].some(
-      (path) => location.pathname === path || location.pathname.startsWith(`${path}/`),
-    )
-    if (!isAllowed && location.pathname.startsWith('/admin')) {
-      return <Navigate to="/admin/supervision" replace />
-    }
   }
 
   return <Outlet />

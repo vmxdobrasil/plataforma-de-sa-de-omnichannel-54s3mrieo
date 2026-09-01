@@ -5,12 +5,11 @@ cronAdd('appointment_reminders', '*/15 * * * *', () => {
     const now = new Date()
     const in24h = new Date(now.getTime() + 24 * 60 * 60 * 1000)
 
-    // PocketBase sort uses '-' prefix for DESC or no prefix for ASC.
-    // PocketBase v0.36 collection appointments fields: dateTime
+    // PocketBase sort uses '-' prefix for DESC or '+' / no prefix for ASC.
     const appts = $app.findRecordsByFilter(
       'appointments',
       'status = "scheduled" && reminder_24h_sent = false',
-      'dateTime',
+      '+dateTime',
       50,
       0,
     )

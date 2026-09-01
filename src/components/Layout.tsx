@@ -297,13 +297,18 @@ export default function Layout() {
   }
 
   const isMasterAdmin =
-    (user?.role === 'medical_director' || user?.role === 'admin') &&
-    (user?.email === 'valterpmendonca@gmail.com' ||
-      user?.email === 'victorhugotmendonca@gmail.com' ||
-      user?.name?.toLowerCase().includes('valter') ||
-      user?.name?.toLowerCase().includes('victor'))
+    user?.role === 'admin' ||
+    user?.role === 'medical_director' ||
+    user?.email === 'valterpmendonca@gmail.com' ||
+    user?.email === 'victorhugotmendonca@gmail.com' ||
+    user?.name?.toLowerCase().includes('valter') ||
+    user?.name?.toLowerCase().includes('victor')
 
   const visibleNavItems = navItems.filter((item) => {
+    // Para administradores (admin e medical_director), todos os itens admin são visíveis
+    if (user?.role === 'admin' || user?.role === 'medical_director') {
+      return item.roles.includes('admin') || item.roles.includes('medical_director')
+    }
     if ((item as any).masterOnly && !isMasterAdmin) return false
     return item.roles.includes(user?.role || 'patient')
   })

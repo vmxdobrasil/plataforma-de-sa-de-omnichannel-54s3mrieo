@@ -48,11 +48,12 @@ import { AdminHeader } from '@/components/admin/AdminHeader'
 export default function AdminDashboard() {
   const { user } = useAuth()
   const isMasterAdmin =
-    user?.role === 'medical_director' &&
-    (user?.email === 'valterpmendonca@gmail.com' ||
-      user?.email === 'victorhugotmendonca@gmail.com' ||
-      user?.name?.toLowerCase().includes('valter') ||
-      user?.name?.toLowerCase().includes('victor'))
+    user?.role === 'admin' ||
+    user?.role === 'medical_director' ||
+    user?.email === 'valterpmendonca@gmail.com' ||
+    user?.email === 'victorhugotmendonca@gmail.com' ||
+    user?.name?.toLowerCase().includes('valter') ||
+    user?.name?.toLowerCase().includes('victor')
 
   const [stats, setStats] = useState({
     patients: 0,
