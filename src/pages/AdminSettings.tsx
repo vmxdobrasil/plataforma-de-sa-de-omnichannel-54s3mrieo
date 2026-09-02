@@ -235,11 +235,16 @@ export default function AdminSettings() {
   if (!isAuthorized) {
     return (
       <div className="flex flex-col items-center justify-center h-full min-h-[50vh] space-y-4">
-        <AlertCircle className="h-12 w-12 text-destructive" />
+        <div className="p-4 rounded-full bg-destructive/10 text-destructive">
+          <AlertCircle className="h-12 w-12" />
+        </div>
         <h2 className="text-xl font-bold">Acesso Restrito</h2>
         <p className="text-muted-foreground text-sm max-w-md text-center">
           Você precisa de permissões de administrador para acessar as configurações do sistema.
         </p>
+        <Button variant="outline" onClick={() => (window.location.href = '/')}>
+          Voltar ao Início
+        </Button>
       </div>
     )
   }

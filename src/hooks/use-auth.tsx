@@ -29,17 +29,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    const unsubscribe = pb.authStore.onChange((_token, record) => {
-      setUser(record)
-    })
-    // Sync immediately if record was restored/changed
-    if (pb.authStore.record && !user) {
+    // Sincroniza imediatamente com o authStore
+    if (pb.authStore.record !== user) {
       setUser(pb.authStore.record)
     }
+
+    const unsubscribe = pb.authStore.onChange((_token, record) => {
+      setUser(record || pb.authStore.record)
+    })
+
     return () => {
       unsubscribe()
     }
-  }, [user])
+  }, [])
 
   const signUp = async (
     email: string,

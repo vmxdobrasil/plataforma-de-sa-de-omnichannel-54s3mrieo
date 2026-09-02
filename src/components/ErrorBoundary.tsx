@@ -56,9 +56,18 @@ export class ErrorBoundary extends Component<Props, State> {
                 Limpar Cache e Recarregar
               </Button>
             </div>
-            {import.meta.env.DEV && this.state.error && (
-              <div className="mt-8 max-w-full overflow-auto rounded-md bg-muted p-4 text-left text-xs">
-                <pre className="text-destructive">{this.state.error.message}</pre>
+            {this.state.error && (
+              <div className="mt-6 max-w-full overflow-auto rounded-md bg-muted p-4 text-left text-xs border border-destructive/20 w-full">
+                <p className="font-semibold text-destructive mb-1">Detalhes do erro:</p>
+                <pre className="text-destructive font-mono text-xs whitespace-pre-wrap break-all">
+                  {this.state.error.message || String(this.state.error)}
+                </pre>
+                {this.state.error.stack && (
+                  <details className="mt-2 text-[10px] text-muted-foreground">
+                    <summary className="cursor-pointer">Ver Stack Trace</summary>
+                    <pre className="mt-1 whitespace-pre-wrap">{this.state.error.stack}</pre>
+                  </details>
+                )}
               </div>
             )}
           </div>

@@ -79,6 +79,7 @@ import B2CLanding from './pages/B2CLanding'
 
 const EntryPoint = () => {
   const { user, loading } = useAuth()
+  const effectiveUser = pb.authStore.record || user
 
   if (loading) {
     return (
@@ -91,20 +92,21 @@ const EntryPoint = () => {
     )
   }
 
-  if (!user) return <Index />
+  if (!effectiveUser) return <Index />
 
-  if (user.role === 'admin') return <Navigate to="/admin" replace />
-  if (user.role === 'medical_director') return <Navigate to="/admin/supervision" replace />
-  if (user.role === 'company') return <Navigate to="/company/employees" replace />
-  if (user.role === 'professional') return <Navigate to="/professional" replace />
-  if (user.role === 'pharmacy') return <Navigate to="/dashboard/pharmacy" replace />
-  if (user.role === 'laboratory') return <Navigate to="/dashboard/laboratory" replace />
+  if (effectiveUser.role === 'admin') return <Navigate to="/admin" replace />
+  if (effectiveUser.role === 'medical_director') return <Navigate to="/admin/supervision" replace />
+  if (effectiveUser.role === 'company') return <Navigate to="/company/employees" replace />
+  if (effectiveUser.role === 'professional') return <Navigate to="/professional" replace />
+  if (effectiveUser.role === 'pharmacy') return <Navigate to="/dashboard/pharmacy" replace />
+  if (effectiveUser.role === 'laboratory') return <Navigate to="/dashboard/laboratory" replace />
 
   return <Index />
 }
 
 const ProtectedOutlet = () => {
   const { user, loading } = useAuth()
+  const effectiveUser = pb.authStore.record || user
 
   if (loading) {
     return (
@@ -117,13 +119,17 @@ const ProtectedOutlet = () => {
     )
   }
 
-  if (!user) return <Navigate to="/login" />
-  return <Outlet />
+  if (!effectiveUser) return <Navigate to="/login" replace />
+  return (
+    <ErrorBoundary>
+      <Outlet />
+    </ErrorBoundary>
+  )
 }
 
 const AdminOutlet = () => {
   const { user, loading } = useAuth()
-  const effectiveUser = user || pb.authStore.record
+  const effectiveUser = pb.authStore.record || user
 
   if (loading) {
     return (
@@ -136,18 +142,55 @@ const AdminOutlet = () => {
     )
   }
 
-  if (effectiveUser?.role !== 'medical_director' && effectiveUser?.role !== 'admin') {
-    return <Navigate to="/" replace />
+  if (!effectiveUser) {
+    return <Navigate to="/login" replace />
   }
 
-  return <Outlet />
+  if (effectiveUser?.role !== 'medical_director' && effectiveUser?.role !== 'admin') {
+    return <Navigate to="/forbidden" replace />
+  }
+
+  return (
+    <ErrorBoundary>
+      <Outlet />
+    </ErrorBoundary>
+  )
 }
 
 const CompanyOutlet = () => {
-  const { user } = useAuth()
-  if (user?.role === 'medical_director' || user?.role === 'admin') return <Outlet />
-  if (user?.role !== 'company') return <Navigate to="/" replace />
-  return <Outlet />
+  const { user, loading } = useAuth()
+  const effectiveUser = pb.authStore.record || user
+
+  if (loading) {
+    return (
+      <div className="flex h-full min-h-[60vh] w-full items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-10 w-10 animate-spin text-primary" />
+          <p className="text-muted-foreground font-medium animate-pulse">Carregando...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!effectiveUser) {
+    return <Navigate to="/login" replace />
+  }
+
+  if (effectiveUser?.role === 'medical_director' || effectiveUser?.role === 'admin') {
+    return (
+      <ErrorBoundary>
+        <Outlet />
+      </ErrorBoundary>
+    )
+  }
+  if (effectiveUser?.role !== 'company') {
+    return <Navigate to="/forbidden" replace />
+  }
+  return (
+    <ErrorBoundary>
+      <Outlet />
+    </ErrorBoundary>
+  )
 }
 
 const CommissionNotifications = () => {
