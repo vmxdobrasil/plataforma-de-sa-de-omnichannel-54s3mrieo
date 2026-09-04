@@ -15,19 +15,30 @@ import { Clock } from 'lucide-react'
 import pb from '@/lib/pocketbase/client'
 import { getAvailabilitySlots, checkDoubleBooking, logAudit } from '@/services/clinic'
 import { createAppointment } from '@/services/appointments'
+import { getFinancasMedPacientes, FinancasMedPatient } from '@/services/financasmed'
 import { toast } from 'sonner'
+import { Badge } from '@/components/ui/badge'
 
 interface Props {
   open: boolean
   onOpenChange: (o: boolean) => void
   onSuccess: () => void
+  defaultDoctorId?: string
 }
 
-export function AppointmentBookingDialog({ open, onOpenChange, onSuccess }: Props) {
+export function AppointmentBookingDialog({
+  open,
+  onOpenChange,
+  onSuccess,
+  defaultDoctorId,
+}: Props) {
   const [patients, setPatients] = useState<any[]>([])
   const [doctors, setDoctors] = useState<any[]>([])
   const [patientId, setPatientId] = useState('')
   const [doctorId, setDoctorId] = useState('')
+  const [financasPacientes, setFinancasPacientes] = useState<FinancasMedPatient[]>([])
+  const [loadingFinancas, setLoadingFinancas] = useState(false)
+  const [financasStatus, setFinancasStatus] = useState<string | null>(null)
   const [date, setDate] = useState('')
   const [type, setType] = useState('Presencial')
   const [classification, setClassification] = useState('first_visit')
@@ -43,22 +54,74 @@ export function AppointmentBookingDialog({ open, onOpenChange, onSuccess }: Prop
 
   useEffect(() => {
     if (open) {
+      if (defaultDoctorId) {
+        setDoctorId(defaultDoctorId)
+      }
       pb.collection('users')
         .getFullList({
-          filter: 'role = "patient" && registration_status = "approved"',
+          filter: 'role = "patient"',
           sort: 'name',
         })
         .then(setPatients)
         .catch(() => {})
       pb.collection('users')
         .getFullList({
-          filter: 'role = "professional" && professional_status = "active"',
+          filter: 'role = "professional"',
           sort: 'name',
         })
-        .then(setDoctors)
+        .then((docs) => {
+          setDoctors(docs)
+          if (defaultDoctorId && !doctorId) {
+            setDoctorId(defaultDoctorId)
+          }
+        })
         .catch(() => {})
     }
-  }, [open])
+  }, [open, defaultDoctorId])
+
+  // Busca pacientes do FinançasMed sempre que o médico for selecionado
+  useEffect(() => {
+    if (!doctorId) {
+      setFinancasPacientes([])
+      setFinancasStatus(null)
+      return
+    }
+
+    const doc = doctors.find((d) => d.id === doctorId)
+    const email = doc?.email
+    if (!email) {
+      setFinancasPacientes([])
+      setFinancasStatus(null)
+      return
+    }
+
+    let isMounted = true
+    setLoadingFinancas(true)
+    setFinancasStatus(null)
+
+    getFinancasMedPacientes(email)
+      .then((list) => {
+        if (!isMounted) return
+        setFinancasPacientes(list || [])
+        setFinancasStatus(
+          list && list.length > 0
+            ? `${list.length} paciente(s) sincronizado(s) do FinançasMed`
+            : 'Nenhum paciente cadastrado para este médico no FinançasMed ainda',
+        )
+      })
+      .catch(() => {
+        if (!isMounted) return
+        setFinancasPacientes([])
+        setFinancasStatus('FinançasMed indisponível no momento')
+      })
+      .finally(() => {
+        if (isMounted) setLoadingFinancas(false)
+      })
+
+    return () => {
+      isMounted = false
+    }
+  }, [doctorId, doctors])
 
   useEffect(() => {
     if (!doctorId || !date) return
@@ -107,16 +170,59 @@ export function AppointmentBookingDialog({ open, onOpenChange, onSuccess }: Prop
       toast.error('Preencha todos os campos.')
       return
     }
-    const [h, m] = selectedTime.split(':')
-    const dt = new Date(date + 'T00:00:00')
-    dt.setHours(parseInt(h), parseInt(m), 0, 0)
-    const isoStr = dt.toISOString()
-    if (await checkDoubleBooking(doctorId, isoStr)) {
-      toast.error('Já existe um agendamento neste horário.')
-      return
-    }
     setLoading(true)
     try {
+      let resolvedPatientId = patientId
+
+      // Se selecionou um paciente do FinançasMed que ainda não está cadastrado no users do PocketBase:
+      if (patientId.startsWith('financas:')) {
+        const financasId = patientId.replace('financas:', '')
+        const fp = financasPacientes.find((p) => p.id === financasId)
+        if (fp) {
+          const fallbackEmail =
+            fp.email ||
+            `${(fp.cpf || fp.name || 'paciente').replace(/\D/g, '') || Math.random().toString(36).slice(2, 8)}@paciente.vmed`
+          try {
+            const newPatient = await pb.collection('users').create({
+              role: 'patient',
+              name: fp.name,
+              email: fallbackEmail,
+              phone: fp.phone || '',
+              document_id: fp.cpf || '',
+              date_of_birth: fp.birth_date || undefined,
+              registration_status: 'approved',
+              password: 'Skip@Pass' + Math.floor(1000 + Math.random() * 9000),
+              passwordConfirm: 'Skip@Pass' + Math.floor(1000 + Math.random() * 9000),
+            })
+            resolvedPatientId = newPatient.id
+            toast.success(`Paciente ${fp.name} importado do FinançasMed!`)
+          } catch (importErr: any) {
+            console.warn('Falha ao instanciar paciente local do FinançasMed:', importErr)
+            // Tenta buscar se já existia pelo email
+            try {
+              const existing = await pb
+                .collection('users')
+                .getFirstListItem(`email="${fallbackEmail}"`)
+              resolvedPatientId = existing.id
+            } catch (_) {
+              toast.error('Erro ao importar paciente do FinançasMed para a base local.')
+              setLoading(false)
+              return
+            }
+          }
+        }
+      }
+
+      const [h, m] = selectedTime.split(':')
+      const dt = new Date(date + 'T00:00:00')
+      dt.setHours(parseInt(h), parseInt(m), 0, 0)
+      const isoStr = dt.toISOString()
+      if (await checkDoubleBooking(doctorId, isoStr)) {
+        toast.error('Já existe um agendamento neste horário.')
+        setLoading(false)
+        return
+      }
+
       const payment: Record<string, unknown> = {}
       if (valor) payment.valor = parseFloat(valor)
       if (formaPagamento) payment.forma_pagamento = formaPagamento
@@ -124,7 +230,7 @@ export function AppointmentBookingDialog({ open, onOpenChange, onSuccess }: Prop
       if (repassePct) payment.repasse_pct = parseFloat(repassePct)
 
       const appt = await createAppointment({
-        patient_id: patientId,
+        patient_id: resolvedPatientId,
         professional_id: doctorId,
         dateTime: isoStr,
         type,
@@ -133,8 +239,12 @@ export function AppointmentBookingDialog({ open, onOpenChange, onSuccess }: Prop
         classification,
         ...payment,
       })
-      await logAudit('create', 'appointments', appt.id, { patientId, doctorId, classification })
-      toast.success('Agendamento criado!')
+      await logAudit('create', 'appointments', appt.id, {
+        patientId: resolvedPatientId,
+        doctorId,
+        classification,
+      })
+      toast.success('Agendamento criado e paciente sincronizado com FinançasMed!')
       onOpenChange(false)
       onSuccess()
     } catch (e: any) {
@@ -152,34 +262,90 @@ export function AppointmentBookingDialog({ open, onOpenChange, onSuccess }: Prop
         </DialogHeader>
         <div className="space-y-4 py-2">
           <div className="space-y-2">
-            <Label>Paciente *</Label>
-            <Select value={patientId} onValueChange={setPatientId}>
+            <Label>Médico *</Label>
+            <Select value={doctorId} onValueChange={setDoctorId}>
               <SelectTrigger>
-                <SelectValue placeholder="Selecione" />
+                <SelectValue placeholder="Selecione o médico" />
               </SelectTrigger>
               <SelectContent>
-                {patients.map((p) => (
-                  <SelectItem key={p.id} value={p.id}>
-                    {p.name}
+                {doctors.map((d) => (
+                  <SelectItem key={d.id} value={d.id}>
+                    {d.name} {d.specialty ? `- ${d.specialty}` : ''} ({d.email})
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
+
           <div className="space-y-2">
-            <Label>Médico *</Label>
-            <Select value={doctorId} onValueChange={setDoctorId}>
+            <div className="flex items-center justify-between">
+              <Label>Paciente *</Label>
+              {doctorId && (
+                <span className="text-[11px] text-muted-foreground flex items-center gap-1">
+                  {loadingFinancas ? (
+                    'Consultando FinançasMed...'
+                  ) : financasStatus ? (
+                    <Badge
+                      variant="outline"
+                      className="text-[10px] py-0 border-blue-200 text-blue-700 bg-blue-50/50"
+                    >
+                      {financasStatus}
+                    </Badge>
+                  ) : null}
+                </span>
+              )}
+            </div>
+
+            <Select value={patientId} onValueChange={setPatientId}>
               <SelectTrigger>
-                <SelectValue placeholder="Selecione" />
+                <SelectValue placeholder="Selecione o paciente" />
               </SelectTrigger>
-              <SelectContent>
-                {doctors.map((d) => (
-                  <SelectItem key={d.id} value={d.id}>
-                    {d.name} - {d.specialty}
+              <SelectContent className="max-h-72">
+                {/* Pacientes cadastrados no FinançasMed para este médico */}
+                {financasPacientes.length > 0 && (
+                  <div className="px-2 py-1.5 text-xs font-semibold text-blue-600 bg-blue-50/70 rounded-sm mb-1">
+                    Pacientes no FinançasMed ({financasPacientes.length})
+                  </div>
+                )}
+                {financasPacientes.map((fp) => {
+                  // Procura se já existe correspondente na V MED pelo CPF, e-mail ou nome
+                  const match = patients.find(
+                    (p) =>
+                      (fp.cpf && (p.document_id === fp.cpf || p.tax_id === fp.cpf)) ||
+                      (fp.email && p.email && p.email.toLowerCase() === fp.email.toLowerCase()) ||
+                      p.name?.toLowerCase() === fp.name?.toLowerCase(),
+                  )
+                  const targetValue = match?.id || `financas:${fp.id}`
+                  return (
+                    <SelectItem key={`financas-${fp.id}`} value={targetValue}>
+                      <span className="flex items-center gap-2">
+                        <span className="font-medium">{fp.name}</span>
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 font-semibold">
+                          FinançasMed{fp.origin ? ` • ${fp.origin}` : ''}
+                        </span>
+                        {fp.phone && (
+                          <span className="text-muted-foreground text-xs">{fp.phone}</span>
+                        )}
+                      </span>
+                    </SelectItem>
+                  )
+                })}
+
+                {/* Todos os pacientes cadastrados na plataforma V MED */}
+                <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground bg-muted/40 rounded-sm my-1">
+                  Base V MED BRASIL ({patients.length})
+                </div>
+                {patients.map((p) => (
+                  <SelectItem key={p.id} value={p.id}>
+                    {p.name} {p.document_id ? `(${p.document_id})` : p.email ? `(${p.email})` : ''}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
+            <p className="text-[11px] text-muted-foreground">
+              Ao confirmar o agendamento, os dados do paciente são enviados automaticamente para o
+              FinançasMed do médico.
+            </p>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">

@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Users, Stethoscope, Calendar, Clock } from 'lucide-react'
+import { Users, Stethoscope, Calendar, Clock, Plus } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { AppointmentBookingDialog } from '@/components/clinic/AppointmentBookingDialog'
 import { getClinicStats } from '@/services/clinic'
 import { useAuth } from '@/hooks/use-auth'
 import { useRealtime } from '@/hooks/use-realtime'
@@ -14,6 +16,7 @@ export default function ClinicDashboard() {
   const [stats, setStats] = useState({ patients: 0, doctors: 0, apptsToday: 0, pending: 0 })
   const [todayAppts, setTodayAppts] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [bookingDialogOpen, setBookingDialogOpen] = useState(false)
 
   useEffect(() => {
     if (
@@ -79,10 +82,23 @@ export default function ClinicDashboard() {
 
   return (
     <div className="space-y-6 animate-fade-in-up">
-      <div>
-        <h1 className="text-3xl font-bold">Clínica</h1>
-        <p className="text-muted-foreground mt-1">Visão geral das operações da clínica</p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold">Clínica</h1>
+          <p className="text-muted-foreground mt-1">
+            Visão geral das operações da clínica e agendamento de consultas
+          </p>
+        </div>
+        <Button onClick={() => setBookingDialogOpen(true)}>
+          <Plus className="mr-2 h-4 w-4" /> Novo Agendamento
+        </Button>
       </div>
+
+      <AppointmentBookingDialog
+        open={bookingDialogOpen}
+        onOpenChange={setBookingDialogOpen}
+        onSuccess={loadData}
+      />
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {metrics.map((m) => (
           <Card key={m.label}>

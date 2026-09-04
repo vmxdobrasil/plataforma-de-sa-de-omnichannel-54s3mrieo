@@ -21,6 +21,7 @@ import { Calendar, Clock, Trash2, Plus, Users } from 'lucide-react'
 import { toast } from 'sonner'
 import { Badge } from '@/components/ui/badge'
 import pb from '@/lib/pocketbase/client'
+import { AppointmentBookingDialog } from '@/components/clinic/AppointmentBookingDialog'
 
 const DAYS = [
   { value: '0', label: 'Domingo' },
@@ -37,6 +38,7 @@ export default function ProfessionalSchedule() {
   const [slots, setSlots] = useState<any[]>([])
   const [appointments, setAppointments] = useState<any[]>([])
 
+  const [bookingDialogOpen, setBookingDialogOpen] = useState(false)
   const [day, setDay] = useState('1')
   const [startTime, setStartTime] = useState('09:00')
   const [endTime, setEndTime] = useState('12:00')
@@ -129,10 +131,20 @@ export default function ProfessionalSchedule() {
             <Calendar className="h-8 w-8 text-primary" /> Minha Agenda
           </h1>
           <p className="text-muted-foreground mt-1">
-            Gerencie sua disponibilidade para agendamentos.
+            Gerencie sua disponibilidade e agendamentos de pacientes integrados ao FinançasMed.
           </p>
         </div>
+        <Button onClick={() => setBookingDialogOpen(true)}>
+          <Plus className="mr-2 h-4 w-4" /> Novo Agendamento
+        </Button>
       </div>
+
+      <AppointmentBookingDialog
+        open={bookingDialogOpen}
+        onOpenChange={setBookingDialogOpen}
+        onSuccess={loadAppointments}
+        defaultDoctorId={user?.id}
+      />
 
       <div className="grid md:grid-cols-3 gap-6">
         <Card className="md:col-span-1 h-fit">

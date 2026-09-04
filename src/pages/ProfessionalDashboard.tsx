@@ -51,6 +51,8 @@ import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { AddToCalendar } from '@/components/AddToCalendar'
 import { useNavigate } from 'react-router-dom'
+import { AppointmentBookingDialog } from '@/components/clinic/AppointmentBookingDialog'
+import { Plus } from 'lucide-react'
 
 const templates = [
   {
@@ -76,6 +78,7 @@ export default function ProfessionalDashboard() {
   const [adherenceFilter, setAdherenceFilter] = useState<'all' | 'risk' | 'track'>('all')
 
   const [activeAppt, setActiveAppt] = useState<any>(null)
+  const [bookingDialogOpen, setBookingDialogOpen] = useState(false)
   const [selectedTemplate, setSelectedTemplate] = useState('')
   const [notes, setNotes] = useState('')
   const [meds, setMeds] = useState('')
@@ -411,9 +414,17 @@ export default function ProfessionalDashboard() {
           <h1 className="text-3xl font-bold">Dashboard Clínico</h1>
           <p className="text-muted-foreground mt-1">Bem-vindo, {user?.name}</p>
         </div>
-        <Button onClick={() => (window.location.href = '/professional/schedule')} variant="outline">
-          <CalIcon className="mr-2 h-4 w-4" /> Gerenciar Agenda
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={() => setBookingDialogOpen(true)}>
+            <Plus className="mr-2 h-4 w-4" /> Novo Agendamento
+          </Button>
+          <Button
+            onClick={() => (window.location.href = '/professional/schedule')}
+            variant="outline"
+          >
+            <CalIcon className="mr-2 h-4 w-4" /> Gerenciar Agenda
+          </Button>
+        </div>
       </div>
 
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 animate-fade-in-up">
@@ -442,6 +453,13 @@ export default function ProfessionalDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      <AppointmentBookingDialog
+        open={bookingDialogOpen}
+        onOpenChange={setBookingDialogOpen}
+        onSuccess={loadData}
+        defaultDoctorId={user?.id}
+      />
 
       <Tabs defaultValue="agenda" className="w-full">
         <TabsList className="mb-4 flex-wrap">
