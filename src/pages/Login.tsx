@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useNavigate, Navigate } from 'react-router-dom'
+import { useNavigate, Navigate, Link } from 'react-router-dom'
 import { HeartPulse, Stethoscope, ArrowRight, RefreshCcw, WifiOff } from 'lucide-react'
 import logoUrl from '@/assets/1002440441png1782862869065-a785f.png'
 import { useAuth } from '@/hooks/use-auth'
@@ -495,13 +495,33 @@ export default function Login() {
       </Card>
 
       <p
-        className="mt-8 text-sm text-muted-foreground text-center max-w-sm animate-fade-in-up"
+        className="mt-6 text-sm text-muted-foreground text-center max-w-sm animate-fade-in-up"
         style={{ animationDelay: '200ms' }}
       >
         Dica: Para testar, faça login com{' '}
         <strong className="text-foreground">valterpmendonca@gmail.com</strong> e senha{' '}
         <strong className="text-foreground">Skip@Pass</strong>.
       </p>
+
+      {/* Footer Links required for Google Play & LGPD */}
+      <footer
+        className="mt-6 flex flex-wrap items-center justify-center gap-2 text-xs text-muted-foreground animate-fade-in-up"
+        style={{ animationDelay: '300ms' }}
+      >
+        <Link
+          to="/termos-de-uso"
+          className="hover:text-primary transition-colors hover:underline underline-offset-4"
+        >
+          Termos de Uso
+        </Link>
+        <span className="text-muted-foreground/60">•</span>
+        <Link
+          to="/politica-de-privacidade"
+          className="hover:text-primary transition-colors hover:underline underline-offset-4"
+        >
+          Política de Privacidade
+        </Link>
+      </footer>
     </div>
   )
 }

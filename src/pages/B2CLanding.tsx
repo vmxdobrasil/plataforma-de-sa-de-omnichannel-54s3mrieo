@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { ArrowRight, MessageCircle, Sparkles, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { CreditSimulator, type SimulationData } from '@/components/landing/CreditSimulator'
@@ -75,9 +75,24 @@ export default function B2CLanding() {
       <SocialProof />
       <SecuritySeals />
 
-      <footer className="py-6 text-center text-xs text-muted-foreground border-t border-border/40">
+      <footer className="py-6 text-center text-xs text-muted-foreground border-t border-border/40 space-y-2">
         <p>V MED BRASIL © 2026 — Todos os direitos reservados</p>
         <p className="mt-1">CNPJ: 00.000.000/0001-00</p>
+        <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+          <Link
+            to="/termos-de-uso"
+            className="hover:text-emerald-700 underline-offset-4 hover:underline"
+          >
+            Termos de Uso
+          </Link>
+          <span>•</span>
+          <Link
+            to="/politica-de-privacidade"
+            className="hover:text-emerald-700 underline-offset-4 hover:underline"
+          >
+            Política de Privacidade
+          </Link>
+        </div>
       </footer>
 
       <button

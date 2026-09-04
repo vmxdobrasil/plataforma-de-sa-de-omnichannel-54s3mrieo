@@ -116,6 +116,22 @@ export default function RegistrationPortal() {
             ← Voltar para o início
           </Link>
         </div>
+
+        <footer className="mt-12 pt-6 border-t border-border/50 flex flex-wrap items-center justify-center gap-3 text-xs text-muted-foreground">
+          <Link
+            to="/termos-de-uso"
+            className="hover:text-primary transition-colors hover:underline"
+          >
+            Termos de Uso
+          </Link>
+          <span>•</span>
+          <Link
+            to="/politica-de-privacidade"
+            className="hover:text-primary transition-colors hover:underline"
+          >
+            Política de Privacidade
+          </Link>
+        </footer>
       </div>
     </div>
   )

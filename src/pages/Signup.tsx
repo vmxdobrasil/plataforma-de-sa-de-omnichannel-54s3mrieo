@@ -93,6 +93,19 @@ export default function Signup() {
           </form>
         </CardContent>
       </Card>
+
+      <footer className="mt-6 flex flex-wrap items-center justify-center gap-2 text-xs text-muted-foreground">
+        <Link to="/termos-de-uso" className="hover:text-primary transition-colors hover:underline">
+          Termos de Uso
+        </Link>
+        <span>•</span>
+        <Link
+          to="/politica-de-privacidade"
+          className="hover:text-primary transition-colors hover:underline"
+        >
+          Política de Privacidade
+        </Link>
+      </footer>
     </div>
   )
 }

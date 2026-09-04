@@ -77,6 +77,8 @@ import ProfessionalRegistration from './pages/registration/ProfessionalRegistrat
 import AdminLeads from './pages/AdminLeads'
 import AdminCRM from './pages/AdminCRM'
 import B2CLanding from './pages/B2CLanding'
+import TermsOfUse from './pages/TermsOfUse'
+import PrivacyPolicy from './pages/PrivacyPolicy'
 
 const EntryPoint = () => {
   const { user, loading } = useAuth()
@@ -232,6 +234,8 @@ const AppRoutes = () => {
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/landing" element={<B2CLanding />} />
+        <Route path="/termos-de-uso" element={<TermsOfUse />} />
+        <Route path="/politica-de-privacidade" element={<PrivacyPolicy />} />
         <Route path="/register" element={<RegistrationPortal />} />
         <Route path="/register/company" element={<CompanyRegistration />} />
         <Route path="/register/partner" element={<PartnerRegistration />} />
