@@ -20,6 +20,7 @@ import { useRealtime } from './hooks/use-realtime'
 import { ThemeProvider } from './components/ThemeProvider'
 import { DynamicBranding } from './components/DynamicBranding'
 import { ErrorBoundary } from './components/ErrorBoundary'
+import { PwaAssetInitializer } from './components/PwaAssetInitializer'
 import Layout from './components/Layout'
 import Index from './pages/Index'
 import Search from './pages/Search'
@@ -311,6 +312,7 @@ const App = () => {
           <TooltipProvider>
             <AuthProvider>
               <DynamicBranding />
+              <PwaAssetInitializer />
               <Toaster />
               <Sonner />
               <AppRoutes />

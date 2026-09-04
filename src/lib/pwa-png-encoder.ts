@@ -47,7 +47,7 @@ function createDeflateStream(data: Uint8Array): Uint8Array {
     out[pos++] = isLast ? 0x01 : 0x00 // BFINAL + BTYPE (00)
     out[pos++] = currentBlockLen & 0xff
     out[pos++] = (currentBlockLen >>> 8) & 0xff
-    const nlen = (~currentBlockLen) & 0xffff
+    const nlen = ~currentBlockLen & 0xffff
     out[pos++] = nlen & 0xff
     out[pos++] = (nlen >>> 8) & 0xff
     out.set(data.subarray(offset, offset + currentBlockLen), pos)
@@ -82,7 +82,7 @@ function makeChunk(type: string, data: Uint8Array): Uint8Array {
 export function encodeRgbaToPng(
   width: number,
   height: number,
-  getPixel: (x: number, y: number) => [number, number, number, number]
+  getPixel: (x: number, y: number) => [number, number, number, number],
 ): Uint8Array {
   const rowLen = width * 4 + 1
   const rawData = new Uint8Array(rowLen * height)
@@ -120,9 +120,12 @@ export function encodeRgbaToPng(
   const totalLen = signature.length + ihdrChunk.length + idatChunk.length + iendChunk.length
   const png = new Uint8Array(totalLen)
   let pos = 0
-  png.set(signature, pos); pos += signature.length
-  png.set(ihdrChunk, pos); pos += ihdrChunk.length
-  png.set(idatChunk, pos); pos += idatChunk.length
+  png.set(signature, pos)
+  pos += signature.length
+  png.set(ihdrChunk, pos)
+  pos += ihdrChunk.length
+  png.set(idatChunk, pos)
+  pos += idatChunk.length
   png.set(iendChunk, pos)
 
   return png

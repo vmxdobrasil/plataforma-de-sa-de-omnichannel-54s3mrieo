@@ -1,0 +1,108 @@
+{
+  "name": "V MED BRASIL",
+  "short_name": "V MED",
+  "description": "Plataforma de Saúde Integrada — Telemedicina, Agendamento e Gestão de Benefícios de Saúde",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "theme_color": "#14805A",
+  "background_color": "#0B5239",
+  "lang": "pt-BR",
+  "dir": "ltr",
+  "categories": ["medical", "health", "lifestyle", "business"],
+  "icons": [
+    {
+      "src": "/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-maskable-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icons/icon-maskable-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-maskable.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Agendar Consulta",
+      "short_name": "Agendar",
+      "description": "Buscar e agendar consultas médicas e exames",
+      "url": "/search",
+      "icons": [
+        {
+          "src": "/icons/shortcut-calendar.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        },
+        {
+          "src": "/icons/shortcut-calendar.svg",
+          "sizes": "96x96",
+          "type": "image/svg+xml"
+        }
+      ]
+    },
+    {
+      "name": "SOS Emergência",
+      "short_name": "SOS",
+      "description": "Atendimento emergencial e contatos de urgência",
+      "url": "/?tab=sos",
+      "icons": [
+        {
+          "src": "/icons/shortcut-sos.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        },
+        {
+          "src": "/icons/shortcut-sos.svg",
+          "sizes": "96x96",
+          "type": "image/svg+xml"
+        }
+      ]
+    },
+    {
+      "name": "Guia Saúde",
+      "short_name": "Guia",
+      "description": "Encontrar profissionais, clínicas, laboratórios e farmácias",
+      "url": "/search",
+      "icons": [
+        {
+          "src": "/icons/shortcut-search.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        },
+        {
+          "src": "/icons/shortcut-search.svg",
+          "sizes": "96x96",
+          "type": "image/svg+xml"
+        }
+      ]
+    }
+  ]
+}
