@@ -52,6 +52,7 @@ import { cn } from '@/lib/utils'
 import { AddToCalendar } from '@/components/AddToCalendar'
 import { useNavigate } from 'react-router-dom'
 import { AppointmentBookingDialog } from '@/components/clinic/AppointmentBookingDialog'
+import { MemedConnectionCard } from '@/components/clinic/MemedConnectionCard'
 import { Plus } from 'lucide-react'
 
 const templates = [
@@ -465,6 +466,7 @@ export default function ProfessionalDashboard() {
         <TabsList className="mb-4 flex-wrap">
           <TabsTrigger value="agenda">Agenda & Prontuário</TabsTrigger>
           <TabsTrigger value="adherence">Adesão de Pacientes</TabsTrigger>
+          <TabsTrigger value="memed">Prescrição Memed</TabsTrigger>
           <TabsTrigger value="business">Negócios & Marketing</TabsTrigger>
         </TabsList>
 
@@ -714,7 +716,30 @@ export default function ProfessionalDashboard() {
 
                     <TabsContent value="prescriptions" className="space-y-4 m-0">
                       <div className="space-y-4 bg-muted/20 p-4 rounded-xl border">
-                        <h3 className="font-medium">Nova Prescrição</h3>
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b pb-3">
+                          <div>
+                            <h3 className="font-semibold text-base">Nova Prescrição Digital</h3>
+                            <p className="text-xs text-muted-foreground mt-0.5">
+                              Receita eletrônica válida com QR Code e assinatura médica.
+                            </p>
+                          </div>
+                          {user?.role === 'professional' && (
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                const memedTabTrigger =
+                                  document.querySelector<HTMLButtonElement>('button[value="memed"]')
+                                if (memedTabTrigger) memedTabTrigger.click()
+                              }}
+                              className="text-xs h-8 text-[#14805A] border-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/30"
+                            >
+                              Configurar Memed
+                            </Button>
+                          )}
+                        </div>
+
                         <div className="space-y-2">
                           <Label>Medicamentos</Label>
                           <Input
@@ -734,7 +759,7 @@ export default function ProfessionalDashboard() {
                         <Button
                           onClick={handleCreatePrescription}
                           disabled={!meds.trim()}
-                          className="w-full"
+                          className="w-full bg-[#14805A] hover:bg-[#116d4c] text-white"
                         >
                           Emitir Receita Digital
                         </Button>
@@ -788,6 +813,15 @@ export default function ProfessionalDashboard() {
               </CardContent>
             </Card>
           </div>
+        </TabsContent>
+
+        <TabsContent value="memed" className="m-0 animate-fade-in space-y-6">
+          <MemedConnectionCard
+            doctorId={user.id}
+            doctorName={user.name}
+            crmNumber={user.crm_number}
+            crmState={user.crm_state}
+          />
         </TabsContent>
 
         <TabsContent value="adherence" className="m-0 animate-fade-in">
