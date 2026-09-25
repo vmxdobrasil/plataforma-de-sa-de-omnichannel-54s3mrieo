@@ -4,8 +4,11 @@ import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 
 export function DigitalPrescription({ prescription }: { prescription: any }) {
+  const validationUrl =
+    prescription.document_validation_url || window.location.origin + '/verify/px/' + prescription.id
+
   const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(
-    window.location.origin + '/verify/px/' + prescription.id,
+    validationUrl,
   )}&color=000000`
 
   return (
@@ -63,13 +66,22 @@ export function DigitalPrescription({ prescription }: { prescription: any }) {
           <div>
             <div className="flex items-center gap-1 text-emerald-600 mb-1">
               <ShieldCheck className="h-4 w-4" />
-              <span className="font-semibold text-sm">Documento Assinado Digitalmente</span>
+              <span className="font-semibold text-sm">
+                {prescription.status === 'assinada'
+                  ? 'Documento Assinado Digitalmente (ICP-Brasil / Memed)'
+                  : 'Documento Verificado'}
+              </span>
             </div>
             <p className="text-xs text-gray-500 max-w-[200px]">
               Aponte a câmera para o QR Code para validar a autenticidade desta prescrição na
               farmácia.
             </p>
-            <p className="text-[10px] text-gray-400 mt-1 font-mono">ID: {prescription.id}</p>
+            {prescription.memed_prescription_id && (
+              <p className="text-[10px] text-emerald-700 font-mono mt-0.5">
+                Memed ID: {prescription.memed_prescription_id}
+              </p>
+            )}
+            <p className="text-[10px] text-gray-400 mt-0.5 font-mono">ID: {prescription.id}</p>
           </div>
         </div>
 

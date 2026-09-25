@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-25T18:31:14.033Z",
+  "generatedAt": "2026-09-25T18:38:00.046Z",
   "collections": [
     {
       "name": "users",
@@ -839,11 +839,11 @@
       "name": "prescriptions",
       "type": "base",
       "apiRules": {
-        "list": "@request.auth.id != '' && (patient_id = @request.auth.id || patient_id.parent_id = @request.auth.id || professional_id = @request.auth.id || @request.auth.role = 'medical_director' || @request.auth.role = 'admin')",
-        "view": "@request.auth.id != '' && (patient_id = @request.auth.id || patient_id.parent_id = @request.auth.id || professional_id = @request.auth.id || @request.auth.role = 'medical_director' || @request.auth.role = 'admin')",
-        "create": "@request.auth.id != '' && professional_id = @request.auth.id",
-        "update": "@request.auth.id != '' && professional_id = @request.auth.id",
-        "delete": "@request.auth.id != '' && professional_id = @request.auth.id"
+        "list": "@request.auth.id != \"\" && (patient_id = @request.auth.id || patient_id.parent_id = @request.auth.id || professional_id = @request.auth.id || @request.auth.role = \"medical_director\" || @request.auth.role = \"admin\")",
+        "view": "@request.auth.id != \"\" && (patient_id = @request.auth.id || patient_id.parent_id = @request.auth.id || professional_id = @request.auth.id || @request.auth.role = \"medical_director\" || @request.auth.role = \"admin\")",
+        "create": "@request.auth.id != \"\" && (professional_id = @request.auth.id || @request.auth.role = \"medical_director\" || @request.auth.role = \"admin\")",
+        "update": "@request.auth.id != \"\" && (professional_id = @request.auth.id || @request.auth.role = \"medical_director\" || @request.auth.role = \"admin\")",
+        "delete": "@request.auth.id != \"\" && (professional_id = @request.auth.id || @request.auth.role = \"medical_director\" || @request.auth.role = \"admin\")"
       },
       "fields": [
         {
@@ -885,9 +885,44 @@
           "required": false,
           "system": false,
           "autodateTriggers": ["onCreate", "onUpdate"]
+        },
+        {
+          "name": "memed_prescription_id",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "document_validation_url",
+          "type": "url",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "prescription_type",
+          "type": "select",
+          "required": false,
+          "system": false,
+          "selectValues": ["simples", "controlado_azul", "controlado_amarelo", "exame", "atestado"]
+        },
+        {
+          "name": "status",
+          "type": "select",
+          "required": false,
+          "system": false,
+          "selectValues": ["rascunho", "assinada", "enviada"]
+        },
+        {
+          "name": "signed_at",
+          "type": "date",
+          "required": false,
+          "system": false
         }
       ],
-      "indexes": []
+      "indexes": [
+        "CREATE INDEX `idx_prescriptions_memed_id` ON `prescriptions` (memed_prescription_id) WHERE memed_prescription_id != \"\"",
+        "CREATE INDEX `idx_prescriptions_status` ON `prescriptions` (status)"
+      ]
     },
     {
       "name": "benefit_transactions",
@@ -2598,6 +2633,75 @@
         "CREATE INDEX idx_transacoes_asaas_id ON transacoes (asaas_id)",
         "CREATE INDEX idx_transacoes_status ON transacoes (status)",
         "CREATE INDEX idx_transacoes_created ON transacoes (created DESC)"
+      ]
+    },
+    {
+      "name": "memed_integrations",
+      "type": "base",
+      "apiRules": {
+        "list": "@request.auth.id != \"\" && (doctor_id = @request.auth.id || @request.auth.role = \"medical_director\" || @request.auth.role = \"admin\")",
+        "view": "@request.auth.id != \"\" && (doctor_id = @request.auth.id || @request.auth.role = \"medical_director\" || @request.auth.role = \"admin\")",
+        "create": "@request.auth.id != \"\" && (doctor_id = @request.auth.id || @request.auth.role = \"medical_director\" || @request.auth.role = \"admin\")",
+        "update": "@request.auth.id != \"\" && (doctor_id = @request.auth.id || @request.auth.role = \"medical_director\" || @request.auth.role = \"admin\")",
+        "delete": "@request.auth.id != \"\" && (doctor_id = @request.auth.id || @request.auth.role = \"medical_director\" || @request.auth.role = \"admin\")"
+      },
+      "fields": [
+        {
+          "name": "doctor_id",
+          "type": "relation",
+          "required": true,
+          "system": false,
+          "collectionRef": "users"
+        },
+        {
+          "name": "connection_status",
+          "type": "select",
+          "required": true,
+          "system": false,
+          "selectValues": ["desconectado", "conectando", "conectado", "erro"]
+        },
+        {
+          "name": "memed_account_id",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "connected_at",
+          "type": "date",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "last_sync",
+          "type": "date",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "error_log",
+          "type": "json",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate"]
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate", "onUpdate"]
+        }
+      ],
+      "indexes": [
+        "CREATE UNIQUE INDEX idx_memed_integrations_doctor ON memed_integrations (doctor_id)",
+        "CREATE INDEX idx_memed_integrations_status ON memed_integrations (connection_status)"
       ]
     }
   ]
