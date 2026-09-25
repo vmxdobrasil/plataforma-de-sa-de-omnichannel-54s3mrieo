@@ -122,17 +122,11 @@ export default function MyPrescriptions() {
         </div>
 
         {/* Alternador de Dependentes */}
-        <div className="w-full sm:w-auto">
-          <DependentSwitcher
-            onSelectDependent={(dep) => {
-              if (dep) {
-                setActivePatientId(dep.id)
-              } else if (user?.id) {
-                setActivePatientId(user.id)
-              }
-            }}
-          />
-        </div>
+        {user?.role === 'patient' && (
+          <div className="w-full sm:w-auto">
+            <DependentSwitcher activeId={activePatientId} setActiveId={setActivePatientId} />
+          </div>
+        )}
       </div>
 
       {/* Busca e Filtros */}

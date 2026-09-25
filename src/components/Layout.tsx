@@ -222,7 +222,7 @@ const navItems = [
   { title: 'Onde Usar', icon: MapPin, url: '/partners', roles: ['patient'] },
   {
     title: 'Minhas Receitas',
-    icon: FileText,
+    icon: Folder,
     url: '/my-prescriptions',
     roles: ['patient', 'admin', 'medical_director'],
   },

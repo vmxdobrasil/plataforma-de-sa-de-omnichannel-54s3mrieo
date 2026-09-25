@@ -143,7 +143,7 @@ export default function HealthProfile() {
             <Button variant="ghost" size="sm" asChild>
               <Link to="/my-prescriptions" className="text-primary flex items-center gap-1 text-xs">
                 <span>Ver Todas & QR</span>
-                <ExternalLink className="h-3.5 w-3.5" />
+                <Folder className="h-3.5 w-3.5" />
               </Link>
             </Button>
           </CardHeader>
