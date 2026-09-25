@@ -873,12 +873,12 @@ routerAdd(
         })
       }
 
-      const patientId = (e.requestInfo().query.patient_id || '').toString().trim()
+      const queryParams = e.requestInfo().query || {}
+      const patientId = (queryParams.patient_id || '').toString().trim()
       let patientData = null
 
       if (patientId) {
         try {
-          const patientRecord = $app.findCollectionByNameOrId('users')
           const p = $app.findFirstRecordByData('users', 'id', patientId)
           if (p) {
             let birthDateStr = ''

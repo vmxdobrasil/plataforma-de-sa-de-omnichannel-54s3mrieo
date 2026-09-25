@@ -1,18 +1,22 @@
 import React, { useState, useEffect, useRef } from 'react'
 import {
   AlertCircle,
+  CheckCircle,
   CheckCircle2,
-  FileText,
-  Loader2,
-  RefreshCcw,
-  ShieldCheck,
-  Stethoscope,
   ExternalLink,
-  Info,
-  Pill,
   FileCheck,
-  AlertTriangle,
+  FileText,
+  Info,
+  Loader2,
+  Mail,
+  MessageSquare,
+  Pill,
+  RefreshCcw,
+  Send,
+  ShieldCheck,
   Sparkles,
+  Stethoscope,
+  AlertTriangle,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -29,7 +33,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Send, MessageSquare, Mail, CheckCircle } from 'lucide-react'
 import {
   getMemedPrescriberSession,
   saveMemedPrescription,
