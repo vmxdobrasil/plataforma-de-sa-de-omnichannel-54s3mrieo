@@ -29,10 +29,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { Send, MessageSquare, Mail, CheckCircle } from 'lucide-react'
 import {
   getMemedPrescriberSession,
   saveMemedPrescription,
+  resendMemedPrescription,
   MemedPrescriberSessionResponse,
+  PrescriptionDispatchResult,
 } from '@/services/memed'
 
 declare global {
@@ -67,12 +70,14 @@ export interface EmbeddedMemedPrescriptionProps {
   patientName?: string
   patientCpf?: string
   patientDob?: string
+  appointmentId?: string
   onPrescriptionSaved?: (prescription: {
     id: string
     memed_prescription_id?: string
     document_validation_url?: string
     prescription_type?: string
     status: string
+    appointment_id?: string
   }) => void
   onClose?: () => void
 }
@@ -98,6 +103,7 @@ export const EmbeddedMemedPrescription: React.FC<EmbeddedMemedPrescriptionProps>
   patientName,
   patientCpf,
   patientDob,
+  appointmentId,
   onPrescriptionSaved,
   onClose,
 }) => {
@@ -113,6 +119,22 @@ export const EmbeddedMemedPrescription: React.FC<EmbeddedMemedPrescriptionProps>
     url?: string
     type?: string
     status?: string
+    dispatches?: PrescriptionDispatchResult[]
+    appointmentId?: string
+    healthRecordId?: string
+  } | null>(null)
+
+  // Canais de envio selecionados pelo médico
+  const [selectedChannels, setSelectedChannels] = useState<{ sms: boolean; email: boolean }>({
+    sms: true,
+    email: true,
+  })
+
+  // Estado de reenvio
+  const [resendingChannel, setResendingChannel] = useState<'sms' | 'email' | null>(null)
+  const [resendStatusMsg, setResendStatusMsg] = useState<{
+    type: 'success' | 'error'
+    text: string
   } | null>(null)
 
   // Estado para fallback / modo estrutural
@@ -325,14 +347,20 @@ export const EmbeddedMemedPrescription: React.FC<EmbeddedMemedPrescriptionProps>
         medsText = draftMeds || 'Prescrição digital oficial gerada via Memed'
       }
 
+      const activeChannels: ('sms' | 'email')[] = []
+      if (selectedChannels.sms) activeChannels.push('sms')
+      if (selectedChannels.email) activeChannels.push('email')
+
       const res = await saveMemedPrescription({
         patient_id: patientId,
+        appointment_id: appointmentId || undefined,
         memed_prescription_id: memedId,
         document_validation_url: validationUrl,
         prescription_type: detectedType,
         medications: medsText,
         pharmacy_instructions: draftInstructions || undefined,
         is_draft: false,
+        channels: activeChannels.length > 0 ? activeChannels : ['sms', 'email'],
       })
 
       setSavedDocument({
@@ -340,7 +368,10 @@ export const EmbeddedMemedPrescription: React.FC<EmbeddedMemedPrescriptionProps>
         memedId: res.memedPrescriptionId || memedId,
         url: res.documentValidationUrl || validationUrl,
         type: res.prescriptionType || detectedType,
-        status: 'assinada',
+        status: res.status || 'assinada',
+        dispatches: res.dispatches,
+        appointmentId: res.appointmentId || appointmentId,
+        healthRecordId: res.healthRecordId,
       })
 
       setSaveSuccessDialog(true)
@@ -351,7 +382,8 @@ export const EmbeddedMemedPrescription: React.FC<EmbeddedMemedPrescriptionProps>
           memed_prescription_id: res.memedPrescriptionId || memedId,
           document_validation_url: res.documentValidationUrl || validationUrl,
           prescription_type: res.prescriptionType || detectedType,
-          status: 'assinada',
+          status: res.status || 'assinada',
+          appointment_id: res.appointmentId || appointmentId,
         })
       }
     } catch (saveErr: any) {
@@ -374,6 +406,7 @@ export const EmbeddedMemedPrescription: React.FC<EmbeddedMemedPrescriptionProps>
     try {
       const res = await saveMemedPrescription({
         patient_id: patientId,
+        appointment_id: appointmentId || undefined,
         medications: draftMeds,
         pharmacy_instructions: draftInstructions || undefined,
         prescription_type: activeCategory,
@@ -389,12 +422,44 @@ export const EmbeddedMemedPrescription: React.FC<EmbeddedMemedPrescriptionProps>
           id: res.prescriptionId || '',
           prescription_type: activeCategory,
           status: 'rascunho',
+          appointment_id: appointmentId,
         })
       }
     } catch (err: any) {
       setSaveDraftMessage('Falha ao salvar rascunho: ' + (err.message || String(err)))
     } finally {
       setSavingDraft(false)
+    }
+  }
+
+  // 6.1 Reenvio pelo médico do documento assinado por canal oficial
+  const handleResend = async (channel: 'sms' | 'email') => {
+    if (!savedDocument?.id) return
+    setResendingChannel(channel)
+    setResendStatusMsg(null)
+    try {
+      const resp = await resendMemedPrescription({
+        prescription_id: savedDocument.id,
+        channel: channel,
+      })
+      if (resp.success) {
+        setResendStatusMsg({
+          type: 'success',
+          text: `Receita reenviada com sucesso via canal oficial ${channel.toUpperCase()}!`,
+        })
+      } else {
+        setResendStatusMsg({
+          type: 'error',
+          text: resp.message || 'Falha ao reenviar prescrição.',
+        })
+      }
+    } catch (err: any) {
+      setResendStatusMsg({
+        type: 'error',
+        text: err?.message || 'Erro inesperado ao reenviar receita.',
+      })
+    } finally {
+      setResendingChannel(null)
     }
   }
 
@@ -677,6 +742,47 @@ export const EmbeddedMemedPrescription: React.FC<EmbeddedMemedPrescriptionProps>
                   className="text-sm"
                 />
               </div>
+
+              {/* Opções de Envio Imediato pelos Canais Oficiais Memed */}
+              <div className="p-3 bg-muted/40 rounded-lg border space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs font-semibold flex items-center gap-1.5">
+                    <Send className="h-3.5 w-3.5 text-[#14805A]" />
+                    <span>Envio Automático pelos Canais Oficiais da Memed</span>
+                  </Label>
+                  <span className="text-[11px] text-muted-foreground">Gratuito via Memed</span>
+                </div>
+                <div className="flex flex-wrap items-center gap-4 text-xs">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={selectedChannels.sms}
+                      onChange={(e) =>
+                        setSelectedChannels((prev) => ({ ...prev, sms: e.target.checked }))
+                      }
+                      className="rounded border-gray-300 text-[#14805A] focus:ring-[#14805A]"
+                    />
+                    <span className="flex items-center gap-1">
+                      <MessageSquare className="h-3 w-3 text-muted-foreground" />
+                      <span>SMS Oficial</span>
+                    </span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={selectedChannels.email}
+                      onChange={(e) =>
+                        setSelectedChannels((prev) => ({ ...prev, email: e.target.checked }))
+                      }
+                      className="rounded border-gray-300 text-[#14805A] focus:ring-[#14805A]"
+                    />
+                    <span className="flex items-center gap-1">
+                      <Mail className="h-3 w-3 text-muted-foreground" />
+                      <span>E-mail Oficial</span>
+                    </span>
+                  </label>
+                </div>
+              </div>
             </div>
 
             {/* Aviso explicativo de contingência / credenciamento */}
@@ -775,11 +881,46 @@ export const EmbeddedMemedPrescription: React.FC<EmbeddedMemedPrescriptionProps>
                 </Badge>
               </div>
               <div className="flex justify-between items-center py-1">
-                <span className="text-muted-foreground">Status no Prontuário:</span>
+                <span className="text-muted-foreground">Prontuário (health_records):</span>
                 <Badge className="bg-emerald-100 text-emerald-800 hover:bg-emerald-100 text-[10px]">
-                  Assinada
+                  {savedDocument.healthRecordId ? 'Vinculado com Sucesso' : 'Registrado'}
                 </Badge>
               </div>
+              {savedDocument.appointmentId && (
+                <div className="flex justify-between items-center py-1">
+                  <span className="text-muted-foreground">Consulta Vinculada:</span>
+                  <span className="font-mono text-muted-foreground text-[11px]">
+                    ID: {savedDocument.appointmentId}
+                  </span>
+                </div>
+              )}
+
+              {/* Status de envio pelos canais */}
+              <div className="pt-1 border-t space-y-1">
+                <p className="font-semibold text-muted-foreground">Envio aos canais oficiais:</p>
+                <div className="flex flex-col gap-1">
+                  <div className="flex items-center justify-between bg-muted/40 p-1.5 rounded">
+                    <span className="flex items-center gap-1">
+                      <MessageSquare className="h-3 w-3 text-muted-foreground" />
+                      <span>SMS Oficial</span>
+                    </span>
+                    <Badge variant="outline" className="text-[10px] bg-emerald-50 text-emerald-700">
+                      Disparado / Registrado
+                    </Badge>
+                  </div>
+                  <div className="flex items-center justify-between bg-muted/40 p-1.5 rounded">
+                    <span className="flex items-center gap-1">
+                      <Mail className="h-3 w-3 text-muted-foreground" />
+                      <span>E-mail Oficial</span>
+                    </span>
+                    <Badge variant="outline" className="text-[10px] bg-emerald-50 text-emerald-700">
+                      Disparado / Registrado
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+
+              {/* Link de Validação Sanitária */}
               {savedDocument.url && (
                 <div className="pt-2">
                   <a
@@ -793,6 +934,64 @@ export const EmbeddedMemedPrescription: React.FC<EmbeddedMemedPrescriptionProps>
                   </a>
                 </div>
               )}
+
+              {/* Botões de Reenvio */}
+              <div className="pt-2 border-t space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="font-medium text-muted-foreground">Reenviar ao Paciente:</span>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-8 text-xs flex items-center justify-center gap-1"
+                    disabled={resendingChannel !== null}
+                    onClick={() => handleResend('sms')}
+                  >
+                    {resendingChannel === 'sms' ? (
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                    ) : (
+                      <MessageSquare className="h-3 w-3 text-[#14805A]" />
+                    )}
+                    <span>Reenviar SMS</span>
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-8 text-xs flex items-center justify-center gap-1"
+                    disabled={resendingChannel !== null}
+                    onClick={() => handleResend('email')}
+                  >
+                    {resendingChannel === 'email' ? (
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                    ) : (
+                      <Mail className="h-3 w-3 text-blue-600" />
+                    )}
+                    <span>Reenviar E-mail</span>
+                  </Button>
+                </div>
+
+                {resendStatusMsg && (
+                  <Alert
+                    className={`py-1.5 text-xs ${
+                      resendStatusMsg.type === 'success'
+                        ? 'border-emerald-300 bg-emerald-50 text-emerald-800'
+                        : 'border-red-300 bg-red-50 text-red-800'
+                    }`}
+                  >
+                    <AlertDescription className="flex items-center gap-1.5">
+                      {resendStatusMsg.type === 'success' ? (
+                        <CheckCircle className="h-3.5 w-3.5" />
+                      ) : (
+                        <AlertCircle className="h-3.5 w-3.5" />
+                      )}
+                      <span>{resendStatusMsg.text}</span>
+                    </AlertDescription>
+                  </Alert>
+                )}
+              </div>
             </div>
           )}
 

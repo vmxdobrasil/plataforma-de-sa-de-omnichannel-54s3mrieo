@@ -220,6 +220,12 @@ const navItems = [
   },
   { title: 'Meus Benefícios', icon: Wallet, url: '/benefits/statement', roles: ['patient'] },
   { title: 'Onde Usar', icon: MapPin, url: '/partners', roles: ['patient'] },
+  {
+    title: 'Minhas Receitas',
+    icon: FileText,
+    url: '/my-prescriptions',
+    roles: ['patient', 'admin', 'medical_director'],
+  },
   { title: 'Meus Exames', icon: Folder, url: '/my-exams', roles: ['patient'] },
   { title: 'Meu Perfil de Saúde', icon: HeartPulse, url: '/health-profile', roles: ['patient'] },
   { title: 'Documentos', icon: Folder, url: '/documents', roles: ['patient', 'professional'] },

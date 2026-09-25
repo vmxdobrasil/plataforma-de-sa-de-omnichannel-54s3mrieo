@@ -136,10 +136,16 @@ export default function HealthProfile() {
         </div>
 
         <Card>
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="flex items-center gap-2">
               <Pill className="h-5 w-5 text-primary" /> Minhas Receitas
             </CardTitle>
+            <Button variant="ghost" size="sm" asChild>
+              <Link to="/my-prescriptions" className="text-primary flex items-center gap-1 text-xs">
+                <span>Ver Todas & QR</span>
+                <ExternalLink className="h-3.5 w-3.5" />
+              </Link>
+            </Button>
           </CardHeader>
           <CardContent className="space-y-4">
             {prescriptions.length === 0 ? (

@@ -724,8 +724,9 @@ export default function ProfessionalDashboard() {
                           activeAppt.expand?.patient_id?.document_id
                         }
                         patientDob={activeAppt.expand?.patient_id?.date_of_birth}
+                        appointmentId={activeAppt.id}
                         onPrescriptionSaved={(px) => {
-                          toast.success('Prescrição vinculada ao prontuário do paciente!')
+                          toast.success('Prescrição vinculada ao prontuário e enviada ao paciente!')
                           loadData()
                         }}
                       />

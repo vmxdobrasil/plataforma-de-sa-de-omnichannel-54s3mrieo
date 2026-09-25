@@ -13,6 +13,7 @@ export interface PrescriptionRecord {
   id: string
   patient_id: string
   professional_id: string
+  appointment_id?: string
   medications: string
   pharmacy_instructions?: string
   memed_prescription_id?: string
@@ -29,12 +30,23 @@ export interface PrescriptionRecord {
       specialty?: string
       document_id?: string
       email?: string
+      phone?: string
+      crm_number?: string
+      crm_state?: string
     }
     patient_id?: {
       id: string
       name: string
       document_id?: string
       tax_id?: string
+      phone?: string
+      email?: string
+    }
+    appointment_id?: {
+      id: string
+      dateTime: string
+      type?: string
+      status?: string
     }
   }
 }
@@ -43,7 +55,7 @@ export const getPatientPrescriptions = async (patientId: string): Promise<Prescr
   return pb.collection('prescriptions').getFullList({
     filter: `patient_id = "${patientId}"`,
     sort: '-created',
-    expand: 'professional_id,patient_id',
+    expand: 'professional_id,patient_id,appointment_id',
   })
 }
 
@@ -53,13 +65,14 @@ export const getDoctorPrescriptions = async (
   return pb.collection('prescriptions').getFullList({
     filter: `professional_id = "${professionalId}"`,
     sort: '-created',
-    expand: 'patient_id',
+    expand: 'patient_id,appointment_id',
   })
 }
 
 export const createPrescription = async (data: {
   patient_id: string
   professional_id: string
+  appointment_id?: string
   medications: string
   pharmacy_instructions?: string
   memed_prescription_id?: string

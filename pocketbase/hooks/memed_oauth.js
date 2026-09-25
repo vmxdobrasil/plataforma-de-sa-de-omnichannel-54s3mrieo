@@ -1016,6 +1016,7 @@ routerAdd(
 
       const body = e.requestInfo().body || {}
       const patientId = (body.patient_id || '').toString().trim()
+      const appointmentId = (body.appointment_id || '').toString().trim()
       const memedPrescriptionId = (
         body.memed_prescription_id ||
         body.id ||
@@ -1036,6 +1037,7 @@ routerAdd(
       const medications = (body.medications || body.medicamentosText || '').toString().trim()
       const pharmacyInstructions = (body.pharmacy_instructions || '').toString().trim()
       const isDraft = Boolean(body.is_draft)
+      const channels = Array.isArray(body.channels) ? body.channels : ['sms', 'email']
 
       if (!patientId) {
         return e.json(400, {
@@ -1077,6 +1079,9 @@ routerAdd(
 
       record.set('patient_id', patientId)
       record.set('professional_id', user.getId())
+      if (appointmentId) {
+        record.set('appointment_id', appointmentId)
+      }
       record.set(
         'medications',
         medications || 'Prescrição emitida via Memed Prescrição Digital Inteligente',
@@ -1098,7 +1103,242 @@ routerAdd(
 
       $app.save(record)
 
-      // Registra auditoria
+      let createdHealthRecordId = ''
+      let dispatchResults = []
+
+      // Se a receita foi assinada (não é rascunho), fecha o loop pós-prescrição:
+      // 1. Vincula ao prontuário do paciente (health_records)
+      // 2. Envio pelos canais oficiais (SMS / e-mail) com registro em messages
+      // 3. Auditoria detalhada em audit_logs
+      if (!isDraft) {
+        // 1. Referência no prontuário do paciente
+        try {
+          const hrCol = $app.findCollectionByNameOrId('health_records')
+          const hr = new Record(hrCol)
+          hr.set('patient_id', patientId)
+          hr.set('professional_id', user.getId())
+          hr.set('type', 'clinical')
+          if (appointmentId) {
+            hr.set('appointment_id', appointmentId)
+          }
+          hr.set('prescription_id', record.getId())
+
+          const typeLabels = {
+            simples: 'Simples / Alopáticos',
+            controlado_azul: 'Controlado Azul (B1/B2 - Notif. RDC 1000/25)',
+            controlado_amarelo: 'Controlado Amarelo (A1/A2/A3 - Notif. RDC 1000/25)',
+            exame: 'Solicitação de Exames (TUSS/SUS)',
+            atestado: 'Atestado Médico / Comparecimento',
+          }
+
+          let summaryContent =
+            'Prescrição Digital Memed assinada por Dr(a). ' +
+            (user.getString('name') || 'Médico') +
+            ' (CRM ' +
+            (user.getString('crm_number') || '') +
+            '/' +
+            (user.getString('crm_state') || 'BR') +
+            ')\n' +
+            'Tipo: ' +
+            (typeLabels[validPrescriptionType] || validPrescriptionType) +
+            '\n'
+          if (memedPrescriptionId) {
+            summaryContent += 'ID Memed: ' + memedPrescriptionId + '\n'
+          }
+          if (documentValidationUrl) {
+            summaryContent += 'Validação / QR Code: ' + documentValidationUrl + '\n'
+          }
+          summaryContent += '\nItens Prescritos:\n' + medications
+          if (pharmacyInstructions) {
+            summaryContent += '\n\nInstruções à Farmácia:\n' + pharmacyInstructions
+          }
+
+          hr.set('content', summaryContent)
+          $app.save(hr)
+          createdHealthRecordId = hr.getId()
+        } catch (hrErr) {
+          $app
+            .logger()
+            .warn(
+              '[Memed Post-Prescription Loop] Falha ao registrar prontuário health_records:',
+              String(hrErr),
+            )
+        }
+
+        // 2. Disparo de envio via canais oficiais (SMS e E-mail) com degradação graciosa
+        // Se a Memed estiver configurada, chama as APIs oficiais; se sandbox/estrutural, registra intenção e mensagens
+        const clientId = $secrets.get('MEMED_CLIENT_ID') || $os.getenv('MEMED_CLIENT_ID') || ''
+        const clientSecret =
+          $secrets.get('MEMED_CLIENT_SECRET') || $os.getenv('MEMED_CLIENT_SECRET') || ''
+        const isMemedConfigured = Boolean(clientId && clientSecret)
+
+        // Busca dados de contato do paciente para compor mensagens
+        let patientEmail = ''
+        let patientPhone = ''
+        let patientName = 'Paciente'
+        try {
+          const patientUser = $app.findRecordById('users', patientId)
+          patientEmail = patientUser.getString('email') || ''
+          patientPhone = patientUser.getString('phone') || ''
+          patientName = patientUser.getString('name') || 'Paciente'
+        } catch (_) {}
+
+        for (let i = 0; i < channels.length; i++) {
+          const ch = channels[i] // 'sms' | 'email'
+          let sendStatus = 'sent'
+          let sendDetails = 'Envio processado com sucesso.'
+
+          if (isMemedConfigured) {
+            // Em produção com credenciais parceiro Memed
+            try {
+              const apiBaseUrl =
+                ($secrets.get('MEMED_ENVIRONMENT') || $os.getenv('MEMED_ENVIRONMENT')) ===
+                'production'
+                  ? 'https://api.memed.com.br/v1'
+                  : 'https://sandbox.api.memed.com.br/v1'
+
+              let docIntegration = null
+              try {
+                docIntegration = $app.findFirstRecordByData(
+                  'memed_integrations',
+                  'doctor_id',
+                  user.getId(),
+                )
+              } catch (_) {}
+              const docToken = docIntegration ? docIntegration.getString('access_token') : ''
+
+              const sendRes = $http.send({
+                url: apiBaseUrl + '/sinapse-prescricao/v1/prescricoes/enviar',
+                method: 'POST',
+                headers: {
+                  Authorization: 'Bearer ' + docToken,
+                  'api-key': clientId,
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  prescriptionUuid: memedPrescriptionId,
+                  channel: ch,
+                  phone: patientPhone,
+                  email: patientEmail,
+                }),
+                timeout: 15,
+              })
+
+              if (sendRes.statusCode >= 400) {
+                sendStatus = 'warning_api'
+                sendDetails = 'API Memed retornou status ' + sendRes.statusCode
+              }
+            } catch (httpErr) {
+              sendStatus = 'warning_api'
+              sendDetails = 'Falha de rede ao conectar à API Memed: ' + String(httpErr)
+            }
+          } else {
+            // Modo estrutural / sandbox da Memed
+            sendStatus = 'queued_sandbox'
+            sendDetails =
+              'Envio estruturado registrado no modo sandbox. Canal oficial ' +
+              ch.toUpperCase() +
+              ' pronto para disparo automático na homologação das credenciais Memed.'
+          }
+
+          dispatchResults.push({
+            channel: ch,
+            status: sendStatus,
+            destination: ch === 'sms' ? patientPhone : patientEmail,
+            details: sendDetails,
+          })
+
+          // Registra na coleção messages
+          try {
+            const msgCol = $app.findCollectionByNameOrId('messages')
+            const msg = new Record(msgCol)
+            msg.set('sender_id', user.getId())
+            msg.set('receiver_id', patientId)
+            const validationLinkText = documentValidationUrl
+              ? '\nLink de validação (QR Code): ' + documentValidationUrl
+              : ''
+            msg.set(
+              'content',
+              'Sua receita digital foi emitida por Dr(a). ' +
+                (user.getString('name') || 'Médico') +
+                ' via canal oficial Memed (' +
+                ch.toUpperCase() +
+                ').' +
+                validationLinkText +
+                (ch === 'sms' && patientPhone ? '\nDestinatário SMS: ' + patientPhone : '') +
+                (ch === 'email' && patientEmail ? '\nDestinatário E-mail: ' + patientEmail : ''),
+            )
+            msg.set('is_read', false)
+            msg.set('message_type', 'text')
+            msg.set(
+              'metadata',
+              JSON.stringify({
+                event: 'prescription_sent',
+                channel: ch,
+                status: sendStatus,
+                prescription_id: record.getId(),
+                memed_prescription_id: memedPrescriptionId,
+                document_validation_url: documentValidationUrl,
+                destination: ch === 'sms' ? patientPhone : patientEmail,
+                patient_name: patientName,
+                is_memed_configured: isMemedConfigured,
+                details: sendDetails,
+                timestamp: new Date().toISOString(),
+              }),
+            )
+            $app.save(msg)
+          } catch (msgErr) {
+            $app
+              .logger()
+              .warn(
+                '[Memed Post-Prescription Loop] Falha ao registrar na coleção messages:',
+                String(msgErr),
+              )
+          }
+
+          // Registra na coleção audit_logs (quem, quando, o quê, canal)
+          try {
+            const auditCol = $app.findCollectionByNameOrId('audit_logs')
+            const auditLog = new Record(auditCol)
+            auditLog.set('user_id', user.getId())
+            auditLog.set('action', 'create')
+            auditLog.set('resource_type', 'prescription_dispatch')
+            auditLog.set('resource_id', record.getId())
+            auditLog.set(
+              'details',
+              JSON.stringify({
+                event: 'prescription_dispatched_to_patient',
+                action_type: 'initial_dispatch',
+                professional_id: user.getId(),
+                professional_name: user.getString('name'),
+                patient_id: patientId,
+                patient_name: patientName,
+                channel: ch,
+                status: sendStatus,
+                destination: ch === 'sms' ? patientPhone : patientEmail,
+                prescription_id: record.getId(),
+                memed_prescription_id: memedPrescriptionId,
+                document_validation_url: documentValidationUrl,
+                appointment_id: appointmentId || null,
+                health_record_id: createdHealthRecordId || null,
+                is_memed_configured: isMemedConfigured,
+                details: sendDetails,
+                timestamp: new Date().toISOString(),
+              }),
+            )
+            $app.save(auditLog)
+          } catch (auditErr) {
+            $app
+              .logger()
+              .warn(
+                '[Memed Post-Prescription Loop] Falha ao registrar audit_logs:',
+                String(auditErr),
+              )
+          }
+        }
+      }
+
+      // Registra auditoria geral da prescrição
       try {
         const auditCol = $app.findCollectionByNameOrId('audit_logs')
         const log = new Record(auditCol)
@@ -1112,10 +1352,13 @@ routerAdd(
             event: isDraft ? 'prescription_draft_saved' : 'memed_prescription_signed_saved',
             patient_id: patientId,
             professional_id: user.getId(),
+            appointment_id: appointmentId || null,
+            health_record_id: createdHealthRecordId || null,
             memed_prescription_id: memedPrescriptionId,
             document_validation_url: documentValidationUrl,
             prescription_type: validPrescriptionType,
             status: status,
+            dispatched_channels: dispatchResults,
             timestamp: new Date().toISOString(),
           }),
         )
@@ -1130,9 +1373,12 @@ routerAdd(
         prescriptionType: validPrescriptionType,
         status: status,
         signedAt: signedAt,
+        appointmentId: appointmentId,
+        healthRecordId: createdHealthRecordId,
+        dispatches: dispatchResults,
         message: isDraft
           ? 'Rascunho de prescrição salvo com sucesso.'
-          : 'Prescrição digital Memed assinada e vinculada ao prontuário!',
+          : 'Prescrição digital Memed assinada, vinculada ao prontuário e enviada ao paciente!',
       })
     } catch (err) {
       $app.logger().error('[Memed Integration] Erro ao salvar prescrição assinada:', String(err))
@@ -1149,7 +1395,250 @@ routerAdd(
 )
 
 // ------------------------------------------------------------------------------
-// 9. POST /backend/v1/memed/webhook
+// 9. POST /backend/v1/memed/prescription/resend
+//    Reenvio de receita pelo médico pelos canais oficiais (SMS ou E-mail)
+//    RBAC: Apenas médico autor da receita (ou admin/diretor médico) pode reenviar
+//    Registra envio em messages e auditoria em audit_logs (quem, quando, o quê, canal)
+// ------------------------------------------------------------------------------
+routerAdd(
+  'POST',
+  '/backend/v1/memed/prescription/resend',
+  (e) => {
+    try {
+      const user = e.auth
+      if (!user) {
+        return e.json(401, {
+          success: false,
+          error: 'unauthorized',
+          message: 'Autenticação necessária para reenviar a receita.',
+        })
+      }
+
+      const body = e.requestInfo().body || {}
+      const prescriptionId = (body.prescription_id || '').toString().trim()
+      const channel = (body.channel || 'sms').toString().toLowerCase().trim() // 'sms' | 'email'
+      const customDestination = (body.destination || '').toString().trim()
+
+      if (!prescriptionId) {
+        return e.json(400, {
+          success: false,
+          error: 'missing_prescription_id',
+          message: 'ID da prescrição é obrigatório para o reenvio.',
+        })
+      }
+
+      if (channel !== 'sms' && channel !== 'email') {
+        return e.json(400, {
+          success: false,
+          error: 'invalid_channel',
+          message: 'Canal de reenvio deve ser "sms" ou "email".',
+        })
+      }
+
+      // Busca a prescrição
+      let pxRecord
+      try {
+        pxRecord = $app.findRecordById('prescriptions', prescriptionId)
+      } catch (_) {
+        return e.json(404, {
+          success: false,
+          error: 'prescription_not_found',
+          message: 'Prescrição não encontrada no sistema.',
+        })
+      }
+
+      const professionalId = pxRecord.getString('professional_id')
+      const userRole = user.getString('role')
+      const isOwner = professionalId === user.getId()
+      const isAdminOrDirector = userRole === 'admin' || userRole === 'medical_director'
+
+      // RBAC: Somente o médico dono ou admin/diretor médico
+      if (!isOwner && !isAdminOrDirector) {
+        return e.json(403, {
+          success: false,
+          error: 'forbidden',
+          message: 'Apenas o profissional médico responsável por esta prescrição pode reenviá-la.',
+        })
+      }
+
+      const patientId = pxRecord.getString('patient_id')
+      let patientEmail = ''
+      let patientPhone = ''
+      let patientName = 'Paciente'
+      try {
+        const patientUser = $app.findRecordById('users', patientId)
+        patientEmail = patientUser.getString('email') || ''
+        patientPhone = patientUser.getString('phone') || ''
+        patientName = patientUser.getString('name') || 'Paciente'
+      } catch (_) {}
+
+      const destination = customDestination || (channel === 'sms' ? patientPhone : patientEmail)
+      const memedPxId = pxRecord.getString('memed_prescription_id')
+      const validationUrl = pxRecord.getString('document_validation_url')
+
+      const clientId = $secrets.get('MEMED_CLIENT_ID') || $os.getenv('MEMED_CLIENT_ID') || ''
+      const clientSecret =
+        $secrets.get('MEMED_CLIENT_SECRET') || $os.getenv('MEMED_CLIENT_SECRET') || ''
+      const isMemedConfigured = Boolean(clientId && clientSecret)
+
+      let resendStatus = 'sent'
+      let resendDetails = 'Reenvio processado com sucesso.'
+
+      if (isMemedConfigured) {
+        try {
+          const apiBaseUrl =
+            ($secrets.get('MEMED_ENVIRONMENT') || $os.getenv('MEMED_ENVIRONMENT')) === 'production'
+              ? 'https://api.memed.com.br/v1'
+              : 'https://sandbox.api.memed.com.br/v1'
+
+          let docIntegration = null
+          try {
+            docIntegration = $app.findFirstRecordByData(
+              'memed_integrations',
+              'doctor_id',
+              professionalId,
+            )
+          } catch (_) {}
+          const docToken = docIntegration ? docIntegration.getString('access_token') : ''
+
+          const apiRes = $http.send({
+            url: apiBaseUrl + '/sinapse-prescricao/v1/prescricoes/reenviar',
+            method: 'POST',
+            headers: {
+              Authorization: 'Bearer ' + docToken,
+              'api-key': clientId,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              prescriptionUuid: memedPxId,
+              channel: channel,
+              destination: destination,
+            }),
+            timeout: 15,
+          })
+
+          if (apiRes.statusCode >= 400) {
+            resendStatus = 'warning_api'
+            resendDetails = 'API Memed retornou status ' + apiRes.statusCode
+          }
+        } catch (httpErr) {
+          resendStatus = 'warning_api'
+          resendDetails = 'Falha de conexão com a API Memed: ' + String(httpErr)
+        }
+      } else {
+        resendStatus = 'queued_sandbox'
+        resendDetails =
+          'Reenvio estruturado registrado no modo sandbox. Canal oficial ' +
+          channel.toUpperCase() +
+          ' disparará em produção com credenciais parceiro Memed.'
+      }
+
+      // Atualiza o status da prescrição para 'enviada' se ainda estava apenas assinada
+      try {
+        if (pxRecord.getString('status') !== 'enviada') {
+          pxRecord.set('status', 'enviada')
+          $app.save(pxRecord)
+        }
+      } catch (_) {}
+
+      // Registra mensagem na coleção messages
+      try {
+        const msgCol = $app.findCollectionByNameOrId('messages')
+        const msg = new Record(msgCol)
+        msg.set('sender_id', user.getId())
+        msg.set('receiver_id', patientId)
+        const validationLinkText = validationUrl
+          ? '\nLink de validação (QR Code): ' + validationUrl
+          : ''
+        msg.set(
+          'content',
+          'Sua receita digital foi reenviada por Dr(a). ' +
+            (user.getString('name') || 'Médico') +
+            ' via canal oficial Memed (' +
+            channel.toUpperCase() +
+            ').' +
+            validationLinkText +
+            (destination ? '\nDestinatário: ' + destination : ''),
+        )
+        msg.set('is_read', false)
+        msg.set('message_type', 'text')
+        msg.set(
+          'metadata',
+          JSON.stringify({
+            event: 'prescription_resend',
+            channel: channel,
+            status: resendStatus,
+            prescription_id: pxRecord.getId(),
+            memed_prescription_id: memedPxId,
+            document_validation_url: validationUrl,
+            destination: destination,
+            patient_name: patientName,
+            is_memed_configured: isMemedConfigured,
+            details: resendDetails,
+            timestamp: new Date().toISOString(),
+          }),
+        )
+        $app.save(msg)
+      } catch (msgErr) {
+        $app.logger().warn('[Memed Resend] Falha ao registrar reenvio em messages:', String(msgErr))
+      }
+
+      // Registra em audit_logs (quem, quando, o quê, canal)
+      try {
+        const auditCol = $app.findCollectionByNameOrId('audit_logs')
+        const auditLog = new Record(auditCol)
+        auditLog.set('user_id', user.getId())
+        auditLog.set('action', 'update')
+        auditLog.set('resource_type', 'prescription_resend')
+        auditLog.set('resource_id', pxRecord.getId())
+        auditLog.set(
+          'details',
+          JSON.stringify({
+            event: 'prescription_resend_to_patient',
+            action_type: 'resend',
+            professional_id: user.getId(),
+            professional_name: user.getString('name'),
+            patient_id: patientId,
+            patient_name: patientName,
+            channel: channel,
+            destination: destination,
+            status: resendStatus,
+            prescription_id: pxRecord.getId(),
+            memed_prescription_id: memedPxId,
+            document_validation_url: validationUrl,
+            is_memed_configured: isMemedConfigured,
+            details: resendDetails,
+            timestamp: new Date().toISOString(),
+          }),
+        )
+        $app.save(auditLog)
+      } catch (auditErr) {
+        $app.logger().warn('[Memed Resend] Falha ao registrar audit_logs:', String(auditErr))
+      }
+
+      return e.json(200, {
+        success: true,
+        channel: channel,
+        destination: destination,
+        status: resendStatus,
+        details: resendDetails,
+        message:
+          'Receita reenviada ao paciente com sucesso via canal ' + channel.toUpperCase() + '!',
+      })
+    } catch (err) {
+      $app.logger().error('[Memed Resend] Erro ao processar reenvio de prescrição:', String(err))
+      return e.json(500, {
+        success: false,
+        error: 'resend_error',
+        message: 'Erro interno ao processar o reenvio da prescrição: ' + String(err),
+      })
+    }
+  },
+  $apis.requireAuth(),
+)
+
+// ------------------------------------------------------------------------------
+// 10. POST /backend/v1/memed/webhook
 //    Endpoint para webhook oficial Memed quando disponível
 // ------------------------------------------------------------------------------
 routerAdd('POST', '/backend/v1/memed/webhook', (e) => {

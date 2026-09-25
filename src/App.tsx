@@ -68,6 +68,7 @@ import Pharmacy from './pages/Pharmacy'
 import AdminNetwork from './pages/AdminNetwork'
 import PartnerDirectory from './pages/PartnerDirectory'
 import MyExams from './pages/MyExams'
+import MyPrescriptions from './pages/MyPrescriptions'
 import PharmacySales from './pages/PharmacySales'
 import RegistrationPortal from './pages/RegistrationPortal'
 import CompanyRegistration from './pages/registration/CompanyRegistration'
@@ -254,9 +255,9 @@ const AppRoutes = () => {
             <Route path="/health-profile" element={<HealthProfile />} />
             <Route path="/pharmacy" element={<Pharmacy />} />
             <Route path="/partners" element={<PartnerDirectory />} />
+            <Route path="/my-prescriptions" element={<MyPrescriptions />} />
             <Route path="/my-exams" element={<MyExams />} />
             <Route path="/pharmacy-sales" element={<PharmacySales />} />
-
             <Route element={<CompanyOutlet />}>
               <Route path="/company/dashboard" element={<CompanyDashboard />} />
               <Route path="/company/employees" element={<CompanyEmployees />} />

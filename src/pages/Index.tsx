@@ -145,7 +145,7 @@ export default function Index() {
       icon: Pill,
       label: 'Minhas Receitas',
       color: 'bg-purple-100 text-purple-600',
-      path: '/health-profile',
+      path: '/my-prescriptions',
     },
     {
       icon: ActivitySquare,

@@ -238,12 +238,21 @@ export interface MemedPrescriberSessionResponse {
 
 export interface SaveSignedPrescriptionParams {
   patient_id: string
+  appointment_id?: string
   memed_prescription_id?: string
   document_validation_url?: string
   prescription_type?: 'simples' | 'controlado_azul' | 'controlado_amarelo' | 'exame' | 'atestado'
   medications: string
   pharmacy_instructions?: string
   is_draft?: boolean
+  channels?: ('sms' | 'email')[]
+}
+
+export interface PrescriptionDispatchResult {
+  channel: 'sms' | 'email'
+  status: string
+  destination?: string
+  details?: string
 }
 
 export interface SaveSignedPrescriptionResponse {
@@ -254,7 +263,26 @@ export interface SaveSignedPrescriptionResponse {
   prescriptionType?: string
   status?: string
   signedAt?: string
+  appointmentId?: string
+  healthRecordId?: string
+  dispatches?: PrescriptionDispatchResult[]
   message?: string
+  error?: string
+}
+
+export interface ResendPrescriptionParams {
+  prescription_id: string
+  channel: 'sms' | 'email'
+  destination?: string
+}
+
+export interface ResendPrescriptionResponse {
+  success: boolean
+  channel?: 'sms' | 'email'
+  destination?: string
+  status?: string
+  details?: string
+  message: string
   error?: string
 }
 
@@ -286,4 +314,17 @@ export const saveMemedPrescription = async (
       body: data,
     },
   )
+}
+
+/**
+ * Reenvia a receita digital ao paciente por SMS ou E-mail via canais oficiais da Memed
+ * Registra o envio em messages e em audit_logs
+ */
+export const resendMemedPrescription = async (
+  data: ResendPrescriptionParams,
+): Promise<ResendPrescriptionResponse> => {
+  return await pb.send<ResendPrescriptionResponse>('/backend/v1/memed/prescription/resend', {
+    method: 'POST',
+    body: data,
+  })
 }
