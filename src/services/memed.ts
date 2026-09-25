@@ -202,3 +202,88 @@ export const disconnectDoctorMemed = async (
     last_sync: new Date().toISOString(),
   })
 }
+
+export interface MemedPrescriberSessionResponse {
+  success: boolean
+  isConfigured: boolean
+  environment: 'sandbox' | 'production'
+  scriptUrl: string
+  prescriberToken: string
+  hasConnectedAccount: boolean
+  prescriber: {
+    id: string
+    name: string
+    crm: string
+    uf: string
+    specialty: string
+    email?: string
+    phone?: string
+  }
+  patient?: {
+    id: string
+    idExterno: string
+    nome: string
+    cpf: string
+    data_nascimento: string
+    telefone: string
+    email: string
+    sexo: string
+    cidade: string
+    endereco: string
+    alergias?: string
+  } | null
+  error?: string
+  message?: string
+}
+
+export interface SaveSignedPrescriptionParams {
+  patient_id: string
+  memed_prescription_id?: string
+  document_validation_url?: string
+  prescription_type?: 'simples' | 'controlado_azul' | 'controlado_amarelo' | 'exame' | 'atestado'
+  medications: string
+  pharmacy_instructions?: string
+  is_draft?: boolean
+}
+
+export interface SaveSignedPrescriptionResponse {
+  success: boolean
+  prescriptionId?: string
+  memedPrescriptionId?: string
+  documentValidationUrl?: string
+  prescriptionType?: string
+  status?: string
+  signedAt?: string
+  message?: string
+  error?: string
+}
+
+/**
+ * Obtém a sessão do prescritor com dados do paciente pré-preenchidos e tokens de inicialização
+ */
+export const getMemedPrescriberSession = async (
+  patientId?: string,
+): Promise<MemedPrescriberSessionResponse> => {
+  const query = patientId ? `?patient_id=${encodeURIComponent(patientId)}` : ''
+  return await pb.send<MemedPrescriberSessionResponse>(
+    `/backend/v1/memed/prescriber-session${query}`,
+    {
+      method: 'GET',
+    },
+  )
+}
+
+/**
+ * Persiste no backend a prescrição emitida/assinada pela Memed ou rascunho com salvamento resiliente
+ */
+export const saveMemedPrescription = async (
+  data: SaveSignedPrescriptionParams,
+): Promise<SaveSignedPrescriptionResponse> => {
+  return await pb.send<SaveSignedPrescriptionResponse>(
+    '/backend/v1/memed/prescription/save-signed',
+    {
+      method: 'POST',
+      body: data,
+    },
+  )
+}

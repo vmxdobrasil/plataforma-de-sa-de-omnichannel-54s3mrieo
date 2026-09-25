@@ -39,6 +39,7 @@ import { SOSCard } from '@/components/SOSCard'
 import { useAuth } from '@/hooks/use-auth'
 import { getProfessionalAppointments, finalizeAppointment } from '@/services/appointments'
 import { createPrescription } from '@/services/prescriptions'
+import { EmbeddedMemedPrescription } from '@/components/clinic/EmbeddedMemedPrescription'
 import { getTreatmentPlans, updateTreatmentPlanStatus } from '@/services/treatment_plans'
 import { createHealthRecord } from '@/services/health_records'
 import { uploadDocument } from '@/services/documents'
@@ -715,55 +716,19 @@ export default function ProfessionalDashboard() {
                     </TabsContent>
 
                     <TabsContent value="prescriptions" className="space-y-4 m-0">
-                      <div className="space-y-4 bg-muted/20 p-4 rounded-xl border">
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b pb-3">
-                          <div>
-                            <h3 className="font-semibold text-base">Nova Prescrição Digital</h3>
-                            <p className="text-xs text-muted-foreground mt-0.5">
-                              Receita eletrônica válida com QR Code e assinatura médica.
-                            </p>
-                          </div>
-                          {user?.role === 'professional' && (
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              onClick={() => {
-                                const memedTabTrigger =
-                                  document.querySelector<HTMLButtonElement>('button[value="memed"]')
-                                if (memedTabTrigger) memedTabTrigger.click()
-                              }}
-                              className="text-xs h-8 text-[#14805A] border-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/30"
-                            >
-                              Configurar Memed
-                            </Button>
-                          )}
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label>Medicamentos</Label>
-                          <Input
-                            placeholder="Ex: Rosuvastatina 10mg - 1x ao dia"
-                            value={meds}
-                            onChange={(e) => setMeds(e.target.value)}
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Instruções para Farmácia (Opcional)</Label>
-                          <Input
-                            placeholder="Ex: Fornecer medicamento genérico"
-                            value={insts}
-                            onChange={(e) => setInsts(e.target.value)}
-                          />
-                        </div>
-                        <Button
-                          onClick={handleCreatePrescription}
-                          disabled={!meds.trim()}
-                          className="w-full bg-[#14805A] hover:bg-[#116d4c] text-white"
-                        >
-                          Emitir Receita Digital
-                        </Button>
-                      </div>
+                      <EmbeddedMemedPrescription
+                        patientId={activeAppt.patient_id}
+                        patientName={activeAppt.expand?.patient_id?.name}
+                        patientCpf={
+                          activeAppt.expand?.patient_id?.tax_id ||
+                          activeAppt.expand?.patient_id?.document_id
+                        }
+                        patientDob={activeAppt.expand?.patient_id?.date_of_birth}
+                        onPrescriptionSaved={(px) => {
+                          toast.success('Prescrição vinculada ao prontuário do paciente!')
+                          loadData()
+                        }}
+                      />
                     </TabsContent>
 
                     <TabsContent value="plans" className="space-y-4 m-0">

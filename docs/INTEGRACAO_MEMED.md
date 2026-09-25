@@ -50,18 +50,39 @@ Este documento descreve a arquitetura, o onboarding guiado em 3 passos para os m
 
 ## 3. Endpoints Server-Side Implementados (`pocketbase/hooks/memed_oauth.js`)
 
-| Método | Endpoint                                | Descrição                                                                                                                                               |
-| ------ | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `GET`  | `/backend/v1/memed/status`              | Retorna o status atual do médico (`desconectado`, `conectando`, `conectado`, `erro`) e se os segredos de parceiro estão configurados, sem vazar tokens. |
-| `GET`  | `/backend/v1/memed/oauth/authorize-url` | Gera a URL de autorização da Memed com `state` anti-CSRF e URL de redirect oficial.                                                                     |
-| `POST` | `/backend/v1/memed/oauth/callback`      | Troca o `code` recebido no redirect por `access_token` e `refresh_token` (chamada server-to-server).                                                    |
-| `POST` | `/backend/v1/memed/token/refresh`       | Executa a renovação silenciosa do token usando o `refresh_token` salvo, atualizando `last_sync` sem deslogar o médico.                                  |
-| `POST` | `/backend/v1/memed/test-sandbox`        | Valida dados do médico e conectividade de assinatura no ambiente sandbox da Memed.                                                                      |
-| `POST` | `/backend/v1/memed/disconnect`          | Desconecta a conta, limpa tokens com segurança e registra em `audit_logs`.                                                                              |
+| Método | Endpoint                                     | Descrição                                                                                                                                               |
+| ------ | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `GET`  | `/backend/v1/memed/status`                   | Retorna o status atual do médico (`desconectado`, `conectando`, `conectado`, `erro`) e se os segredos de parceiro estão configurados, sem vazar tokens. |
+| `GET`  | `/backend/v1/memed/oauth/authorize-url`      | Gera a URL de autorização da Memed com `state` anti-CSRF e URL de redirect oficial.                                                                     |
+| `POST` | `/backend/v1/memed/oauth/callback`           | Troca o `code` recebido no redirect por `access_token` e `refresh_token` (chamada server-to-server).                                                    |
+| `POST` | `/backend/v1/memed/token/refresh`            | Executa a renovação silenciosa do token usando o `refresh_token` salvo, atualizando `last_sync` sem deslogar o médico.                                  |
+| `POST` | `/backend/v1/memed/test-sandbox`             | Valida dados do médico e conectividade de assinatura no ambiente sandbox da Memed.                                                                      |
+| `POST` | `/backend/v1/memed/disconnect`               | Desconecta a conta, limpa tokens com segurança e registra em `audit_logs`.                                                                              |
+| `GET`  | `/backend/v1/memed/prescriber-session`       | Inicializa a sessão do prescritor com dados do paciente pré-preenchidos (nome, CPF, nascimento) e tokens do SDK web.                                    |
+| `POST` | `/backend/v1/memed/prescription/save-signed` | Captura retorno da prescrição assinada (memed_prescription_id, URL de validação, controlados, rascunhos) persistindo em `prescriptions`.                |
+| `POST` | `/backend/v1/memed/webhook`                  | Endpoint webhook para recepção de notificações de prescrição emitida pela Memed.                                                                        |
 
 ---
 
-## 4. Instruções de Deploy: Como Cadastrar os Secrets da Memed
+## 4. Arquitetura da Prescrição Embutida no Fluxo de Atendimento (EHR / V MED)
+
+1. **Sem saída da plataforma:**
+   - O médico acessa a aba **Receitas** dentro do prontuário do paciente (`ProfessionalDashboard.tsx`).
+   - O componente `EmbeddedMemedPrescription.tsx` inicializa a sessão via `GET /backend/v1/memed/prescriber-session?patient_id=...`.
+2. **Pré-preenchimento Automático:**
+   - Nome completo, CPF, data de nascimento, sexo e endereço são lidos diretamente do cadastro do paciente na coleção `users` e enviados para o comando `setPaciente` da Memed, dispensando qualquer redigitação pelo médico.
+3. **Apoio à Decisão Clínica & Interações Medicamentosas:**
+   - O comando `setFeatureToggle` ativa o motor de alertas (`enableAlerts: true`). O sistema escuta o evento `medicamentoAdicionado` e exibe alertas visuais de risco (ex: interações graves, contraindicações).
+4. **Controlados & RDC Anvisa nº 1.000/2025 (SNCR):**
+   - Suporte total aos receituários Azul (Notificação B1/B2) e Amarelo (Notificação A1/A2/A3), além de Antimicrobianos, Simples, Exames e Atestados estruturados, com numeração serial SNCR automática.
+5. **Captura do Documento Assinado:**
+   - No evento `prescricaoImpressa`, o payload com `prescriptionUuid`, link de validação pública e medicamentos estruturados é interceptado e gravado em `prescriptions` com `status="assinada"`.
+6. **Resiliência e Continuidade (Regra Crítica da Casa):**
+   - Toda chamada externa à Memed é protegida em blocos `try/catch`. Caso os servidores da Memed oscilem ou as credenciais de produção ainda não estejam cadastradas, o sistema oferece salvamento imediato de **Rascunho Local** (`status="rascunho"`), permitindo que o atendimento nunca seja interrompido.
+
+---
+
+## 5. Instruções de Deploy: Como Cadastrar os Secrets da Memed
 
 Quando a equipe de Parcerias da Memed responder ao e-mail de credenciamento e liberar o acesso ao **Med.Studio**, cadastre os seguintes segredos no ambiente backend Skip Cloud:
 

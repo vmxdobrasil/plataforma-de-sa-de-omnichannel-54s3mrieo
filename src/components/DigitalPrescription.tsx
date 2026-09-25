@@ -79,6 +79,11 @@ export function DigitalPrescription({ prescription }: { prescription: any }) {
             {prescription.memed_prescription_id && (
               <p className="text-[10px] text-emerald-700 font-mono mt-0.5">
                 Memed ID: {prescription.memed_prescription_id}
+                {prescription.prescription_type && (
+                  <span className="ml-1 uppercase text-gray-500">
+                    ({prescription.prescription_type.replace('_', ' ')})
+                  </span>
+                )}
               </p>
             )}
             <p className="text-[10px] text-gray-400 mt-0.5 font-mono">ID: {prescription.id}</p>
