@@ -399,6 +399,10 @@ export default function ProfessionalDashboard() {
     )
   }
 
+  const crmSituacao = (user as any)?.crm_situacao || (user?.is_verified ? 'ativo' : 'em_analise')
+  const isCrmNotActive = user?.role === 'professional' && crmSituacao !== 'ativo'
+  const isUnverified = user?.role === 'professional' && (!user?.is_verified || isCrmNotActive)
+
   const todayAppts = appointments.filter((a) => {
     const d = new Date(a.dateTime)
     const today = new Date()
@@ -411,18 +415,57 @@ export default function ProfessionalDashboard() {
 
   return (
     <div className="space-y-6">
+      {/* Alerta de bloqueio de CRM quando a inscrição não estiver ATIVA ou pendente de validação */}
+      {isUnverified && (
+        <Alert className="border-red-200 bg-red-50/70 dark:bg-red-950/30 text-red-900 dark:text-red-200 shadow-sm">
+          <AlertCircle className="h-5 w-5 text-red-600 shrink-0" />
+          <div className="ml-2 w-full">
+            <AlertTitle className="font-bold flex items-center justify-between">
+              <span>
+                Situação do CRM no CFM:{' '}
+                {crmSituacao === 'ativo' ? 'Aguardando Homologação' : crmSituacao.toUpperCase()}
+              </span>
+              <Badge variant="destructive" className="uppercase text-[10px]">
+                Atendimento Bloqueado
+              </Badge>
+            </AlertTitle>
+            <AlertDescription className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-2">
+              <span className="text-xs sm:text-sm">
+                {crmSituacao === 'ativo'
+                  ? 'Seu registro profissional está em análise cadastral. Consultas, agendamentos e emissão de receitas estão temporariamente restritos até a aprovação da diretoria médica.'
+                  : `Seu registro profissional consta como "${crmSituacao.toUpperCase()}" perante o Conselho Federal de Medicina. Por segurança do paciente e exigência regulatória (Resolução CFM 2.129/15), somente médicos com inscrição ATIVA podem prestar atendimentos, abrir agenda e emitir receitas.`}
+              </span>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => (window.location.href = '/settings')}
+                className="border-red-300 text-red-900 hover:bg-red-100 dark:text-red-200 shrink-0"
+              >
+                Ver Meu Perfil / CRM
+              </Button>
+            </AlertDescription>
+          </div>
+        </Alert>
+      )}
+
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold">Dashboard Clínico</h1>
           <p className="text-muted-foreground mt-1">Bem-vindo, {user?.name}</p>
         </div>
         <div className="flex gap-2">
-          <Button onClick={() => setBookingDialogOpen(true)}>
+          <Button
+            onClick={() => setBookingDialogOpen(true)}
+            disabled={isUnverified}
+            title={isUnverified ? 'CRM inativo ou em validação' : 'Novo Agendamento'}
+          >
             <Plus className="mr-2 h-4 w-4" /> Novo Agendamento
           </Button>
           <Button
             onClick={() => (window.location.href = '/professional/schedule')}
             variant="outline"
+            disabled={isUnverified}
+            title={isUnverified ? 'CRM inativo ou em validação' : 'Gerenciar Agenda'}
           >
             <CalIcon className="mr-2 h-4 w-4" /> Gerenciar Agenda
           </Button>
@@ -709,27 +752,49 @@ export default function ProfessionalDashboard() {
                         </div>
                       </div>
                       <div className="flex justify-end gap-2 pt-2">
-                        <Button onClick={handleSaveNotes} disabled={!notes.trim()}>
+                        <Button
+                          onClick={handleSaveNotes}
+                          disabled={!notes.trim() || isUnverified}
+                          title={
+                            isUnverified
+                              ? 'É obrigatório ter CRM ativo para finalizar atendimentos'
+                              : 'Assinar e Finalizar Consulta'
+                          }
+                        >
                           Assinar e Finalizar Consulta
                         </Button>
                       </div>
                     </TabsContent>
 
                     <TabsContent value="prescriptions" className="space-y-4 m-0">
-                      <EmbeddedMemedPrescription
-                        patientId={activeAppt.patient_id}
-                        patientName={activeAppt.expand?.patient_id?.name}
-                        patientCpf={
-                          activeAppt.expand?.patient_id?.tax_id ||
-                          activeAppt.expand?.patient_id?.document_id
-                        }
-                        patientDob={activeAppt.expand?.patient_id?.date_of_birth}
-                        appointmentId={activeAppt.id}
-                        onPrescriptionSaved={(px) => {
-                          toast.success('Prescrição vinculada ao prontuário e enviada ao paciente!')
-                          loadData()
-                        }}
-                      />
+                      {isUnverified ? (
+                        <Alert variant="destructive">
+                          <AlertCircle className="h-4 w-4" />
+                          <AlertTitle>Emissão de Prescrição Bloqueada</AlertTitle>
+                          <AlertDescription>
+                            A prescrição digital Memed exige que o médico possua inscrição ATIVA no
+                            Conselho Regional de Medicina. Seu status atual é{' '}
+                            <strong>{crmSituacao.toUpperCase()}</strong>.
+                          </AlertDescription>
+                        </Alert>
+                      ) : (
+                        <EmbeddedMemedPrescription
+                          patientId={activeAppt.patient_id}
+                          patientName={activeAppt.expand?.patient_id?.name}
+                          patientCpf={
+                            activeAppt.expand?.patient_id?.tax_id ||
+                            activeAppt.expand?.patient_id?.document_id
+                          }
+                          patientDob={activeAppt.expand?.patient_id?.date_of_birth}
+                          appointmentId={activeAppt.id}
+                          onPrescriptionSaved={(px) => {
+                            toast.success(
+                              'Prescrição vinculada ao prontuário e enviada ao paciente!',
+                            )
+                            loadData()
+                          }}
+                        />
+                      )}
                     </TabsContent>
 
                     <TabsContent value="plans" className="space-y-4 m-0">

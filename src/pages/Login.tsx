@@ -2,6 +2,12 @@ import { useState, useEffect } from 'react'
 import { useNavigate, Navigate, Link } from 'react-router-dom'
 import { HeartPulse, Stethoscope, ArrowRight, RefreshCcw, WifiOff } from 'lucide-react'
 import logoUrl from '@/assets/1002440441png1782862869065-a785f.png'
+import { CrmInputField } from '@/components/crm/CrmInputField'
+import {
+  validateCrmOfficial,
+  normalizeCrmInput,
+  type CrmValidationResult,
+} from '@/services/crm-validation'
 import { useAuth } from '@/hooks/use-auth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -29,6 +35,8 @@ export default function Login() {
   const [role, setRole] = useState('patient')
   const [crmNumber, setCrmNumber] = useState('')
   const [crmState, setCrmState] = useState('')
+  const [crmValidationResult, setCrmValidationResult] = useState<CrmValidationResult | null>(null)
+  const [isValidatingCrm, setIsValidatingCrm] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [emailError, setEmailError] = useState('')
   const [passwordError, setPasswordError] = useState('')
@@ -163,7 +171,34 @@ export default function Login() {
       return
     }
 
+    // Validação estrutural pré-envio
+    if (role === 'professional') {
+      const norm = normalizeCrmInput(crmNumber, crmState)
+      if (!norm.isValidFormat) {
+        toast.error(norm.validationError || 'CRM ou UF inválido.')
+        return
+      }
+    }
+
     setIsLoading(true)
+
+    // Tenta validação oficial/resiliente via CFM/terceiro antes de finalizar
+    if (role === 'professional') {
+      setIsValidatingCrm(true)
+      try {
+        const check = await validateCrmOfficial({
+          crmNumber,
+          crmUf: crmState,
+          doctorName: name,
+        })
+        setCrmValidationResult(check)
+      } catch (err) {
+        console.warn('[Login Signup] Fallback seguro na checagem de CRM:', err)
+      } finally {
+        setIsValidatingCrm(false)
+      }
+    }
+
     const { error } = await signUp(email, password, name, role, crmNumber, crmState)
     setIsLoading(false)
 
@@ -398,74 +433,21 @@ export default function Login() {
 
               {role === 'professional' && (
                 <div
-                  className="grid grid-cols-2 gap-4 animate-fade-in-up"
+                  className="space-y-3 animate-fade-in-up pt-1"
                   style={{ animationDuration: '200ms' }}
                 >
-                  <div className="space-y-2">
-                    <Label htmlFor="crm-number" className="text-foreground/80">
-                      CRM
-                    </Label>
-                    <Input
-                      id="crm-number"
-                      placeholder="Ex: 123456"
-                      value={crmNumber}
-                      onChange={(e) => setCrmNumber(e.target.value)}
-                      className="h-11 bg-muted/30 focus-visible:ring-primary/50"
-                      required={role === 'professional'}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="crm-state" className="text-foreground/80">
-                      UF
-                    </Label>
-                    <Select
-                      value={crmState}
-                      onValueChange={setCrmState}
-                      required={role === 'professional'}
-                    >
-                      <SelectTrigger
-                        id="crm-state"
-                        className="h-11 bg-muted/30 focus-visible:ring-primary/50"
-                      >
-                        <SelectValue placeholder="Estado" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {[
-                          'AC',
-                          'AL',
-                          'AP',
-                          'AM',
-                          'BA',
-                          'CE',
-                          'DF',
-                          'ES',
-                          'GO',
-                          'MA',
-                          'MT',
-                          'MS',
-                          'MG',
-                          'PA',
-                          'PB',
-                          'PR',
-                          'PE',
-                          'PI',
-                          'RJ',
-                          'RN',
-                          'RS',
-                          'RO',
-                          'RR',
-                          'SC',
-                          'SP',
-                          'SE',
-                          'TO',
-                        ].map((uf) => (
-                          <SelectItem key={uf} value={uf}>
-                            {uf}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  <CrmInputField
+                    crmNumber={crmNumber}
+                    crmUf={crmState}
+                    onCrmChange={(num, uf) => {
+                      setCrmNumber(num)
+                      setCrmState(uf)
+                      if (crmValidationResult) setCrmValidationResult(null)
+                    }}
+                    validationResult={crmValidationResult}
+                    isValidating={isValidatingCrm}
+                    required
+                  />
                 </div>
               )}
 

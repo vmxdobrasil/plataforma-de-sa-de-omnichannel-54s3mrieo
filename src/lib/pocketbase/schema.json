@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-25T20:06:33.457Z",
+  "generatedAt": "2026-09-25T20:29:02.992Z",
   "collections": [
     {
       "name": "users",
@@ -488,6 +488,12 @@
         },
         {
           "name": "kinship",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "crm_situacao",
           "type": "text",
           "required": false,
           "system": false
@@ -2728,6 +2734,119 @@
       "indexes": [
         "CREATE UNIQUE INDEX idx_memed_integrations_doctor ON memed_integrations (doctor_id)",
         "CREATE INDEX idx_memed_integrations_status ON memed_integrations (connection_status)"
+      ]
+    },
+    {
+      "name": "professional_verifications",
+      "type": "base",
+      "apiRules": {
+        "list": "@request.auth.id != \"\" && (user = @request.auth.id || @request.auth.role = \"medical_director\" || @request.auth.role = \"admin\")",
+        "view": "@request.auth.id != \"\" && (user = @request.auth.id || @request.auth.role = \"medical_director\" || @request.auth.role = \"admin\")",
+        "create": "@request.auth.id != \"\" && (user = @request.auth.id || @request.auth.role = \"medical_director\" || @request.auth.role = \"admin\")",
+        "update": "@request.auth.id != \"\" && (@request.auth.role = \"medical_director\" || @request.auth.role = \"admin\")",
+        "delete": "@request.auth.id != \"\" && @request.auth.role = \"admin\""
+      },
+      "fields": [
+        {
+          "name": "user",
+          "type": "relation",
+          "required": true,
+          "system": false,
+          "collectionRef": "users"
+        },
+        {
+          "name": "crm_numero",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "crm_uf",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "crm_situacao",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "crm_especialidade",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "nome_cfm",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "divergencia_nome",
+          "type": "bool",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "status_validacao",
+          "type": "select",
+          "required": true,
+          "system": false,
+          "selectValues": ["pendente", "validado", "invalidado", "validacao_manual"]
+        },
+        {
+          "name": "fonte_validacao",
+          "type": "select",
+          "required": true,
+          "system": false,
+          "selectValues": ["cfm_webservice", "api_terceiro", "manual", "fallback_resiliente"]
+        },
+        {
+          "name": "data_validacao",
+          "type": "date",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "resposta_bruta",
+          "type": "json",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "observacoes_admin",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "certidao_arquivo",
+          "type": "file",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate"]
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate", "onUpdate"]
+        }
+      ],
+      "indexes": [
+        "CREATE INDEX idx_prof_verif_user ON professional_verifications (user)",
+        "CREATE INDEX idx_prof_verif_crm ON professional_verifications (crm_numero, crm_uf)",
+        "CREATE INDEX idx_prof_verif_status ON professional_verifications (status_validacao)"
       ]
     }
   ]

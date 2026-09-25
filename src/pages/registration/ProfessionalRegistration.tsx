@@ -25,6 +25,12 @@ import { toast } from 'sonner'
 import pb from '@/lib/pocketbase/client'
 import { getErrorMessage } from '@/lib/pocketbase/errors'
 import defaultLogo from '@/assets/1002440441png1782862869065-a785f.png'
+import { CrmInputField } from '@/components/crm/CrmInputField'
+import {
+  validateCrmOfficial,
+  normalizeCrmInput,
+  type CrmValidationResult,
+} from '@/services/crm-validation'
 
 const CATEGORIES = [
   { value: 'Médico', label: 'Médico', idLabel: 'CRM' },
@@ -45,10 +51,14 @@ export default function ProfessionalRegistration() {
     email: '',
     phone: '',
     tax_id: '',
-    category: '',
+    category: 'Médico',
     professional_id: '',
     specialty: '',
+    crm_number: '',
+    crm_state: '',
   })
+  const [crmValidation, setCrmValidation] = useState<CrmValidationResult | null>(null)
+  const [isValidatingCrm, setIsValidatingCrm] = useState(false)
 
   useEffect(() => {
     pb.collection('medical_specialties')
@@ -60,14 +70,53 @@ export default function ProfessionalRegistration() {
   const update = (k: string, v: string) => setForm((p) => ({ ...p, [k]: v }))
   const idLabel =
     CATEGORIES.find((c) => c.value === form.category)?.idLabel || 'Registro Profissional'
+
+  const handleCrmChange = (number: string, uf: string) => {
+    setForm((p) => ({
+      ...p,
+      crm_number: number,
+      crm_state: uf,
+      professional_id: number && uf ? `${number}/${uf}` : number,
+    }))
+    if (crmValidation) {
+      setCrmValidation(null)
+    }
+  }
+
+  const isDoctor = form.category === 'Médico' || !form.category
+
   const canProceed =
     step === 1
       ? !!(form.name && form.email && form.phone && form.tax_id)
-      : !!(form.category && form.professional_id && form.specialty)
+      : isDoctor
+        ? !!(form.category && form.crm_number && form.crm_state && form.specialty)
+        : !!(form.category && form.professional_id && form.specialty)
 
   const submit = async () => {
     setLoading(true)
     try {
+      let crmData: CrmValidationResult | null = null
+
+      if (isDoctor) {
+        setIsValidatingCrm(true)
+        try {
+          crmData = await validateCrmOfficial({
+            crmNumber: form.crm_number,
+            crmUf: form.crm_state,
+            doctorName: form.name,
+            specialty: form.specialty,
+          })
+          setCrmValidation(crmData)
+        } catch (crmErr) {
+          console.warn(
+            '[Cadastro] Consulta CFM indisponível, seguindo em fallback pendente:',
+            crmErr,
+          )
+        } finally {
+          setIsValidatingCrm(false)
+        }
+      }
+
       await pb.collection('registration_leads').create({
         name: form.name,
         email: form.email,
@@ -78,7 +127,14 @@ export default function ProfessionalRegistration() {
         metadata: {
           category: form.category,
           specialty: form.specialty,
-          professional_id: form.professional_id,
+          professional_id: isDoctor ? `${form.crm_number}/${form.crm_state}` : form.professional_id,
+          crm_number: form.crm_number,
+          crm_state: form.crm_state,
+          crm_situacao: crmData?.situacao || 'em_analise',
+          crm_status_validacao: crmData?.status_validacao || 'pendente',
+          crm_especialidade: crmData?.especialidade || form.specialty,
+          crm_nome_cfm: crmData?.nome_cfm || form.name,
+          crm_divergencia_nome: !!crmData?.divergencia_nome,
         },
       })
       setSuccess(true)
@@ -240,16 +296,29 @@ export default function ProfessionalRegistration() {
                     </SelectContent>
                   </Select>
                 </div>
-                <div>
-                  <Label htmlFor="prof_id">{idLabel} *</Label>
-                  <Input
-                    id="prof_id"
-                    className="mt-1"
-                    value={form.professional_id}
-                    onChange={(e) => update('professional_id', e.target.value)}
-                    placeholder={`Ex: ${idLabel}-SP 12345`}
-                  />
-                </div>
+                {isDoctor ? (
+                  <div className="pt-1">
+                    <CrmInputField
+                      crmNumber={form.crm_number}
+                      crmUf={form.crm_state}
+                      onCrmChange={handleCrmChange}
+                      validationResult={crmValidation}
+                      isValidating={isValidatingCrm}
+                      required
+                    />
+                  </div>
+                ) : (
+                  <div>
+                    <Label htmlFor="prof_id">{idLabel} *</Label>
+                    <Input
+                      id="prof_id"
+                      className="mt-1"
+                      value={form.professional_id}
+                      onChange={(e) => update('professional_id', e.target.value)}
+                      placeholder={`Ex: ${idLabel}-SP 12345`}
+                    />
+                  </div>
+                )}
                 <div>
                   <Label>Especialidade *</Label>
                   <Select value={form.specialty} onValueChange={(v) => update('specialty', v)}>
