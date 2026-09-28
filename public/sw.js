@@ -12,17 +12,18 @@ const PRECACHE_ASSETS = [
   '/',
   '/offline.html',
   '/manifest.webmanifest',
+  '/manifest.json',
   '/icons/icon.svg',
   '/icons/icon-maskable.svg',
   '/icons/icon-192x192.png',
   '/icons/icon-512x512.png',
   '/icons/icon-maskable-192x192.png',
   '/icons/icon-maskable-512x512.png',
+  '/icons/shortcut-calendar.png',
+  '/icons/shortcut-sos.png',
+  '/icons/shortcut-search.png',
   '/apple-touch-icon.png',
   '/favicon.png',
-  '/icons/shortcut-calendar.svg',
-  '/icons/shortcut-sos.svg',
-  '/icons/shortcut-search.svg',
 ]
 
 // Instalação do SW

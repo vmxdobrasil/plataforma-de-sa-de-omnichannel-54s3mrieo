@@ -18,11 +18,25 @@
     
     <!-- PWA Icons -->
     <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192x192.png" />
+    <link rel="icon" type="image/png" sizes="512x512" href="/icons/icon-512x512.png" />
     <link rel="icon" type="image/svg+xml" href="/icons/icon.svg" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <link rel="shortcut icon" href="/favicon.png" />
     
     <meta property="og:image" content="/og-image.png" />
+
+    <!-- Service Worker Registration for immediate bot detection & PWA support -->
+    <script>
+      if ('serviceWorker' in navigator && (window.location.protocol === 'https:' || window.location.hostname === 'localhost')) {
+        navigator.serviceWorker.register('/sw.js', { scope: '/' })
+          .then(function(reg) {
+            console.log('[PWA] Service Worker registered in HTML head, scope:', reg.scope);
+          })
+          .catch(function(err) {
+            console.warn('[PWA] SW registration from head failed:', err);
+          });
+      }
+    </script>
   </head>
 
   <body>

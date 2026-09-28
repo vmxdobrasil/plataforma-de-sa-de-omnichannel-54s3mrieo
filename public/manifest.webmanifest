@@ -1,4 +1,5 @@
 {
+  "id": "/?source=pwa",
   "name": "V MED BRASIL",
   "short_name": "V MED",
   "description": "Plataforma de Saúde Integrada — Telemedicina, Agendamento e Gestão de Benefícios de Saúde",
@@ -35,18 +36,6 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
-    },
-    {
-      "src": "/icons/icon.svg",
-      "sizes": "512x512",
-      "type": "image/svg+xml",
-      "purpose": "any"
-    },
-    {
-      "src": "/icons/icon-maskable.svg",
-      "sizes": "512x512",
-      "type": "image/svg+xml",
-      "purpose": "maskable"
     }
   ],
   "shortcuts": [
@@ -60,11 +49,6 @@
           "src": "/icons/shortcut-calendar.png",
           "sizes": "96x96",
           "type": "image/png"
-        },
-        {
-          "src": "/icons/shortcut-calendar.svg",
-          "sizes": "96x96",
-          "type": "image/svg+xml"
         }
       ]
     },
@@ -78,11 +62,6 @@
           "src": "/icons/shortcut-sos.png",
           "sizes": "96x96",
           "type": "image/png"
-        },
-        {
-          "src": "/icons/shortcut-sos.svg",
-          "sizes": "96x96",
-          "type": "image/svg+xml"
         }
       ]
     },
@@ -96,11 +75,6 @@
           "src": "/icons/shortcut-search.png",
           "sizes": "96x96",
           "type": "image/png"
-        },
-        {
-          "src": "/icons/shortcut-search.svg",
-          "sizes": "96x96",
-          "type": "image/svg+xml"
         }
       ]
     }
