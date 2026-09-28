@@ -80,6 +80,7 @@ import AdminCRM from './pages/AdminCRM'
 import B2CLanding from './pages/B2CLanding'
 import TermsOfUse from './pages/TermsOfUse'
 import PrivacyPolicy from './pages/PrivacyPolicy'
+import StoreAssets from './pages/StoreAssets'
 
 const EntryPoint = () => {
   const { user, loading } = useAuth()
@@ -237,12 +238,12 @@ const AppRoutes = () => {
         <Route path="/landing" element={<B2CLanding />} />
         <Route path="/termos-de-uso" element={<TermsOfUse />} />
         <Route path="/politica-de-privacidade" element={<PrivacyPolicy />} />
+        <Route path="/store-assets" element={<StoreAssets />} />
         <Route path="/register" element={<RegistrationPortal />} />
-        <Route path="/register/company" element={<CompanyRegistration />} />
+        <Route path="/register/company" element={<CompanyRegistration />} />{' '}
         <Route path="/register/partner" element={<PartnerRegistration />} />
         <Route path="/register/individual" element={<IndividualRegistration />} />
         <Route path="/register/professional" element={<ProfessionalRegistration />} />
-
         <Route element={<Layout />}>
           {/* Entry Point / Public / Patient Dashboard */}
           <Route path="/" element={<EntryPoint />} />
@@ -269,9 +270,11 @@ const AppRoutes = () => {
             <Route path="/documents" element={<Documents />} />
             <Route path="/settings" element={<Settings />} />
 
+            <Route path="/store-assets-portal" element={<StoreAssets />} />
             <Route element={<AdminOutlet />}>
               <Route path="/admin" element={<AdminDashboard />} />
-              <Route path="/admin/settings" element={<AdminSettings />} />
+              <Route path="/admin/store-assets" element={<StoreAssets />} />
+              <Route path="/admin/settings" element={<AdminSettings />} />{' '}
               <Route path="/admin/verification" element={<AdminVerification />} />
               <Route path="/admin/supervision" element={<AdminSupervision />} />
               <Route path="/admin/users" element={<AdminUsers />} />

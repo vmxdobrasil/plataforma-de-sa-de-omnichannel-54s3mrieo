@@ -29,6 +29,7 @@ import {
   TestTube,
   Briefcase,
   CreditCard,
+  PlaySquare,
 } from 'lucide-react'
 import {
   Sidebar,
@@ -196,6 +197,13 @@ const navItems = [
     icon: Briefcase,
     url: '/admin/crm',
     roles: ['admin'],
+    masterOnly: true,
+  },
+  {
+    title: 'Recursos Play Store',
+    icon: PlaySquare,
+    url: '/store-assets',
+    roles: ['medical_director', 'admin'],
     masterOnly: true,
   },
   { title: 'Minha Empresa', icon: Building2, url: '/company/dashboard', roles: ['company'] },
