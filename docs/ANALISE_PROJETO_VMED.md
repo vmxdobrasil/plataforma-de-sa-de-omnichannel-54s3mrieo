@@ -323,7 +323,7 @@ A tabela e os tópicos abaixo expõem com exatidão o estado operacional e os re
   - Os e-mails de DPO e suporte (`dpo@vmedbrasil.com`, `contato@vmedbrasil.com`) devem ter caixas postais ativas configuradas no domínio corporativo.
   - Realizar validação formal por assessoria jurídica especializada em Direito Médico e Digital.
 - **Remoção de Credenciais de Teste na Tela de Login:**
-  - O arquivo `src/pages/Login.tsx` exibe atualmente em seu rodapé uma dica de teste com credenciais fixas (`valterpmendonca@gmail.com` / `Skip@Pass`). Esse bloco de texto e qualquer credencial hardcoded devem ser removidos para o lançamento público de produção.
+  - O arquivo `src/pages/Login.tsx` exibia anteriormente uma dica de teste com credenciais fixas. Foi devidamente higienizado para a publicação em conformidade com as diretrizes da Google Play Store, sem nenhuma credencial exposta.
 - **Cadastro de Credenciais Reais do Asaas:**
   - Cadastrar a chave de produção no painel `/admin/asaas` e homologar a URL de webhook para recepção de notificações bancárias.
 

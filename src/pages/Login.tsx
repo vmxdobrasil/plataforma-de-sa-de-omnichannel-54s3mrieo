@@ -13,6 +13,14 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
@@ -42,6 +50,9 @@ export default function Login() {
   const [passwordError, setPasswordError] = useState('')
   const [isConnected, setIsConnected] = useState(true)
   const [isCheckingConnection, setIsCheckingConnection] = useState(false)
+  const [resetModalOpen, setResetModalOpen] = useState(false)
+  const [resetEmail, setResetEmail] = useState('')
+  const [isSendingReset, setIsSendingReset] = useState(false)
 
   const { signIn, signUp, user } = useAuth()
   const navigate = useNavigate()
@@ -127,6 +138,27 @@ export default function Login() {
       setPasswordError('')
     }
     return isValid
+  }
+
+  const handlePasswordReset = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!resetEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(resetEmail)) {
+      toast.error('Informe um e-mail válido para recuperação.')
+      return
+    }
+
+    setIsSendingReset(true)
+    try {
+      await pb.collection('users').requestPasswordReset(resetEmail)
+      toast.success('Se o e-mail estiver cadastrado, as instruções foram enviadas!')
+      setResetModalOpen(false)
+    } catch (err: any) {
+      // Para segurança, mantemos mensagem neutra ou orientamos o usuário
+      toast.info('Se o e-mail estiver cadastrado, você receberá o link de redefinição.')
+      setResetModalOpen(false)
+    } finally {
+      setIsSendingReset(false)
+    }
   }
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -333,6 +365,18 @@ export default function Login() {
                   <p className="text-sm text-destructive animate-fade-in">{passwordError}</p>
                 )}
               </div>
+              <div className="flex items-center justify-end">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setResetEmail(email)
+                    setResetModalOpen(true)
+                  }}
+                  className="text-xs text-primary hover:underline font-medium transition-colors"
+                >
+                  Esqueceu sua senha?
+                </button>
+              </div>
               <Button
                 type="submit"
                 className="w-full h-11 text-base group"
@@ -476,14 +520,16 @@ export default function Login() {
         </Tabs>
       </Card>
 
-      <p
-        className="mt-6 text-sm text-muted-foreground text-center max-w-sm animate-fade-in-up"
+      {/* Link de cadastro por perfil para novos usuários */}
+      <div
+        className="mt-6 text-sm text-muted-foreground text-center animate-fade-in-up"
         style={{ animationDelay: '200ms' }}
       >
-        Dica: Para testar, faça login com{' '}
-        <strong className="text-foreground">valterpmendonca@gmail.com</strong> e senha{' '}
-        <strong className="text-foreground">Skip@Pass</strong>.
-      </p>
+        <span>Não tem uma conta corporativa ou profissional? </span>
+        <Link to="/register" className="text-primary hover:underline font-medium transition-colors">
+          Conheça nossos planos e perfis de cadastro
+        </Link>
+      </div>
 
       {/* Footer Links required for Google Play & LGPD */}
       <footer
@@ -504,6 +550,53 @@ export default function Login() {
           Política de Privacidade
         </Link>
       </footer>
+
+      {/* Modal Esqueci Minha Senha */}
+      <Dialog open={resetModalOpen} onOpenChange={setResetModalOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Recuperar senha</DialogTitle>
+            <DialogDescription>
+              Digite o e-mail da sua conta para receber as instruções e o link de redefinição de
+              senha.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handlePasswordReset} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="reset-email">E-mail cadastrado</Label>
+              <Input
+                id="reset-email"
+                type="email"
+                placeholder="seu@email.com"
+                value={resetEmail}
+                onChange={(e) => setResetEmail(e.target.value)}
+                required
+                className="h-10"
+              />
+            </div>
+            <DialogFooter className="gap-2 sm:gap-0">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setResetModalOpen(false)}
+                disabled={isSendingReset}
+              >
+                Cancelar
+              </Button>
+              <Button type="submit" disabled={isSendingReset}>
+                {isSendingReset ? (
+                  <>
+                    <RefreshCcw className="mr-2 h-4 w-4 animate-spin" />
+                    Enviando...
+                  </>
+                ) : (
+                  'Enviar instruções'
+                )}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
