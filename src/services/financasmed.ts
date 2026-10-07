@@ -26,7 +26,7 @@ export interface FinancasMedListResponse {
 /**
  * Consulta pacientes de um médico cadastrados no FinançasMed.
  * Faz a chamada ao endpoint autenticado da V MED (/backend/v1/financasmed/pacientes),
- * que repassa para https://financas-medicas-pwa-64ab0.shrd00.internal.goskip.dev/api/hooks/vmed/pacientes com a X-API-Key segura.
+ * que repassa para https://financas-medicas-pwa-64ab0.shrd00.internal.goskip.dev/backend/v1/hooks/vmed/pacientes com a X-API-Key segura.
  */
 export async function getFinancasMedPacientes(medicoEmail: string): Promise<FinancasMedPatient[]> {
   if (!medicoEmail || !medicoEmail.trim()) {

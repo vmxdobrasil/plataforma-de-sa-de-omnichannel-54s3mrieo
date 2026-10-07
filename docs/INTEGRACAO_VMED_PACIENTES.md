@@ -9,7 +9,7 @@ Este documento descreve o contrato de integração de **Pacientes** entre a **V 
 No **FinançasMed**, cada médico possui seus pacientes cadastrados de forma isolada (multi-tenant por médico). Com a presente integração:
 
 1. **Listagem de Pacientes:** A V MED BRASIL lista os pacientes cadastrados para determinado médico no FinançasMed diretamente na tela de agendamento de consultas (`GET /backend/v1/financasmed/pacientes?medico_email=...`), preenchendo o autocomplete/seleção com badges indicando origem.
-2. **Cadastro / Sincronização Automática:** Ao criar um agendamento na V MED BRASIL, os dados do paciente são enviados automaticamente para o FinançasMed (`POST https://financas-medicas-pwa-64ab0.shrd00.internal.goskip.dev/api/hooks/vmed/pacientes`), garantindo que o paciente exista no FinançasMed antes ou durante o ciclo da consulta.
+2. **Cadastro / Sincronização Automática:** Ao criar um agendamento na V MED BRASIL, os dados do paciente são enviados automaticamente para o FinançasMed (`POST https://financas-medicas-pwa-64ab0.shrd00.internal.goskip.dev/backend/v1/hooks/vmed/pacientes`), garantindo que o paciente exista no FinançasMed antes ou durante o ciclo da consulta.
 3. **Cadastro Direto de Paciente:** Quando um paciente com role `patient` é cadastrado na V MED com vínculo a um médico (via `parent_id` ou `referred_by`), seus dados também são disparados para o FinançasMed do médico responsável.
 4. **Origem:** Os pacientes cadastrados via V MED entram automaticamente com origem `"vmed"`, aparecendo na tela `/pacientes` do médico no FinançasMed.
 5. **Landing Page:** Pacientes vindos da landing page pública do médico (`/agenda/:slug`) possuem origem `"landing"` e aparecem em ambos os sistemas.
@@ -29,7 +29,7 @@ No **FinançasMed**, cada médico possui seus pacientes cadastrados de forma iso
 ### 3.1. Listar Pacientes de um Médico
 
 - **Método:** `GET`
-- **URL externa:** `https://financas-medicas-pwa-64ab0.shrd00.internal.goskip.dev/api/hooks/vmed/pacientes`
+- **URL externa:** `https://financas-medicas-pwa-64ab0.shrd00.internal.goskip.dev/backend/v1/hooks/vmed/pacientes`
 - **Query param:** `medico_email` (obrigatório) — e-mail do médico no FinançasMed
 - **Header:** `X-API-Key: <V_MED_API_KEY>`
 
@@ -62,7 +62,7 @@ No **FinançasMed**, cada médico possui seus pacientes cadastrados de forma iso
 ### 3.2. Cadastrar / Atualizar Paciente via V MED BRASIL
 
 - **Método:** `POST`
-- **URL externa:** `https://financas-medicas-pwa-64ab0.shrd00.internal.goskip.dev/api/hooks/vmed/pacientes`
+- **URL externa:** `https://financas-medicas-pwa-64ab0.shrd00.internal.goskip.dev/backend/v1/hooks/vmed/pacientes`
 - **Headers:**
   - `Content-Type: application/json`
   - `X-API-Key: <V_MED_API_KEY>`
@@ -121,7 +121,7 @@ No **FinançasMed**, cada médico possui seus pacientes cadastrados de forma iso
 1. **`pocketbase/hooks/financasmed_pacientes_api.js`**:
    - Rota autenticada `GET /backend/v1/financasmed/pacientes?medico_email=...` protegida com `$apis.requireAuth()`.
    - Se o usuário autenticado for um médico (`role === 'professional'`) e omitir o parâmetro `medico_email`, o hook utiliza automaticamente o seu e-mail de login.
-   - Lê `V_MED_API_KEY` do ambiente via `$os.getenv('V_MED_API_KEY')` e repassa a requisição para `https://financas-medicas-pwa-64ab0.shrd00.internal.goskip.dev/api/hooks/vmed/pacientes`.
+   - Lê `V_MED_API_KEY` do ambiente via `$os.getenv('V_MED_API_KEY')` e repassa a requisição para `https://financas-medicas-pwa-64ab0.shrd00.internal.goskip.dev/backend/v1/hooks/vmed/pacientes`.
    - Log padronizado: `[FinançasMed] GET pacientes status ... | médico: ... | total: ...`.
 
 2. **`pocketbase/hooks/vmed_financasmed_pacientes_webhook.js`**:
@@ -130,7 +130,7 @@ No **FinançasMed**, cada médico possui seus pacientes cadastrados de forma iso
      - Expande `professional_id` para obter o `email` do médico.
      - Expande `patient_id` para obter nome, telefone, email, CPF (`document_id` / `tax_id`) e data de nascimento (`date_of_birth`).
      - Expande convênio caso exista `insurance_partner_id`.
-     - Executa `POST https://financas-medicas-pwa-64ab0.shrd00.internal.goskip.dev/api/hooks/vmed/pacientes` com timeout de 10s.
+     - Executa `POST https://financas-medicas-pwa-64ab0.shrd00.internal.goskip.dev/backend/v1/hooks/vmed/pacientes` com timeout de 10s.
      - Envolvido em `try/catch` com log `[FinançasMed] [appointment_create] ...`, **garantindo que qualquer instabilidade do FinançasMed nunca quebre o fluxo da V MED**.
    - `onRecordAfterCreateSuccess('users')`:
      - Disparado quando um usuário com `role === 'patient'` é cadastrado.

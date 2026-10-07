@@ -42,7 +42,7 @@ routerAdd(
 
     try {
       const targetUrl =
-        'https://financas-medicas-pwa-64ab0.shrd00.internal.goskip.dev/api/hooks/vmed/pacientes?medico_email=' +
+        'https://financas-medicas-pwa-64ab0.shrd00.internal.goskip.dev/backend/v1/hooks/vmed/pacientes?medico_email=' +
         encodeURIComponent(medicoEmail)
 
       const res = $http.send({
