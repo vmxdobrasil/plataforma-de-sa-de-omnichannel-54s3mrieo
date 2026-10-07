@@ -1,6 +1,6 @@
 // ============================================================
 // INTEGRAÇÃO V MED BRASIL -> FINANÇASMED (SINCRONIZAÇÃO DE PACIENTES)
-// Dispara POST https://financasmed.goskip.app/api/hooks/vmed/pacientes
+// Dispara POST https://financas-medicas-pwa-64ab0.shrd00.internal.goskip.dev/api/hooks/vmed/pacientes
 // quando:
 // 1) Um agendamento é criado (onRecordAfterCreateSuccess em 'appointments')
 // 2) Um paciente com role 'patient' é criado (onRecordAfterCreateSuccess em 'users')
@@ -100,7 +100,7 @@ onRecordAfterCreateSuccess((e) => {
 
         var res = $http.send({
           method: 'POST',
-          url: 'https://financasmed.goskip.app/api/hooks/vmed/pacientes',
+          url: 'https://financas-medicas-pwa-64ab0.shrd00.internal.goskip.dev/api/hooks/vmed/pacientes',
           headers: {
             'X-API-Key': apiKey,
             'Content-Type': 'application/json',
@@ -213,7 +213,7 @@ onRecordAfterCreateSuccess((e) => {
 
         var res = $http.send({
           method: 'POST',
-          url: 'https://financasmed.goskip.app/api/hooks/vmed/pacientes',
+          url: 'https://financas-medicas-pwa-64ab0.shrd00.internal.goskip.dev/api/hooks/vmed/pacientes',
           headers: {
             'X-API-Key': apiKey,
             'Content-Type': 'application/json',

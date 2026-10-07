@@ -257,7 +257,7 @@ O banco de dados PocketBase do projeto é composto por **31 coleções**, catego
    - **Desconto em Folha (_Payroll_):** O valor é autorizado contra o limite de folha da empresa.
    - **Split Corporativo:** O sistema abate o saldo corporativo restante e gera cobrança avulsa (PIX/Cartão) apenas da diferença.
 4. **Criação do Agendamento:** O registro é persistido na coleção `appointments` com status `scheduled`.
-5. **Gatilho de Sincronização FinançasMed (`vmed_financasmed_pacientes_webhook.js`):** O backend dispara uma chamada HTTP POST assíncrona (`https://financasmed.goskip.app/api/hooks/vmed/pacientes`) transmitindo os dados do paciente (nome, e-mail, telefone, CPF, convênio) para o app financeiro do médico. O código utiliza tratamento de erro seguro (não trava a V MED caso o serviço externo esteja offline).
+5. **Gatilho de Sincronização FinançasMed (`vmed_financasmed_pacientes_webhook.js`):** O backend dispara uma chamada HTTP POST assíncrona (`https://financas-medicas-pwa-64ab0.shrd00.internal.goskip.dev/api/hooks/vmed/pacientes`) transmitindo os dados do paciente (nome, e-mail, telefone, CPF, convênio) para o app financeiro do médico. O código utiliza tratamento de erro seguro (não trava a V MED caso o serviço externo esteja offline).
 6. **Finalização do Atendimento e Disparo GestãoMed:**
    - No encerramento da consulta em `ProfessionalDashboard.tsx`, o médico preenche a evolução clínica no prontuário e revisa o **bloco de dados financeiros**: `valor`, `forma_pagamento`, `status_pagamento` e `% repasse`.
    - A função `finalizeAppointment(apptId, paymentData)` atualiza a consulta para `status = 'completed'`.
